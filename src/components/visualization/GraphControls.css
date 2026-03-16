@@ -1,0 +1,43 @@
+.graph-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary, #f5f5f5);
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dark .graph-controls {
+  background: var(--bg-secondary, #2a2a2a);
+  border-bottom-color: var(--border-color, #333);
+}
+
+.graph-controls-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.graph-controls-layout-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 4px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #1a1a1a);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.dark .graph-controls-layout-select {
+  background: var(--bg-primary, #1e1e1e);
+  border-color: var(--border-color, #333);
+  color: var(--text-primary, #fff);
+}
+
+.graph-controls-layout-select:focus {
+  outline: none;
+  border-color: var(--accent-color, #646cff);
+  box-shadow: 0 0 0 3px rgba(100, 108, 255, 0.1);
+}

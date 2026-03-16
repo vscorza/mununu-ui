@@ -1,0 +1,23 @@
+This process describes test_order_processing.
+
+The process begins when Order Received by Customer.
+After this (order_placed), the process moves to Validate Order.
+Next, Validate Order (System) executes a service.
+After this (validated), the process moves to Check Inventory.
+At Check Inventory (System), a decision is made:
+  - The process continues to Process Payment (in_stock) if stock >= quantity.
+  Next, Process Payment (Payment) executes a service.
+  After this (payment_confirmed), the process moves to Prepare Shipment.
+  Next, Prepare Shipment (Warehouse) requires user action.
+  After this (packed), the process moves to Ship Order.
+  Next, Ship Order (Shipping) requires user action.
+  After this (shipped), the process moves to Gateway Join.
+  The parallel paths join at Gateway Join (Process).
+  After this (complete), the process moves to Order Complete.
+  - The process continues to Backorder (out_of_stock) if stock < quantity.
+  Next, Backorder (Warehouse) requires user action.
+  After this (backordered), the process moves to Gateway Join.
+  The parallel paths join at Gateway Join (Process).
+  After this (complete), the process moves to Order Complete.
+
+The process completes when Order Complete is reached.

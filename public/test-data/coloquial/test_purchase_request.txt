@@ -1,0 +1,25 @@
+This process describes test_purchase_request.
+
+The process begins when Submit Request by Employee.
+After this (submit), the process moves to Check Budget.
+At Check Budget (Finance), a decision is made:
+  - The process continues to Manager Approval (within_budget) if amount <= 5000.
+  Next, Manager Approval (Manager) requires user action.
+  After this (reviewed), the process moves to Manager Decision.
+  At Manager Decision (Manager), a decision is made:
+    - The process continues to Process Purchase (approved) if this condition is met.
+    Next, Process Purchase (Procurement) executes a service.
+    After this (purchase_complete), the process moves to Approved.
+    - The process continues to Rejected (rejected) if this condition is met.
+  - The process continues to C F O Approval (exceeds_budget) if amount > 5000.
+  Next, C F O Approval (CFO) requires user action.
+  After this (reviewed), the process moves to C F O Decision.
+  At C F O Decision (CFO), a decision is made:
+    - The process continues to Process Purchase (approved) if this condition is met.
+    Next, Process Purchase (Procurement) executes a service.
+    After this (purchase_complete), the process moves to Approved.
+    - The process continues to Rejected (rejected) if this condition is met.
+
+The process can complete in 2 different ways:
+  - Rejected
+  - Approved

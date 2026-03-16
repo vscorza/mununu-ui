@@ -1,0 +1,181 @@
+.proof-obligations {
+  background: var(--bg-secondary, #f5f5f5);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dark .proof-obligations {
+  background: var(--bg-secondary, #2a2a2a);
+  border-color: var(--border-color, #333);
+}
+
+.proof-obligations-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary, #666);
+}
+
+.dark .proof-obligations-empty {
+  color: var(--text-secondary, #999);
+}
+
+.proof-obligations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.proof-obligations-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.dark .proof-obligations-title {
+  color: var(--text-primary, #fff);
+}
+
+.proof-obligations-count {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #666);
+  font-weight: 500;
+}
+
+.dark .proof-obligations-count {
+  color: var(--text-secondary, #999);
+}
+
+.proof-obligations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.proof-obligation-item {
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dark .proof-obligation-item {
+  background: var(--bg-primary, #1e1e1e);
+  border-color: var(--border-color, #333);
+}
+
+.proof-obligation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.proof-obligation-header:hover {
+  background: var(--bg-hover, #f9f9f9);
+}
+
+.dark .proof-obligation-header:hover {
+  background: var(--bg-hover, #2a2a2a);
+}
+
+.proof-obligation-state {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.proof-obligation-state-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #666);
+  font-weight: 500;
+}
+
+.dark .proof-obligation-state-label {
+  color: var(--text-secondary, #999);
+}
+
+.proof-obligation-state-value {
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: var(--text-primary, #1a1a1a);
+  font-weight: 600;
+}
+
+.dark .proof-obligation-state-value {
+  color: var(--text-primary, #fff);
+}
+
+.proof-obligation-expand {
+  color: var(--text-secondary, #666);
+  font-size: 0.875rem;
+  transition: transform 0.2s ease;
+}
+
+.dark .proof-obligation-expand {
+  color: var(--text-secondary, #999);
+}
+
+.proof-obligation-detail {
+  padding: 0.75rem;
+  padding-top: 0;
+  border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+.dark .proof-obligation-detail {
+  border-top-color: var(--border-color, #333);
+}
+
+.proof-obligation-detail-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.dark .proof-obligation-detail-label {
+  color: var(--text-secondary, #999);
+}
+
+.proof-obligation-detail-content {
+  font-size: 0.875rem;
+  color: var(--text-primary, #1a1a1a);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.dark .proof-obligation-detail-content {
+  color: var(--text-primary, #fff);
+}
+
+.proof-obligations-info {
+  background: var(--bg-info, #eff6ff);
+  border: 1px solid var(--border-info, #bfdbfe);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.dark .proof-obligations-info {
+  background: var(--bg-info, #1e3a5f);
+  border-color: var(--border-info, #3b82f6);
+}
+
+.proof-obligations-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-primary, #1a1a1a);
+  line-height: 1.6;
+}
+
+.dark .proof-obligations-description {
+  color: var(--text-primary, #fff);
+}

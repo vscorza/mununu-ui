@@ -1,0 +1,43 @@
+This process describes test_parallel_split_join.
+
+The process begins when Start by Process.
+After this (begin), the process moves to Split1.
+The process splits into parallel paths at Split1 (Process).
+  - One path goes to Task1 (fork1).
+  Next, Task1 (Lane1) performs a task.
+  After this (complete1), the process moves to Join1.
+  The parallel paths join at Join1 (Process).
+  After this (sync1), the process moves to Intermediate Task.
+    Next, Intermediate Task (Process) performs a task.
+    After this (intermediate_complete), the process moves to Split2.
+    The process splits into parallel paths at Split2 (Process).
+      - One path goes to Task3 (fork3).
+      Next, Task3 (Lane3) performs a task.
+      After this (complete3), the process moves to Join2.
+      The parallel paths join at Join2 (Process).
+      After this (sync2), the process moves to End.
+      - One path goes to Task4 (fork4).
+      Next, Task4 (Lane4) performs a task.
+      After this (complete4), the process moves to Join2.
+      The parallel paths join at Join2 (Process).
+      After this (sync2), the process moves to End.
+  - One path goes to Task2 (fork2).
+  Next, Task2 (Lane2) performs a task.
+  After this (complete2), the process moves to Join1.
+  The parallel paths join at Join1 (Process).
+  After this (sync1), the process moves to Intermediate Task.
+    Next, Intermediate Task (Process) performs a task.
+    After this (intermediate_complete), the process moves to Split2.
+    The process splits into parallel paths at Split2 (Process).
+      - One path goes to Task3 (fork3).
+      Next, Task3 (Lane3) performs a task.
+      After this (complete3), the process moves to Join2.
+      The parallel paths join at Join2 (Process).
+      After this (sync2), the process moves to End.
+      - One path goes to Task4 (fork4).
+      Next, Task4 (Lane4) performs a task.
+      After this (complete4), the process moves to Join2.
+      The parallel paths join at Join2 (Process).
+      After this (sync2), the process moves to End.
+
+The process completes when End is reached.

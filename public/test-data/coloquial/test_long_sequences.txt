@@ -1,0 +1,46 @@
+This process describes test_long_sequences.
+
+The process begins when Start by Process.
+After this (begin), the process moves to Step1.
+Next, Step1 (Process) performs a task.
+After this (next), the process moves to Step2.
+Next, Step2 (Process) performs a task.
+After this (next), the process moves to Step3.
+Next, Step3 (Process) performs a task.
+After this (next), the process moves to Step4.
+Next, Step4 (Process) performs a task.
+After this (next), the process moves to Step5.
+Next, Step5 (Process) performs a task.
+After this (next), the process moves to Step6.
+Next, Step6 (Process) performs a task.
+After this (next), the process moves to Step7.
+Next, Step7 (Process) performs a task.
+After this (next), the process moves to Step8.
+Next, Step8 (Process) performs a task.
+After this (next), the process moves to Step9.
+Next, Step9 (Process) performs a task.
+After this (next), the process moves to Step10.
+Next, Step10 (Process) performs a task.
+After this (next), the process moves to Step11.
+Next, Step11 (Process) performs a task.
+After this (next), the process moves to Step12.
+Next, Step12 (Process) performs a task.
+After this (next), the process moves to Step13.
+Next, Step13 (Process) performs a task.
+After this (next), the process moves to Step14.
+Next, Step14 (Process) performs a task.
+After this (next), the process moves to Step15.
+Next, Step15 (Process) performs a task.
+After this (next), the process moves to Step16.
+Next, Step16 (Process) performs a task.
+After this (next), the process moves to Step17.
+Next, Step17 (Process) performs a task.
+After this (next), the process moves to Step18.
+Next, Step18 (Process) performs a task.
+After this (next), the process moves to Step19.
+Next, Step19 (Process) performs a task.
+After this (next), the process moves to Step20.
+Next, Step20 (Process) performs a task.
+After this (complete), the process moves to End.
+
+The process completes when End is reached.

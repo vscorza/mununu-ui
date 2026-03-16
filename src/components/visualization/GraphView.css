@@ -1,0 +1,44 @@
+.graph-view-container {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  position: relative;
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dark .graph-view-container {
+  background: var(--bg-primary, #1e1e1e);
+  border-color: var(--border-color, #333);
+}
+
+.graph-view-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+}
+
+.graph-view-tooltip {
+  position: absolute;
+  background: var(--bg-tooltip, rgba(0, 0, 0, 0.9));
+  color: var(--text-tooltip, #fff);
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  pointer-events: none;
+  z-index: 1000;
+  display: none;
+  max-width: 300px;
+  word-wrap: break-word;
+}
+
+.dark .graph-view-tooltip {
+  background: var(--bg-tooltip, rgba(255, 255, 255, 0.9));
+  color: var(--text-tooltip, #000);
+}
+
+.graph-view-tooltip.visible {
+  display: block;
+}

@@ -1,0 +1,8 @@
+This process describes test_tasks_basic.
+
+The process begins when Start by Lane1.
+After this (begin), the process moves to Generic Task.
+Next, Generic Task (Lane1) performs a task.
+After this (complete), the process moves to End.
+
+The process completes when End is reached.

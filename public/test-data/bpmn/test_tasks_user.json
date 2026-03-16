@@ -1,0 +1,68 @@
+{
+  "name": "test_tasks_user",
+  "states": [
+    {
+      "name": "Start",
+      "initial": true,
+      "kind": "startEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "User",
+      "attached_to": null
+    },
+    {
+      "name": "ReviewDocument",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "User",
+      "attached_to": null
+    },
+    {
+      "name": "ApproveRequest",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Manager",
+      "attached_to": null
+    },
+    {
+      "name": "End",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Manager",
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "Start",
+      "to": "ReviewDocument",
+      "label": "start_review",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ReviewDocument",
+      "to": "ApproveRequest",
+      "label": "submit_for_approval",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ApproveRequest",
+      "to": "End",
+      "label": "approved",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [],
+  "properties": [],
+  "message_flows": []
+}
+

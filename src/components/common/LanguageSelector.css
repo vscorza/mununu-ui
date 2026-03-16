@@ -1,0 +1,32 @@
+.language-selector {
+  display: flex;
+  align-items: center;
+}
+
+.language-selector-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 4px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #1a1a1a);
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark .language-selector-select {
+  border-color: var(--border-color, #333);
+  background: var(--bg-primary, #1e1e1e);
+  color: var(--text-primary, #fff);
+}
+
+.language-selector-select:hover {
+  border-color: var(--primary-color, #3b82f6);
+}
+
+.language-selector-select:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}

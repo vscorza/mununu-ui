@@ -1,0 +1,155 @@
+{
+  "name": "test_order_processing",
+  "states": [
+    {
+      "name": "OrderReceived",
+      "initial": true,
+      "kind": "startEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Customer",
+      "attached_to": null
+    },
+    {
+      "name": "ValidateOrder",
+      "initial": false,
+      "kind": "serviceTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "System",
+      "attached_to": null
+    },
+    {
+      "name": "CheckInventory",
+      "initial": false,
+      "kind": "exclusiveGateway",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "System",
+      "attached_to": null
+    },
+    {
+      "name": "ProcessPayment",
+      "initial": false,
+      "kind": "serviceTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Payment",
+      "attached_to": null
+    },
+    {
+      "name": "PrepareShipment",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Warehouse",
+      "attached_to": null
+    },
+    {
+      "name": "ShipOrder",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Shipping",
+      "attached_to": null
+    },
+    {
+      "name": "Backorder",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Warehouse",
+      "attached_to": null
+    },
+    {
+      "name": "GatewayJoin",
+      "initial": false,
+      "kind": "exclusiveGateway",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "OrderComplete",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Customer",
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "OrderReceived",
+      "to": "ValidateOrder",
+      "label": "order_placed",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ValidateOrder",
+      "to": "CheckInventory",
+      "label": "validated",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "CheckInventory",
+      "to": "ProcessPayment",
+      "label": "in_stock",
+      "guard": "stock >= quantity",
+      "effects": []
+    },
+    {
+      "from": "CheckInventory",
+      "to": "Backorder",
+      "label": "out_of_stock",
+      "guard": "stock < quantity",
+      "effects": []
+    },
+    {
+      "from": "ProcessPayment",
+      "to": "PrepareShipment",
+      "label": "payment_confirmed",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "PrepareShipment",
+      "to": "ShipOrder",
+      "label": "packed",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ShipOrder",
+      "to": "GatewayJoin",
+      "label": "shipped",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "Backorder",
+      "to": "GatewayJoin",
+      "label": "backordered",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "GatewayJoin",
+      "to": "OrderComplete",
+      "label": "complete",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [],
+  "properties": [],
+  "message_flows": []
+}
+

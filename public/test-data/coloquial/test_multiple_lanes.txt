@@ -1,0 +1,16 @@
+This process describes test_multiple_lanes.
+
+The process begins when Start by Lane1.
+After this (begin), the process moves to Task1.
+Next, Task1 (Lane1) performs a task.
+After this (cross_lane_1_2), the process moves to Task2.
+Next, Task2 (Lane2) performs a task.
+After this (cross_lane_2_3), the process moves to Task3.
+Next, Task3 (Lane3) performs a task.
+After this (cross_lane_3_4), the process moves to Task4.
+Next, Task4 (Lane4) performs a task.
+After this (cross_lane_4_5), the process moves to Task5.
+Next, Task5 (Lane5) performs a task.
+After this (complete), the process moves to End.
+
+The process completes when End is reached.

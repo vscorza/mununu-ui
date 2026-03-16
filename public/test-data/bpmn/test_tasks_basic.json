@@ -1,0 +1,52 @@
+{
+  "name": "test_tasks_basic",
+  "states": [
+    {
+      "name": "Start",
+      "initial": true,
+      "kind": "startEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Lane1",
+      "attached_to": null
+    },
+    {
+      "name": "GenericTask",
+      "initial": false,
+      "kind": "task",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Lane1",
+      "attached_to": null
+    },
+    {
+      "name": "End",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Lane1",
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "Start",
+      "to": "GenericTask",
+      "label": "begin",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "GenericTask",
+      "to": "End",
+      "label": "complete",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [],
+  "properties": [],
+  "message_flows": []
+}
+

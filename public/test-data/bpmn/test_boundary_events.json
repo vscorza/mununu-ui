@@ -1,0 +1,102 @@
+{
+  "name": "test_boundary_events",
+  "states": [
+    {
+      "name": "Start",
+      "initial": true,
+      "kind": "startEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "MainTask",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "ErrorHandler",
+      "initial": false,
+      "kind": "boundaryEvent",
+      "is_for_compensation": false,
+      "event_kinds": ["error"],
+      "role": "Process",
+      "attached_to": "MainTask"
+    },
+    {
+      "name": "TimerHandler",
+      "initial": false,
+      "kind": "boundaryEvent",
+      "is_for_compensation": false,
+      "event_kinds": ["timer"],
+      "role": "Process",
+      "attached_to": "MainTask"
+    },
+    {
+      "name": "NormalEnd",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "ErrorEnd",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "TimeoutEnd",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "Start",
+      "to": "MainTask",
+      "label": "begin",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "MainTask",
+      "to": "NormalEnd",
+      "label": "complete",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ErrorHandler",
+      "to": "ErrorEnd",
+      "label": "error_occurred",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "TimerHandler",
+      "to": "TimeoutEnd",
+      "label": "timeout",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [],
+  "properties": [],
+  "message_flows": []
+}
+

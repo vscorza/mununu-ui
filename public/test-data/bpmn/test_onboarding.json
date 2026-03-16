@@ -1,0 +1,155 @@
+{
+  "name": "test_onboarding",
+  "states": [
+    {
+      "name": "NewEmployee",
+      "initial": true,
+      "kind": "startEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "HR",
+      "attached_to": null
+    },
+    {
+      "name": "ParallelStart",
+      "initial": false,
+      "kind": "parallelGateway",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "HR",
+      "attached_to": null
+    },
+    {
+      "name": "SetupWorkstation",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "IT",
+      "attached_to": null
+    },
+    {
+      "name": "ProvideCredentials",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "IT",
+      "attached_to": null
+    },
+    {
+      "name": "ScheduleOrientation",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "HR",
+      "attached_to": null
+    },
+    {
+      "name": "PrepareDocuments",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "HR",
+      "attached_to": null
+    },
+    {
+      "name": "ParallelJoin",
+      "initial": false,
+      "kind": "parallelGateway",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "HR",
+      "attached_to": null
+    },
+    {
+      "name": "WelcomeMeeting",
+      "initial": false,
+      "kind": "userTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Manager",
+      "attached_to": null
+    },
+    {
+      "name": "OnboardingComplete",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "HR",
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "NewEmployee",
+      "to": "ParallelStart",
+      "label": "employee_started",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ParallelStart",
+      "to": "SetupWorkstation",
+      "label": "fork_it",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ParallelStart",
+      "to": "ScheduleOrientation",
+      "label": "fork_hr",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "SetupWorkstation",
+      "to": "ProvideCredentials",
+      "label": "workstation_ready",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ScheduleOrientation",
+      "to": "PrepareDocuments",
+      "label": "orientation_scheduled",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ProvideCredentials",
+      "to": "ParallelJoin",
+      "label": "credentials_provided",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "PrepareDocuments",
+      "to": "ParallelJoin",
+      "label": "documents_ready",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ParallelJoin",
+      "to": "WelcomeMeeting",
+      "label": "sync",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "WelcomeMeeting",
+      "to": "OnboardingComplete",
+      "label": "meeting_complete",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [],
+  "properties": [],
+  "message_flows": []
+}
+

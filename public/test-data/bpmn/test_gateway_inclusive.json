@@ -1,0 +1,130 @@
+{
+  "name": "test_gateway_inclusive",
+  "states": [
+    {
+      "name": "Start",
+      "initial": true,
+      "kind": "startEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "InclusiveSplit",
+      "initial": false,
+      "kind": "inclusiveGateway",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "Path1",
+      "initial": false,
+      "kind": "task",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Lane1",
+      "attached_to": null
+    },
+    {
+      "name": "Path2",
+      "initial": false,
+      "kind": "task",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Lane2",
+      "attached_to": null
+    },
+    {
+      "name": "Path3",
+      "initial": false,
+      "kind": "task",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Lane3",
+      "attached_to": null
+    },
+    {
+      "name": "InclusiveJoin",
+      "initial": false,
+      "kind": "inclusiveGateway",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "End",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "Start",
+      "to": "InclusiveSplit",
+      "label": "begin",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "InclusiveSplit",
+      "to": "Path1",
+      "label": "path1",
+      "guard": "condition1 == true",
+      "effects": []
+    },
+    {
+      "from": "InclusiveSplit",
+      "to": "Path2",
+      "label": "path2",
+      "guard": "condition2 == true",
+      "effects": []
+    },
+    {
+      "from": "InclusiveSplit",
+      "to": "Path3",
+      "label": "path3",
+      "guard": "condition3 == true",
+      "effects": []
+    },
+    {
+      "from": "Path1",
+      "to": "InclusiveJoin",
+      "label": "complete1",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "Path2",
+      "to": "InclusiveJoin",
+      "label": "complete2",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "Path3",
+      "to": "InclusiveJoin",
+      "label": "complete3",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "InclusiveJoin",
+      "to": "End",
+      "label": "merge",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [],
+  "properties": [],
+  "message_flows": []
+}
+

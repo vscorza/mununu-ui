@@ -1,0 +1,52 @@
+{
+  "name": "test_tasks_script",
+  "states": [
+    {
+      "name": "Start",
+      "initial": true,
+      "kind": "startEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "System",
+      "attached_to": null
+    },
+    {
+      "name": "ExecuteScript",
+      "initial": false,
+      "kind": "scriptTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "System",
+      "attached_to": null
+    },
+    {
+      "name": "End",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "System",
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "Start",
+      "to": "ExecuteScript",
+      "label": "begin",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ExecuteScript",
+      "to": "End",
+      "label": "script_complete",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [],
+  "properties": [],
+  "message_flows": []
+}
+

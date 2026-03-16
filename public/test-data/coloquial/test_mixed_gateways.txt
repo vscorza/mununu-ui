@@ -1,0 +1,43 @@
+This process describes test_mixed_gateways.
+
+The process begins when Start by Process.
+After this (begin), the process moves to Parallel Split.
+The process splits into parallel paths at Parallel Split (Process).
+  - One path goes to Branch A (fork_a).
+  Next, Branch A (LaneA) performs a task.
+  After this (complete_a), the process moves to Exclusive Decision.
+  At Exclusive Decision (LaneA), a decision is made:
+    - The process continues to Path1 (path1) if option == 1.
+    Next, Path1 (LaneA) performs a task.
+    After this (complete1), the process moves to Exclusive Join.
+    The parallel paths join at Exclusive Join (LaneA).
+    After this (merge_a), the process moves to Parallel Join.
+      The parallel paths join at Parallel Join (Process).
+      After this (sync), the process moves to End.
+    - The process continues to Path2 (path2) if option == 2.
+    Next, Path2 (LaneA) performs a task.
+    After this (complete2), the process moves to Exclusive Join.
+    The parallel paths join at Exclusive Join (LaneA).
+    After this (merge_a), the process moves to Parallel Join.
+      The parallel paths join at Parallel Join (Process).
+      After this (sync), the process moves to End.
+  - One path goes to Branch B (fork_b).
+  Next, Branch B (LaneB) performs a task.
+  After this (complete_b), the process moves to Inclusive Split.
+  At Inclusive Split (LaneB), one or more paths can be taken:
+    - The process continues to Optional Path1 (optional1) if condition1 == true.
+    Next, Optional Path1 (LaneB) performs a task.
+    After this (complete_opt1), the process moves to Inclusive Join.
+    The parallel paths join at Inclusive Join (LaneB).
+    After this (merge_b), the process moves to Parallel Join.
+      The parallel paths join at Parallel Join (Process).
+      After this (sync), the process moves to End.
+    - The process continues to Optional Path2 (optional2) if condition2 == true.
+    Next, Optional Path2 (LaneB) performs a task.
+    After this (complete_opt2), the process moves to Inclusive Join.
+    The parallel paths join at Inclusive Join (LaneB).
+    After this (merge_b), the process moves to Parallel Join.
+      The parallel paths join at Parallel Join (Process).
+      After this (sync), the process moves to End.
+
+The process completes when End is reached.

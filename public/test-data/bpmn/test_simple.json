@@ -1,0 +1,113 @@
+{
+  "name": "Simple Process",
+  "states": [
+    {
+      "name": "start",
+      "kind": "StartEvent",
+      "initial": true,
+      "role": null,
+      "event_kinds": [],
+      "is_for_compensation": false,
+      "attached_to": null
+    },
+    {
+      "name": "task1",
+      "kind": "Task",
+      "initial": false,
+      "role": "User",
+      "event_kinds": [],
+      "is_for_compensation": false,
+      "attached_to": null
+    },
+    {
+      "name": "decision",
+      "kind": "ExclusiveGateway",
+      "initial": false,
+      "role": null,
+      "event_kinds": [],
+      "is_for_compensation": false,
+      "attached_to": null
+    },
+    {
+      "name": "task2",
+      "kind": "Task",
+      "initial": false,
+      "role": "User",
+      "event_kinds": [],
+      "is_for_compensation": false,
+      "attached_to": null
+    },
+    {
+      "name": "task3",
+      "kind": "Task",
+      "initial": false,
+      "role": "User",
+      "event_kinds": [],
+      "is_for_compensation": false,
+      "attached_to": null
+    },
+    {
+      "name": "end",
+      "kind": "EndEvent",
+      "initial": false,
+      "role": null,
+      "event_kinds": [],
+      "is_for_compensation": false,
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "start",
+      "to": "task1",
+      "label": "Start Process",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "task1",
+      "to": "decision",
+      "label": "Complete Task",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "decision",
+      "to": "task2",
+      "label": "Path A",
+      "guard": "condition == true",
+      "effects": []
+    },
+    {
+      "from": "decision",
+      "to": "task3",
+      "label": "Path B",
+      "guard": "condition == false",
+      "effects": []
+    },
+    {
+      "from": "task2",
+      "to": "end",
+      "label": "Complete",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "task3",
+      "to": "end",
+      "label": "Complete",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [
+    {
+      "name": "condition",
+      "ty": "bool",
+      "initial": false
+    }
+  ],
+  "properties": [],
+  "message_flows": []
+}
+

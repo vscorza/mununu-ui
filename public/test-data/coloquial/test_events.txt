@@ -1,0 +1,10 @@
+This process describes test_events.
+
+The process begins when Start.
+After this (start_process), the process moves to Intermediate Message.
+Next, Intermediate Message triggers an intermediate event.
+After this (receive_message), the process moves to Intermediate Timer.
+Next, Intermediate Timer triggers an intermediate event.
+After this (timer_expired), the process moves to End.
+
+The process completes when End is reached.

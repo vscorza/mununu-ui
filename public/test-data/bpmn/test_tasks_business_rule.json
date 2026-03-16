@@ -1,0 +1,52 @@
+{
+  "name": "test_tasks_business_rule",
+  "states": [
+    {
+      "name": "Start",
+      "initial": true,
+      "kind": "startEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "EvaluateRule",
+      "initial": false,
+      "kind": "businessRuleTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "End",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "Start",
+      "to": "EvaluateRule",
+      "label": "begin",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "EvaluateRule",
+      "to": "End",
+      "label": "rule_evaluated",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [],
+  "properties": [],
+  "message_flows": []
+}
+

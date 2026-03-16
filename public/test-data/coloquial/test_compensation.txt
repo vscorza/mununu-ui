@@ -1,0 +1,15 @@
+This process describes test_compensation.
+
+The process begins when Start by Process.
+After this (begin), the process moves to Book Flight.
+Next, Book Flight (Booking) executes a service.
+After this (flight_booked), the process moves to Book Hotel.
+Next, Book Hotel (Booking) executes a service.
+Next, Error Occurred (Process) triggers an intermediate event.
+After this (compensate_hotel), the process moves to Cancel Hotel.
+Next, Cancel Hotel (Booking) executes a service.
+After this (hotel_cancelled), the process moves to Cancel Flight.
+Next, Cancel Flight (Booking) executes a service.
+After this (flight_cancelled), the process moves to End.
+
+The process completes when End is reached.

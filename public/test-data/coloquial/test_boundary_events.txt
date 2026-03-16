@@ -1,0 +1,11 @@
+This process describes test_boundary_events.
+
+The process begins when Start by Process.
+After this (begin), the process moves to Main Task.
+Next, Main Task (Process) requires user action.
+After this (complete), the process moves to Normal End.
+
+The process can complete in 3 different ways:
+  - Normal End
+  - Error End
+  - Timeout End

@@ -1,0 +1,146 @@
+:root {
+  /* Colors - Light Theme */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-color: #e2e8f0;
+  --border-hover: #cbd5e1;
+  --hover-bg: #f1f5f9;
+  --active-bg: #e0f2fe;
+  --card-bg: #f8fafc;
+  --input-bg: #ffffff;
+  --disabled-bg: #f1f5f9;
+  --modal-bg: #ffffff;
+
+  /* Primary Colors - Vibrant Blue */
+  --primary-color: #3b82f6;
+  --primary-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --primary-bg-solid: #3b82f6;
+  --primary-text: #ffffff;
+  --primary-hover: #2563eb;
+  --focus-color: #3b82f6;
+  --focus-ring: rgba(59, 130, 246, 0.3);
+
+  /* Secondary Colors - Purple */
+  --secondary-bg: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  --secondary-bg-solid: #a855f7;
+  --secondary-text: #ffffff;
+  --secondary-hover: #9333ea;
+
+  /* Accent Colors */
+  --accent-purple: #a855f7;
+  --accent-pink: #ec4899;
+  --accent-orange: #f97316;
+  --accent-teal: #14b8a6;
+  --accent-cyan: #06b6d4;
+  --accent-indigo: #6366f1;
+  --accent-yellow: #eab308;
+
+  /* Danger Colors - Vibrant Red */
+  --danger-bg: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --danger-bg-solid: #ef4444;
+  --danger-text: #ffffff;
+  --danger-hover: #dc2626;
+  --error-border: #ef4444;
+  --error-text: #dc2626;
+  --error-bg: #fef2f2;
+  --error-ring: rgba(239, 68, 68, 0.3);
+
+  /* Success Colors - Vibrant Green */
+  --success-bg: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  --success-bg-solid: #22c55e;
+  --success-border: #22c55e;
+  --success-text: #ffffff;
+  --success-text-dark: #166534;
+
+  /* Warning Colors */
+  --warning-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --warning-bg-solid: #f59e0b;
+  --warning-text: #ffffff;
+  --warning-text-dark: #92400e;
+
+  /* Info Colors */
+  --info-bg: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  --info-bg-solid: #06b6d4;
+  --info-text: #ffffff;
+
+  /* Ghost Button */
+  --ghost-text: #475569;
+  --ghost-hover: #f1f5f9;
+}
+
+[data-theme='dark'],
+.dark {
+  /* Colors - Dark Theme */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+  --border-hover: #475569;
+  --hover-bg: #334155;
+  --active-bg: #1e40af;
+  --card-bg: #1e293b;
+  --input-bg: #1e293b;
+  --disabled-bg: #334155;
+  --modal-bg: #1e293b;
+
+  /* Primary Colors - Bright Blue */
+  --primary-color: #60a5fa;
+  --primary-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --primary-bg-solid: #3b82f6;
+  --primary-text: #ffffff;
+  --primary-hover: #60a5fa;
+  --focus-color: #60a5fa;
+  --focus-ring: rgba(96, 165, 250, 0.3);
+
+  /* Secondary Colors - Bright Purple */
+  --secondary-bg: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  --secondary-bg-solid: #a855f7;
+  --secondary-text: #ffffff;
+  --secondary-hover: #c084fc;
+
+  /* Accent Colors */
+  --accent-purple: #c084fc;
+  --accent-pink: #f472b6;
+  --accent-orange: #fb923c;
+  --accent-teal: #2dd4bf;
+  --accent-cyan: #22d3ee;
+  --accent-indigo: #818cf8;
+  --accent-yellow: #fde047;
+
+  /* Danger Colors - Bright Red */
+  --danger-bg: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --danger-bg-solid: #ef4444;
+  --danger-text: #ffffff;
+  --danger-hover: #f87171;
+  --error-border: #ef4444;
+  --error-text: #fca5a5;
+  --error-bg: rgba(239, 68, 68, 0.15);
+  --error-ring: rgba(239, 68, 68, 0.3);
+
+  /* Success Colors - Bright Green */
+  --success-bg: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  --success-bg-solid: #22c55e;
+  --success-border: #22c55e;
+  --success-text: #ffffff;
+  --success-text-dark: #86efac;
+
+  /* Warning Colors */
+  --warning-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --warning-bg-solid: #f59e0b;
+  --warning-text: #ffffff;
+  --warning-text-dark: #fde047;
+
+  /* Info Colors */
+  --info-bg: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  --info-bg-solid: #06b6d4;
+  --info-text: #ffffff;
+
+  /* Ghost Button */
+  --ghost-text: #cbd5e1;
+  --ghost-hover: #334155;
+}

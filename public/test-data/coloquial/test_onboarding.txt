@@ -1,0 +1,25 @@
+This process describes test_onboarding.
+
+The process begins when New Employee by HR.
+After this (employee_started), the process moves to Parallel Start.
+The process splits into parallel paths at Parallel Start (HR).
+  - One path goes to Setup Workstation (fork_it).
+  Next, Setup Workstation (IT) requires user action.
+  After this (workstation_ready), the process moves to Provide Credentials.
+  Next, Provide Credentials (IT) requires user action.
+  After this (credentials_provided), the process moves to Parallel Join.
+  The parallel paths join at Parallel Join (HR).
+  After this (sync), the process moves to Welcome Meeting.
+    Next, Welcome Meeting (Manager) requires user action.
+    After this (meeting_complete), the process moves to Onboarding Complete.
+  - One path goes to Schedule Orientation (fork_hr).
+  Next, Schedule Orientation (HR) requires user action.
+  After this (orientation_scheduled), the process moves to Prepare Documents.
+  Next, Prepare Documents (HR) requires user action.
+  After this (documents_ready), the process moves to Parallel Join.
+  The parallel paths join at Parallel Join (HR).
+  After this (sync), the process moves to Welcome Meeting.
+    Next, Welcome Meeting (Manager) requires user action.
+    After this (meeting_complete), the process moves to Onboarding Complete.
+
+The process completes when Onboarding Complete is reached.

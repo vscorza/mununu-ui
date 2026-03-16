@@ -1,0 +1,53 @@
+
+A community health clinic in **Córdoba, Argentina** runs a weekly workflow to **schedule specialist consultations** (cardiology, neurology, endocrinology) for patients who come in through a referral.
+
+1. **Intake & triage**
+
+* A patient requests an appointment (phone, WhatsApp, or in person). A receptionist opens a “request” and captures: referral reason, preferred days, insurance status, and urgency.
+* A nurse does a quick triage to assign a priority level and confirm the specialty.
+
+2. **Eligibility decision — XOR**
+
+* If the patient **has insurance**, the clinic proceeds with the insurance path.
+* If the patient **doesn’t have insurance**, the clinic proceeds with the self-pay path.
+* (Only one path applies here, so it’s an **XOR-style decision**.)
+
+3. **Parallel preparation — AND**
+   Once the request is accepted, the clinic starts **two things in parallel**:
+
+* The receptionist **reserves a tentative slot** in the calendar with the specialist.
+* The nurse/admin **collects clinical prerequisites** (recent lab results, prior studies, medication list) and prepares a short pre-visit summary.
+  (This is an **AND-style “do both” step**.)
+
+4. **Optional extra requirements — OR**
+   Depending on the case, the clinic may need **one or more** extra actions before confirming:
+
+* If symptoms are severe, the nurse may request an **urgent ECG**.
+* If the referral is for a chronic condition, they may request **recent lab work**.
+* If the patient is new, they may request **ID verification**.
+  Sometimes it’s just one of these; sometimes it’s **two or all three**, so it behaves like an **OR/inclusive decision** (“one or more may be required”).
+
+5. **Waiting on patient/insurer response — Event-based**
+   After the clinic sends the patient a message (“Please send documents / confirm you can attend”), the process **waits for whichever event happens first**:
+
+* The patient **replies with the requested documents** (message event), or
+* The patient **confirms attendance** (message event), or
+* **48 hours pass** with no response (timer event).
+  This is an **event-based choice**: the next step depends on which event arrives first.
+
+6. **Confirmation decision — XOR**
+
+* If documents are complete and the patient confirms, the appointment is **confirmed**.
+* If documents are incomplete, the clinic **requests missing items** (and returns to the waiting step).
+* If the timer expires with no response, the clinic **releases the tentative slot** and marks the request as “not confirmed.”
+  (Each outcome is mutually exclusive, so it’s an **XOR-style decision**.)
+
+7. **Day-before actions — AND**
+   For confirmed appointments, the day before the visit:
+
+* The receptionist sends **reminders + directions**.
+* The nurse prints/exports the **pre-visit summary** and flags any risks.
+  (Again, **AND-style parallel work**.)
+
+8. **Visit completion**
+   After the consultation, the specialist records outcomes and the clinic closes the request, optionally scheduling follow-up.

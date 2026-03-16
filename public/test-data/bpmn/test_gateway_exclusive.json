@@ -1,0 +1,107 @@
+{
+  "name": "test_gateway_exclusive",
+  "states": [
+    {
+      "name": "Start",
+      "initial": true,
+      "kind": "startEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "CheckCondition",
+      "initial": false,
+      "kind": "exclusiveGateway",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "PathA",
+      "initial": false,
+      "kind": "task",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "PathB",
+      "initial": false,
+      "kind": "task",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "GatewayJoin",
+      "initial": false,
+      "kind": "exclusiveGateway",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "End",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "Start",
+      "to": "CheckCondition",
+      "label": "begin",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "CheckCondition",
+      "to": "PathA",
+      "label": "condition_true",
+      "guard": "condition == true",
+      "effects": []
+    },
+    {
+      "from": "CheckCondition",
+      "to": "PathB",
+      "label": "condition_false",
+      "guard": "condition == false",
+      "effects": []
+    },
+    {
+      "from": "PathA",
+      "to": "GatewayJoin",
+      "label": "complete_a",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "PathB",
+      "to": "GatewayJoin",
+      "label": "complete_b",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "GatewayJoin",
+      "to": "End",
+      "label": "merge",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [],
+  "properties": [],
+  "message_flows": []
+}
+

@@ -1,0 +1,10 @@
+This process describes test_tasks_service.
+
+The process begins when Start by System.
+After this (trigger_validation), the process moves to Validate Data.
+Next, Validate Data (System) executes a service.
+After this (validation_complete), the process moves to Send Notification.
+Next, Send Notification (System) executes a service.
+After this (notification_sent), the process moves to End.
+
+The process completes when End is reached.

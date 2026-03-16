@@ -1,0 +1,142 @@
+.diagnostics-view {
+  width: 100%;
+}
+
+.diagnostics-view-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary, #666);
+}
+
+.dark .diagnostics-view-empty {
+  color: var(--text-secondary, #999);
+}
+
+.diagnostics-additional-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.diagnostics-section {
+  background: var(--bg-secondary, #f5f5f5);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.dark .diagnostics-section {
+  background: var(--bg-secondary, #2a2a2a);
+  border-color: var(--border-color, #333);
+}
+
+.diagnostics-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.dark .diagnostics-section-title {
+  color: var(--text-primary, #fff);
+}
+
+.diagnostics-violating-initials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.diagnostics-violating-initial {
+  background: var(--bg-error, #fef2f2);
+  border: 1px solid var(--border-error, #fca5a5);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-error, #ef4444);
+  font-family: 'Courier New', monospace;
+}
+
+.dark .diagnostics-violating-initial {
+  background: var(--bg-error, #7f1d1d);
+  border-color: var(--border-error, #ef4444);
+  color: var(--text-error, #fca5a5);
+}
+
+.diagnostics-minimization {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.diagnostics-minimization-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.diagnostics-minimization-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #666);
+  font-weight: 500;
+}
+
+.dark .diagnostics-minimization-label {
+  color: var(--text-secondary, #999);
+}
+
+.diagnostics-minimization-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.dark .diagnostics-minimization-value {
+  color: var(--text-primary, #fff);
+}
+
+.diagnostics-merged-states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.diagnostics-merged-state {
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-primary, #1a1a1a);
+  font-family: 'Courier New', monospace;
+}
+
+.dark .diagnostics-merged-state {
+  background: var(--bg-primary, #1e1e1e);
+  border-color: var(--border-color, #333);
+  color: var(--text-primary, #fff);
+}
+
+.diagnostics-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.diagnostics-message {
+  padding: 0.75rem;
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: var(--text-primary, #1a1a1a);
+  line-height: 1.6;
+}
+
+.dark .diagnostics-message {
+  background: var(--bg-primary, #1e1e1e);
+  border-color: var(--border-color, #333);
+  color: var(--text-primary, #fff);
+}

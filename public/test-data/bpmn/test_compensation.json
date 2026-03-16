@@ -1,0 +1,123 @@
+{
+  "name": "test_compensation",
+  "states": [
+    {
+      "name": "Start",
+      "initial": true,
+      "kind": "startEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "BookFlight",
+      "initial": false,
+      "kind": "serviceTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Booking",
+      "attached_to": null
+    },
+    {
+      "name": "BookHotel",
+      "initial": false,
+      "kind": "serviceTask",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Booking",
+      "attached_to": null
+    },
+    {
+      "name": "CancelFlight",
+      "initial": false,
+      "kind": "serviceTask",
+      "is_for_compensation": true,
+      "event_kinds": [],
+      "role": "Booking",
+      "attached_to": null
+    },
+    {
+      "name": "CancelHotel",
+      "initial": false,
+      "kind": "serviceTask",
+      "is_for_compensation": true,
+      "event_kinds": [],
+      "role": "Booking",
+      "attached_to": null
+    },
+    {
+      "name": "ErrorOccurred",
+      "initial": false,
+      "kind": "intermediateEvent",
+      "is_for_compensation": false,
+      "event_kinds": ["error"],
+      "role": "Process",
+      "attached_to": null
+    },
+    {
+      "name": "End",
+      "initial": false,
+      "kind": "endEvent",
+      "is_for_compensation": false,
+      "event_kinds": [],
+      "role": "Process",
+      "attached_to": null
+    }
+  ],
+  "transitions": [
+    {
+      "from": "Start",
+      "to": "BookFlight",
+      "label": "begin",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "BookFlight",
+      "to": "BookHotel",
+      "label": "flight_booked",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "BookHotel",
+      "to": "End",
+      "label": "hotel_booked",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "BookHotel",
+      "to": "ErrorOccurred",
+      "label": "booking_failed",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "ErrorOccurred",
+      "to": "CancelHotel",
+      "label": "compensate_hotel",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "CancelHotel",
+      "to": "CancelFlight",
+      "label": "hotel_cancelled",
+      "guard": null,
+      "effects": []
+    },
+    {
+      "from": "CancelFlight",
+      "to": "End",
+      "label": "flight_cancelled",
+      "guard": null,
+      "effects": []
+    }
+  ],
+  "variables": [],
+  "properties": [],
+  "message_flows": []
+}
+

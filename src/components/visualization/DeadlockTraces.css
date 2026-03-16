@@ -1,0 +1,38 @@
+.deadlock-traces {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.deadlock-traces-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary, #666);
+}
+
+.dark .deadlock-traces-empty {
+  color: var(--text-secondary, #999);
+}
+
+.deadlock-traces-info {
+  background: var(--bg-warning, #fffbeb);
+  border: 1px solid var(--border-warning, #fde047);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.dark .deadlock-traces-info {
+  background: var(--bg-warning, #78350f);
+  border-color: var(--border-warning, #fbbf24);
+}
+
+.deadlock-traces-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-primary, #1a1a1a);
+  line-height: 1.6;
+}
+
+.dark .deadlock-traces-description {
+  color: var(--text-primary, #fff);
+}

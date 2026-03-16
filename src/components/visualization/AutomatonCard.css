@@ -1,0 +1,114 @@
+.automaton-card {
+  background: var(--bg-secondary, #f5f5f5);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+
+.dark .automaton-card {
+  background: var(--bg-secondary, #2a2a2a);
+  border-color: var(--border-color, #333);
+}
+
+.automaton-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.dark .automaton-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.automaton-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  gap: 1rem;
+}
+
+.automaton-card-title {
+  flex: 1;
+}
+
+.automaton-card-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.dark .automaton-card-name {
+  color: var(--text-primary, #fff);
+}
+
+.automaton-card-stats {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.automaton-card-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.automaton-card-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dark .automaton-card-stat-label {
+  color: var(--text-secondary, #999);
+}
+
+.automaton-card-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-color, #646cff);
+}
+
+.automaton-card-expand-icon {
+  color: var(--text-secondary, #666);
+  font-size: 0.875rem;
+  transition: transform 0.2s ease;
+}
+
+.dark .automaton-card-expand-icon {
+  color: var(--text-secondary, #999);
+}
+
+.automaton-card-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+.dark .automaton-card-details {
+  border-top-color: var(--border-color, #333);
+}
+
+.automaton-card-detail-item {
+  margin-bottom: 0.5rem;
+  color: var(--text-primary, #1a1a1a);
+  font-size: 0.875rem;
+}
+
+.dark .automaton-card-detail-item {
+  color: var(--text-primary, #fff);
+}
+
+.automaton-card-detail-item strong {
+  color: var(--text-secondary, #666);
+  margin-right: 0.5rem;
+}
+
+.dark .automaton-card-detail-item strong {
+  color: var(--text-secondary, #999);
+}

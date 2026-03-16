@@ -1,0 +1,32 @@
+.summary-json-container {
+  width: 100%;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background: var(--bg-code, #f5f5f5);
+  overflow: auto;
+  max-height: 600px;
+}
+
+.dark .summary-json-container {
+  background: var(--bg-code, #2a2a2a);
+  border-color: var(--border-color, #333);
+}
+
+.summary-json-content {
+  margin: 0;
+  padding: 1rem;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-primary, #1a1a1a);
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.dark .summary-json-content {
+  color: var(--text-primary, #fff);
+}
+
+.summary-json-dark {
+  background: var(--bg-code, #1e1e1e);
+}

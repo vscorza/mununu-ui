@@ -1,0 +1,19 @@
+This process describes test_approval_workflow.
+
+The process begins when Submit Request by Employee.
+After this (submit), the process moves to Manager Review.
+Next, Manager Review (Manager) requires user action.
+After this (reviewed), the process moves to Manager Decision.
+At Manager Decision (Manager), a decision is made:
+  - The process continues to C F O Review (approved) if amount > 1000.
+  Next, C F O Review (CFO) requires user action.
+  After this (reviewed), the process moves to C F O Decision.
+  At C F O Decision (CFO), a decision is made:
+    - The process continues to Approved (approved) if this condition is met.
+    - The process continues to Rejected (rejected) if this condition is met.
+  - The process continues to Approved (approved) if amount <= 1000.
+  - The process continues to Rejected (rejected) if this condition is met.
+
+The process can complete in 2 different ways:
+  - Approved
+  - Rejected

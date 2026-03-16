@@ -1,0 +1,83 @@
+.tutorial-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+
+.tutorial-highlight {
+  position: absolute;
+  border: 3px solid var(--primary-color);
+  border-radius: 4px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.tutorial-tooltip {
+  position: fixed;
+  z-index: 10000;
+  max-width: 400px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transform: translate(-50%, 0);
+}
+
+.tutorial-tooltip-center {
+  transform: translate(-50%, -50%);
+}
+
+.tutorial-tooltip-top {
+  transform: translate(-50%, -100%);
+  margin-top: -10px;
+}
+
+.tutorial-tooltip-bottom {
+  margin-top: 10px;
+}
+
+.tutorial-tooltip-left {
+  transform: translate(-100%, -50%);
+  margin-left: -10px;
+}
+
+.tutorial-tooltip-right {
+  margin-left: 10px;
+  transform: translate(0, -50%);
+}
+
+.tutorial-tooltip-content {
+  padding: 1.5rem;
+}
+
+.tutorial-tooltip-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.tutorial-tooltip-body {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.tutorial-tooltip-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.tutorial-progress {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.tutorial-actions {
+  display: flex;
+  gap: 0.5rem;
+}
