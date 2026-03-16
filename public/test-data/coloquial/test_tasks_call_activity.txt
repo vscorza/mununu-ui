@@ -1,8 +1,0 @@
-This process describes test_tasks_call_activity.
-
-The process begins when Start by Process.
-After this (begin), the process moves to Call Subprocess.
-Next, Call Subprocess (Process) calls a subprocess.
-After this (subprocess_complete), the process moves to End.
-
-The process completes when End is reached.

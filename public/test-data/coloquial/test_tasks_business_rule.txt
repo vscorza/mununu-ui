@@ -1,8 +1,0 @@
-This process describes test_tasks_business_rule.
-
-The process begins when Start by Process.
-After this (begin), the process moves to Evaluate Rule.
-Next, Evaluate Rule (Process) evaluates business rules.
-After this (rule_evaluated), the process moves to End.
-
-The process completes when End is reached.

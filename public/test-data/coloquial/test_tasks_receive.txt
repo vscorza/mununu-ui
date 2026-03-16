@@ -1,8 +1,0 @@
-This process describes test_tasks_receive.
-
-The process begins when Start by Process.
-After this (begin), the process moves to Wait For Message.
-Next, Wait For Message (Process) waits to receive.
-After this (message_received), the process moves to End.
-
-The process completes when End is reached.

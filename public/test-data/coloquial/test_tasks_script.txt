@@ -1,8 +1,0 @@
-This process describes test_tasks_script.
-
-The process begins when Start by System.
-After this (begin), the process moves to Execute Script.
-Next, Execute Script (System) runs a script.
-After this (script_complete), the process moves to End.
-
-The process completes when End is reached.
