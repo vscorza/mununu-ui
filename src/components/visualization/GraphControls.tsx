@@ -1,13 +1,13 @@
-import { Button } from '../common/Button'
-import './GraphControls.css'
+import { Button } from "../common/Button";
+import "./GraphControls.css";
 
 interface GraphControlsProps {
-  onZoomIn: () => void
-  onZoomOut: () => void
-  onFit: () => void
-  onReset: () => void
-  onLayoutChange?: (layout: string) => void
-  currentLayout?: string
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onFit: () => void;
+  onReset: () => void;
+  onLayoutChange?: (layout: string) => void;
+  currentLayout?: string;
 }
 
 export const GraphControls = ({
@@ -38,8 +38,8 @@ export const GraphControls = ({
         <div className="graph-controls-group">
           <select
             className="graph-controls-layout-select"
-            value={currentLayout || 'dagre'}
-            onChange={e => onLayoutChange(e.target.value)}
+            value={currentLayout || "dagre"}
+            onChange={(e) => onLayoutChange(e.target.value)}
             title="Layout algorithm"
           >
             <option value="dagre">Dagre</option>
@@ -50,5 +50,5 @@ export const GraphControls = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};

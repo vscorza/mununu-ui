@@ -1,27 +1,27 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
-import Editor, { BeforeMount, OnMount } from '@monaco-editor/react'
-import { useCtxdslEditor } from '../../hooks/useCtxdslEditor'
-import { useSummary } from '../../hooks/useSummary'
-import { useGraphVisualization } from '../../hooks/useGraphVisualization'
-import { useVerification } from '../../hooks/useVerification'
-import { EditorToolbar } from './EditorToolbar'
-import { registerCtxdslLanguage } from '../../monaco/ctxdsl-language'
-import { registerCtxdslTheme } from '../../monaco/ctxdsl-theme'
-import { useAppStore } from '../../store/appStore'
-import { Button } from '../common/Button'
-import { Input } from '../common/Input'
-import { LoadingSpinner } from '../common/LoadingSpinner'
-import { SummaryTable } from '../visualization/SummaryTable'
-import { AutomatonCard } from '../visualization/AutomatonCard'
-import { SummaryJSON } from '../visualization/SummaryJSON'
-import { MultiGraphView } from '../visualization/MultiGraphView'
-import type { SortField } from '../../hooks/useSummary'
-import './UnifiedEditor.css'
+import { useState, useCallback, useRef, useEffect } from "react";
+import Editor, { BeforeMount, OnMount } from "@monaco-editor/react";
+import { useCtxdslEditor } from "../../hooks/useCtxdslEditor";
+import { useSummary } from "../../hooks/useSummary";
+import { useGraphVisualization } from "../../hooks/useGraphVisualization";
+import { useVerification } from "../../hooks/useVerification";
+import { EditorToolbar } from "./EditorToolbar";
+import { registerCtxdslLanguage } from "../../monaco/ctxdsl-language";
+import { registerCtxdslTheme } from "../../monaco/ctxdsl-theme";
+import { useAppStore } from "../../store/appStore";
+import { Button } from "../common/Button";
+import { Input } from "../common/Input";
+import { LoadingSpinner } from "../common/LoadingSpinner";
+import { SummaryTable } from "../visualization/SummaryTable";
+import { AutomatonCard } from "../visualization/AutomatonCard";
+import { SummaryJSON } from "../visualization/SummaryJSON";
+import { MultiGraphView } from "../visualization/MultiGraphView";
+import type { SortField } from "../../hooks/useSummary";
+import "./UnifiedEditor.css";
 
-type RightTab = 'summary' | 'graphs' | 'verification'
+type RightTab = "summary" | "graphs" | "verification";
 
 export const UnifiedEditor = () => {
-  const { theme } = useAppStore()
+  const { theme } = useAppStore();
 
   // Editor state
   const {
@@ -35,117 +35,123 @@ export const UnifiedEditor = () => {
     isValidating,
     undo,
     redo,
-  } = useCtxdslEditor()
+  } = useCtxdslEditor();
 
   // Feature hooks
-  const summary = useSummary()
-  const graphs = useGraphVisualization()
-  const verification = useVerification()
+  const summary = useSummary();
+  const graphs = useGraphVisualization();
+  const verification = useVerification();
 
   // Panel state
-  const [activeTab, setActiveTab] = useState<RightTab>('summary')
-  const [dividerPosition, setDividerPosition] = useState(55) // percentage
-  const [isDragging, setIsDragging] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [activeTab, setActiveTab] = useState<RightTab>("summary");
+  const [dividerPosition, setDividerPosition] = useState(55); // percentage
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Graph options
-  const [graphTypes, setGraphTypes] = useState<('dsl' | 'unrolled')[]>(['dsl', 'unrolled'])
+  const [graphTypes, setGraphTypes] = useState<("dsl" | "unrolled")[]>([
+    "dsl",
+    "unrolled",
+  ]);
 
   // Verification options
-  const [verifyFormula, setVerifyFormula] = useState('')
-  const [verifyAutomaton, setVerifyAutomaton] = useState('')
+  const [verifyFormula, setVerifyFormula] = useState("");
+  const [verifyAutomaton, setVerifyAutomaton] = useState("");
 
   // Monaco setup
-  const handleEditorWillMount: BeforeMount = monacoInstance => {
-    registerCtxdslLanguage(monacoInstance)
-    registerCtxdslTheme(monacoInstance)
-  }
+  const handleEditorWillMount: BeforeMount = (monacoInstance) => {
+    registerCtxdslLanguage(monacoInstance);
+    registerCtxdslTheme(monacoInstance);
+  };
 
   const handleEditorDidMount: OnMount = (editor, _monacoInstance) => {
-    editorRef.current = editor
-  }
+    editorRef.current = editor;
+  };
 
   const handleEditorChange = (value: string | undefined) => {
-    setContent(value || '')
-  }
+    setContent(value || "");
+  };
 
   const handleLoadFile = async (file: File) => {
-    const text = await file.text()
-    loadFile(text, file.name)
-  }
+    const text = await file.text();
+    loadFile(text, file.name);
+  };
 
   // Get current editor content
   const getContent = useCallback(() => {
-    return editorRef.current?.getValue() || editorState.content
-  }, [editorRef, editorState.content])
+    return editorRef.current?.getValue() || editorState.content;
+  }, [editorRef, editorState.content]);
 
   // Action handlers
   const handleSummary = () => {
-    const content = getContent()
-    if (!content.trim()) return
-    summary.fetchSummary(content, editorState.fileName)
-  }
+    const content = getContent();
+    if (!content.trim()) return;
+    summary.fetchSummary(content, editorState.fileName);
+  };
 
   const handleGraphs = () => {
-    const content = getContent()
-    if (!content.trim()) return
-    graphs.fetchGraphs(content, editorState.fileName, graphTypes)
-  }
+    const content = getContent();
+    if (!content.trim()) return;
+    graphs.fetchGraphs(content, editorState.fileName, graphTypes);
+  };
 
   const handleVerify = () => {
-    const content = getContent()
-    if (!content.trim()) return
+    const content = getContent();
+    if (!content.trim()) return;
     verification.verify(
       content,
       editorState.fileName,
       verifyFormula || undefined,
-      verifyAutomaton || undefined
-    )
-  }
+      verifyAutomaton || undefined,
+    );
+  };
 
   // Divider drag handling
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
 
   useEffect(() => {
-    if (!isDragging) return
+    if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return
-      const rect = containerRef.current.getBoundingClientRect()
-      const percentage = ((e.clientX - rect.left) / rect.width) * 100
-      setDividerPosition(Math.min(Math.max(percentage, 20), 80))
-    }
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const percentage = ((e.clientX - rect.left) / rect.width) * 100;
+      setDividerPosition(Math.min(Math.max(percentage, 20), 80));
+    };
 
     const handleMouseUp = () => {
-      setIsDragging(false)
-    }
+      setIsDragging(false);
+    };
 
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [isDragging])
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
 
   const tabs: { id: RightTab; label: string }[] = [
-    { id: 'summary', label: 'Summary' },
-    { id: 'graphs', label: 'Graphs' },
-    { id: 'verification', label: 'Verification' },
-  ]
+    { id: "summary", label: "Summary" },
+    { id: "graphs", label: "Graphs" },
+    { id: "verification", label: "Verification" },
+  ];
 
-  const filteredAutomata = summary.getFilteredAndSortedAutomata()
+  const filteredAutomata = summary.getFilteredAndSortedAutomata();
 
   return (
     <div
       ref={containerRef}
-      className={`unified-editor ${isDragging ? 'unified-editor--dragging' : ''}`}
+      className={`unified-editor ${isDragging ? "unified-editor--dragging" : ""}`}
     >
       {/* Left pane: Editor */}
-      <div className="unified-editor__left" style={{ width: `${dividerPosition}%` }}>
+      <div
+        className="unified-editor__left"
+        style={{ width: `${dividerPosition}%` }}
+      >
         <div className="unified-editor__editor-wrap">
           <EditorToolbar
             fileName={editorState.fileName}
@@ -162,24 +168,26 @@ export const UnifiedEditor = () => {
             <Editor
               height="100%"
               language="ctxdsl"
-              theme={theme === 'dark' ? 'ctxdsl-dark' : 'ctxdsl-light'}
+              theme={theme === "dark" ? "ctxdsl-dark" : "ctxdsl-light"}
               value={editorState.content}
               onChange={handleEditorChange}
               beforeMount={handleEditorWillMount}
               onMount={handleEditorDidMount}
               loading={
                 <div className="flex items-center justify-center h-full">
-                  <div className="text-gray-500 dark:text-gray-400">Loading editor...</div>
+                  <div className="text-gray-500 dark:text-gray-400">
+                    Loading editor...
+                  </div>
                 </div>
               }
               options={{
                 minimap: { enabled: true },
                 fontSize: 14,
-                lineNumbers: 'on',
+                lineNumbers: "on",
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
                 tabSize: 2,
-                wordWrap: 'on',
+                wordWrap: "on",
                 formatOnPaste: true,
                 formatOnType: true,
               }}
@@ -200,11 +208,11 @@ export const UnifiedEditor = () => {
       >
         {/* Tab bar */}
         <div className="unified-editor__tabs">
-          {tabs.map(tab => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`unified-editor__tab ${activeTab === tab.id ? 'unified-editor__tab--active' : ''}`}
+              className={`unified-editor__tab ${activeTab === tab.id ? "unified-editor__tab--active" : ""}`}
             >
               {tab.label}
             </button>
@@ -213,7 +221,7 @@ export const UnifiedEditor = () => {
 
         {/* Tab content */}
         <div className="unified-editor__panel">
-          {activeTab === 'summary' && (
+          {activeTab === "summary" && (
             <div className="unified-editor__section">
               <div className="unified-editor__action-bar">
                 <Button
@@ -227,52 +235,68 @@ export const UnifiedEditor = () => {
                       <LoadingSpinner size="sm" /> Summarizing...
                     </>
                   ) : (
-                    'Generate Summary'
+                    "Generate Summary"
                   )}
                 </Button>
                 {summary.state.summary && (
                   <>
-                    <Button variant="ghost" size="sm" onClick={summary.clearSummary}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={summary.clearSummary}
+                    >
                       Clear
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={summary.exportJSON}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={summary.exportJSON}
+                    >
                       Export JSON
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={summary.exportCSV}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={summary.exportCSV}
+                    >
                       Export CSV
                     </Button>
                   </>
                 )}
               </div>
               {summary.state.error && (
-                <div className="unified-editor__error">{summary.state.error}</div>
+                <div className="unified-editor__error">
+                  {summary.state.error}
+                </div>
               )}
               {summary.state.summary && (
                 <div className="unified-editor__results">
                   <div className="unified-editor__summary-header">
                     <strong>{summary.state.summary.context_name}</strong>
                     <span>
-                      {summary.state.summary.automata.length} automata,{' '}
-                      {summary.state.summary.formulas_count} formulas,{' '}
+                      {summary.state.summary.automata.length} automata,{" "}
+                      {summary.state.summary.formulas_count} formulas,{" "}
                       {summary.state.summary.controllers_count} controllers
                     </span>
                   </div>
-                  {summary.viewMode === 'table' && (
+                  {summary.viewMode === "table" && (
                     <SummaryTable
                       automata={filteredAutomata}
                       sortField={summary.sortField}
                       sortOrder={summary.sortOrder}
                       onSort={(field: SortField) => {
                         if (summary.sortField === field) {
-                          summary.setSortOrder(summary.sortOrder === 'asc' ? 'desc' : 'asc')
+                          summary.setSortOrder(
+                            summary.sortOrder === "asc" ? "desc" : "asc",
+                          );
                         } else {
-                          summary.setSortField(field)
-                          summary.setSortOrder('asc')
+                          summary.setSortField(field);
+                          summary.setSortOrder("asc");
                         }
                       }}
                     />
                   )}
-                  {summary.viewMode === 'cards' &&
+                  {summary.viewMode === "cards" &&
                     filteredAutomata.map((a, i) => (
                       <AutomatonCard
                         key={i}
@@ -281,23 +305,22 @@ export const UnifiedEditor = () => {
                         transitionsCount={a.transitions_count}
                       />
                     ))}
-                  {summary.viewMode === 'json' && summary.state.summary && (
+                  {summary.viewMode === "json" && summary.state.summary && (
                     <SummaryJSON summary={summary.state.summary} />
                   )}
                   <div className="unified-editor__view-modes">
-                    {(['table', 'cards', 'json'] as const).map(mode => (
+                    {(["table", "cards", "json"] as const).map((mode) => (
                       <button
                         key={mode}
                         onClick={() => summary.setViewMode(mode)}
-                        className={`unified-editor__view-mode ${summary.viewMode === mode ? 'unified-editor__view-mode--active' : ''}`}
+                        className={`unified-editor__view-mode ${summary.viewMode === mode ? "unified-editor__view-mode--active" : ""}`}
                       >
                         {mode}
                       </button>
                     ))}
                   </div>
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {(summary.state.summary as any).controllers &&
-                    (summary.state.summary as any).controllers.length > 0 && (
+                  {summary.state.summary.controllers &&
+                    summary.state.summary.controllers.length > 0 && (
                       <div className="unified-editor__controllers-summary">
                         <strong>Controllers</strong>
                         <table className="unified-editor__verify-table">
@@ -312,39 +335,30 @@ export const UnifiedEditor = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {(summary.state.summary as any).controllers.map(
-                              (
-                                c: {
-                                  name: string
-                                  source: string
-                                  formula: string
-                                  realizable: boolean
-                                  states_count: number
-                                  transitions_count: number
-                                },
-                                i: number
-                              ) => (
-                                <tr key={i}>
-                                  <td>{c.name}</td>
-                                  <td>{c.source}</td>
-                                  <td>{c.formula}</td>
-                                  <td>
-                                    <span
-                                      className={
-                                        c.realizable
-                                          ? 'unified-editor__verify-badge--pass'
-                                          : 'unified-editor__verify-badge--fail'
-                                      }
-                                      style={{ padding: '2px 6px', borderRadius: '4px' }}
-                                    >
-                                      {c.realizable ? 'Yes' : 'No'}
-                                    </span>
-                                  </td>
-                                  <td>{c.states_count}</td>
-                                  <td>{c.transitions_count}</td>
-                                </tr>
-                              )
-                            )}
+                            {summary.state.summary.controllers.map((c, i) => (
+                              <tr key={i}>
+                                <td>{c.name}</td>
+                                <td>{c.source}</td>
+                                <td>{c.formula}</td>
+                                <td>
+                                  <span
+                                    className={
+                                      c.realizable
+                                        ? "unified-editor__verify-badge--pass"
+                                        : "unified-editor__verify-badge--fail"
+                                    }
+                                    style={{
+                                      padding: "2px 6px",
+                                      borderRadius: "4px",
+                                    }}
+                                  >
+                                    {c.realizable ? "Yes" : "No"}
+                                  </span>
+                                </td>
+                                <td>{c.states_count}</td>
+                                <td>{c.transitions_count}</td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </div>
@@ -354,17 +368,19 @@ export const UnifiedEditor = () => {
             </div>
           )}
 
-          {activeTab === 'graphs' && (
+          {activeTab === "graphs" && (
             <div className="unified-editor__section">
               <div className="unified-editor__action-bar">
                 <label className="unified-editor__checkbox">
                   <input
                     type="checkbox"
-                    checked={graphTypes.includes('dsl')}
-                    onChange={e => {
-                      setGraphTypes(prev =>
-                        e.target.checked ? [...prev, 'dsl'] : prev.filter(t => t !== 'dsl')
-                      )
+                    checked={graphTypes.includes("dsl")}
+                    onChange={(e) => {
+                      setGraphTypes((prev) =>
+                        e.target.checked
+                          ? [...prev, "dsl"]
+                          : prev.filter((t) => t !== "dsl"),
+                      );
                     }}
                   />
                   DSL
@@ -372,13 +388,13 @@ export const UnifiedEditor = () => {
                 <label className="unified-editor__checkbox">
                   <input
                     type="checkbox"
-                    checked={graphTypes.includes('unrolled')}
-                    onChange={e => {
-                      setGraphTypes(prev =>
+                    checked={graphTypes.includes("unrolled")}
+                    onChange={(e) => {
+                      setGraphTypes((prev) =>
                         e.target.checked
-                          ? [...prev, 'unrolled']
-                          : prev.filter(t => t !== 'unrolled')
-                      )
+                          ? [...prev, "unrolled"]
+                          : prev.filter((t) => t !== "unrolled"),
+                      );
                     }}
                   />
                   Unrolled
@@ -394,17 +410,23 @@ export const UnifiedEditor = () => {
                       <LoadingSpinner size="sm" /> Generating...
                     </>
                   ) : (
-                    'Generate Graphs'
+                    "Generate Graphs"
                   )}
                 </Button>
                 {graphs.state.graphs.length > 0 && (
-                  <Button variant="ghost" size="sm" onClick={graphs.clearGraphs}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={graphs.clearGraphs}
+                  >
                     Clear
                   </Button>
                 )}
               </div>
               {graphs.state.error && (
-                <div className="unified-editor__error">{graphs.state.error}</div>
+                <div className="unified-editor__error">
+                  {graphs.state.error}
+                </div>
               )}
               {graphs.state.graphs.length > 0 && (
                 <div className="unified-editor__results unified-editor__graphs">
@@ -419,19 +441,19 @@ export const UnifiedEditor = () => {
             </div>
           )}
 
-          {activeTab === 'verification' && (
+          {activeTab === "verification" && (
             <div className="unified-editor__section">
               <div className="unified-editor__action-bar">
                 <Input
                   label=""
                   value={verifyFormula}
-                  onChange={e => setVerifyFormula(e.target.value)}
+                  onChange={(e) => setVerifyFormula(e.target.value)}
                   placeholder="Formula (optional, all if empty)"
                 />
                 <Input
                   label=""
                   value={verifyAutomaton}
-                  onChange={e => setVerifyAutomaton(e.target.value)}
+                  onChange={(e) => setVerifyAutomaton(e.target.value)}
                   placeholder="Automaton (optional)"
                 />
                 <Button
@@ -445,26 +467,32 @@ export const UnifiedEditor = () => {
                       <LoadingSpinner size="sm" /> Verifying...
                     </>
                   ) : (
-                    'Verify'
+                    "Verify"
                   )}
                 </Button>
                 {verification.state.result && (
-                  <Button variant="ghost" size="sm" onClick={verification.clearResult}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={verification.clearResult}
+                  >
                     Clear
                   </Button>
                 )}
               </div>
               {verification.state.error && (
-                <div className="unified-editor__error">{verification.state.error}</div>
+                <div className="unified-editor__error">
+                  {verification.state.error}
+                </div>
               )}
               {verification.state.result && (
                 <div className="unified-editor__results">
                   <div
-                    className={`unified-editor__verify-badge ${verification.state.result.all_satisfied ? 'unified-editor__verify-badge--pass' : 'unified-editor__verify-badge--fail'}`}
+                    className={`unified-editor__verify-badge ${verification.state.result.all_satisfied ? "unified-editor__verify-badge--pass" : "unified-editor__verify-badge--fail"}`}
                   >
                     {verification.state.result.all_satisfied
-                      ? 'All Formulas Satisfied'
-                      : 'Some Formulas Not Satisfied'}
+                      ? "All Formulas Satisfied"
+                      : "Some Formulas Not Satisfied"}
                   </div>
                   <table className="unified-editor__verify-table">
                     <thead>
@@ -478,29 +506,38 @@ export const UnifiedEditor = () => {
                     </thead>
                     <tbody>
                       {verification.state.result.results.map((r, i) => (
-                        <tr key={i} className={r.satisfied ? '' : 'unified-editor__verify-row--fail'}>
+                        <tr
+                          key={i}
+                          className={
+                            r.satisfied
+                              ? ""
+                              : "unified-editor__verify-row--fail"
+                          }
+                        >
                           <td>{r.formula_name}</td>
                           <td>{r.automaton}</td>
-                          <td>{r.satisfied ? 'Satisfied' : 'Not Satisfied'}</td>
+                          <td>{r.satisfied ? "Satisfied" : "Not Satisfied"}</td>
                           <td>
                             {r.satisfying_states}/{r.total_states}
                           </td>
                           <td>
-                            {r.initial_satisfying.length}/{r.initial_states.length}
+                            {r.initial_satisfying.length}/
+                            {r.initial_states.length}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                   {verification.state.result.results
-                    .filter(r => r.initial_violating.length > 0)
+                    .filter((r) => r.initial_violating.length > 0)
                     .map((r, i) => (
                       <div key={i} className="unified-editor__verify-detail">
                         <strong>
                           {r.formula_name} on {r.automaton}
                         </strong>
                         <div>
-                          Violating initial states: {r.initial_violating.join(', ')}
+                          Violating initial states:{" "}
+                          {r.initial_violating.join(", ")}
                         </div>
                       </div>
                     ))}
@@ -511,5 +548,5 @@ export const UnifiedEditor = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

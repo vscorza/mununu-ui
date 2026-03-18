@@ -1,38 +1,38 @@
-import { Component, ReactNode, ErrorInfo } from 'react'
-import { Button } from './common/Button'
+import { Component, ReactNode, ErrorInfo } from "react";
+import { Button } from "./common/Button";
 
 interface Props {
-  children: ReactNode
-  fallback?: ReactNode
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
-  hasError: boolean
-  error: Error | null
+  hasError: boolean;
+  error: Error | null;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
-    super(props)
-    this.state = { hasError: false, error: null }
+    super(props);
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null })
-  }
+    this.setState({ hasError: false, error: null });
+  };
 
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
       return (
@@ -63,14 +63,17 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="mt-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {this.state.error?.message ||
-                  'An unexpected error occurred. Please try refreshing the page.'}
+                  "An unexpected error occurred. Please try refreshing the page."}
               </p>
             </div>
             <div className="mt-6 flex gap-3">
               <Button onClick={this.handleReset} variant="primary">
                 Try Again
               </Button>
-              <Button onClick={() => window.location.reload()} variant="secondary">
+              <Button
+                onClick={() => window.location.reload()}
+                variant="secondary"
+              >
                 Refresh Page
               </Button>
             </div>
@@ -86,9 +89,9 @@ export class ErrorBoundary extends Component<Props, State> {
             )}
           </div>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }

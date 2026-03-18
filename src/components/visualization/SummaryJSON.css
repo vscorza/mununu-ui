@@ -15,7 +15,7 @@
 .summary-json-content {
   margin: 0;
   padding: 1rem;
-  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-family: "Courier New", "Monaco", "Menlo", monospace;
   font-size: 0.875rem;
   line-height: 1.6;
   color: var(--text-primary, #1a1a1a);

@@ -82,7 +82,7 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   color: var(--text-primary, #1a1a1a);
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
 
 .dark .graph-metadata-initial-state {

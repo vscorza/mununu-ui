@@ -55,7 +55,7 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   color: var(--text-error, #ef4444);
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
 
 .dark .diagnostics-violating-initial {
@@ -110,7 +110,7 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   color: var(--text-primary, #1a1a1a);
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
 
 .dark .diagnostics-merged-state {

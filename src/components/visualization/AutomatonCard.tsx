@@ -1,11 +1,11 @@
-import './AutomatonCard.css'
+import "./AutomatonCard.css";
 
 interface AutomatonCardProps {
-  name: string
-  statesCount: number
-  transitionsCount: number
-  isExpanded?: boolean
-  onToggleExpand?: () => void
+  name: string;
+  statesCount: number;
+  transitionsCount: number;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 export const AutomatonCard = ({
@@ -28,11 +28,15 @@ export const AutomatonCard = ({
           </span>
           <span className="automaton-card-stat">
             <span className="automaton-card-stat-label">Transitions:</span>
-            <span className="automaton-card-stat-value">{transitionsCount}</span>
+            <span className="automaton-card-stat-value">
+              {transitionsCount}
+            </span>
           </span>
         </div>
         {onToggleExpand && (
-          <div className="automaton-card-expand-icon">{isExpanded ? '▼' : '▶'}</div>
+          <div className="automaton-card-expand-icon">
+            {isExpanded ? "▼" : "▶"}
+          </div>
         )}
       </div>
       {isExpanded && (
@@ -49,5 +53,5 @@ export const AutomatonCard = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};

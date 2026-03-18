@@ -1,6 +1,6 @@
-import * as monaco from 'monaco-editor'
+import * as monaco from "monaco-editor";
 
-export const ctxdslLanguageId = 'ctxdsl'
+export const ctxdslLanguageId = "ctxdsl";
 
 export const ctxdslLanguageDefinition: monaco.languages.IMonarchLanguage = {
   tokenizer: {
@@ -8,57 +8,60 @@ export const ctxdslLanguageDefinition: monaco.languages.IMonarchLanguage = {
       // Keywords
       [
         /(context|alphabet|automata|automaton|states|state|transitions|transition|formulas|formula|controllers|controller|label|initial|accepting|on|with|guard|effect|action|vars|actions)/,
-        'keyword',
+        "keyword",
       ],
       // Strings
-      [/"[^"]*"/, 'string'],
-      [/[a-zA-Z_][a-zA-Z0-9_]*/, 'identifier'],
+      [/"[^"]*"/, "string"],
+      [/[a-zA-Z_][a-zA-Z0-9_]*/, "identifier"],
       // Numbers
-      [/\d+/, 'number'],
+      [/\d+/, "number"],
       // Operators
-      [/[{}[\](),;:->]/, 'delimiter'],
+      [/[{}[\](),;:->]/, "delimiter"],
       // Comments
-      [/\/\/.*$/, 'comment'],
-      [/\/\*[\s\S]*?\*\//, 'comment'],
+      [/\/\/.*$/, "comment"],
+      [/\/\*[\s\S]*?\*\//, "comment"],
       // Whitespace
-      [/\s+/, 'white'],
+      [/\s+/, "white"],
     ],
   },
-}
+};
 
 export const registerCtxdslLanguage = (monacoInstance: typeof monaco) => {
   // Check if already registered to avoid duplicate registration errors
-  const languages = monacoInstance.languages.getLanguages()
-  const isRegistered = languages.some(lang => lang.id === ctxdslLanguageId)
+  const languages = monacoInstance.languages.getLanguages();
+  const isRegistered = languages.some((lang) => lang.id === ctxdslLanguageId);
 
   if (!isRegistered) {
-    monacoInstance.languages.register({ id: ctxdslLanguageId })
+    monacoInstance.languages.register({ id: ctxdslLanguageId });
   }
 
-  monacoInstance.languages.setMonarchTokensProvider(ctxdslLanguageId, ctxdslLanguageDefinition)
+  monacoInstance.languages.setMonarchTokensProvider(
+    ctxdslLanguageId,
+    ctxdslLanguageDefinition,
+  );
 
   // Language configuration
   monacoInstance.languages.setLanguageConfiguration(ctxdslLanguageId, {
     comments: {
-      lineComment: '//',
-      blockComment: ['/*', '*/'],
+      lineComment: "//",
+      blockComment: ["/*", "*/"],
     },
     brackets: [
-      ['{', '}'],
-      ['[', ']'],
-      ['(', ')'],
+      ["{", "}"],
+      ["[", "]"],
+      ["(", ")"],
     ],
     autoClosingPairs: [
-      { open: '{', close: '}' },
-      { open: '[', close: ']' },
-      { open: '(', close: ')' },
+      { open: "{", close: "}" },
+      { open: "[", close: "]" },
+      { open: "(", close: ")" },
       { open: '"', close: '"' },
     ],
     surroundingPairs: [
-      { open: '{', close: '}' },
-      { open: '[', close: ']' },
-      { open: '(', close: ')' },
+      { open: "{", close: "}" },
+      { open: "[", close: "]" },
+      { open: "(", close: ")" },
       { open: '"', close: '"' },
     ],
-  })
-}
+  });
+};

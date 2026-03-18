@@ -149,7 +149,7 @@
 .trace-viewer-step-content {
   flex: 1;
   color: var(--text-primary, #1a1a1a);
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.875rem;
   word-break: break-word;
 }

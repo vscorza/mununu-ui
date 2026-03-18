@@ -1,22 +1,22 @@
-import { InputHTMLAttributes, forwardRef, useId } from 'react'
-import './Input.css'
+import { InputHTMLAttributes, forwardRef, useId } from "react";
+import "./Input.css";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string
-  error?: string
-  helperText?: string
+  label?: string;
+  error?: string;
+  helperText?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helperText, className = '', ...props }, ref) => {
-    const generatedId = useId()
-    const inputClasses = ['input-field', error && 'input-error', className]
+  ({ label, error, helperText, className = "", ...props }, ref) => {
+    const generatedId = useId();
+    const inputClasses = ["input-field", error && "input-error", className]
       .filter(Boolean)
-      .join(' ')
+      .join(" ");
 
-    const inputId = props.id || generatedId
-    const errorId = error ? `${inputId}-error` : undefined
-    const helperId = helperText && !error ? `${inputId}-helper` : undefined
+    const inputId = props.id || generatedId;
+    const errorId = error ? `${inputId}-error` : undefined;
+    const helperId = helperText && !error ? `${inputId}-helper` : undefined;
 
     return (
       <div className="input-wrapper">
@@ -29,7 +29,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={inputClasses}
-          aria-invalid={error ? 'true' : undefined}
+          aria-invalid={error ? "true" : undefined}
           aria-describedby={error ? errorId : helperId}
           {...props}
         />
@@ -44,8 +44,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
       </div>
-    )
-  }
-)
+    );
+  },
+);
 
-Input.displayName = 'Input'
+Input.displayName = "Input";

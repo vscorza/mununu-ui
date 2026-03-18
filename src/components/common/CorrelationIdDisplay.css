@@ -26,7 +26,7 @@
 
 .correlation-id-value {
   flex: 1;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
   font-size: 0.8125rem;
   color: var(--text-primary, #111827);
   overflow: hidden;

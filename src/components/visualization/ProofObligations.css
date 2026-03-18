@@ -103,7 +103,7 @@
 }
 
 .proof-obligation-state-value {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.875rem;
   color: var(--text-primary, #1a1a1a);
   font-weight: 600;

@@ -1,12 +1,12 @@
-import { Link } from 'react-router-dom'
-import { useAppStore } from '../../store/appStore'
-import { Button } from '../common/Button'
-import { TutorialLauncher } from '../../tutorials/components/TutorialLauncher'
-import { KeyboardShortcutsHelp } from '../common/KeyboardShortcutsHelp'
-import { LanguageSelector } from '../common/LanguageSelector'
+import { Link } from "react-router-dom";
+import { useAppStore } from "../../store/appStore";
+import { Button } from "../common/Button";
+import { TutorialLauncher } from "../../tutorials/components/TutorialLauncher";
+import { KeyboardShortcutsHelp } from "../common/KeyboardShortcutsHelp";
+import { LanguageSelector } from "../common/LanguageSelector";
 
 export const Header = () => {
-  const { theme, toggleTheme } = useAppStore()
+  const { theme, toggleTheme } = useAppStore();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
@@ -17,9 +17,9 @@ export const Header = () => {
               className="text-2xl font-extrabold tracking-tight"
               style={{
                 background:
-                  'linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00cc00, #0066ff, #4400cc, #8800ff)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                  "linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00cc00, #0066ff, #4400cc, #8800ff)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
               }}
             >
               MUNUNU
@@ -27,16 +27,20 @@ export const Header = () => {
           </Link>
         </div>
 
-
         <div className="flex items-center gap-2">
           <LanguageSelector />
           <TutorialLauncher />
           <KeyboardShortcutsHelp />
-          <Button variant="ghost" size="sm" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === 'dark' ? '☀️' : '🌙'}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
           </Button>
         </div>
       </div>
     </header>
-  )
-}
+  );
+};

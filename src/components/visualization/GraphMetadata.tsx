@@ -1,11 +1,11 @@
-import './GraphMetadata.css'
+import "./GraphMetadata.css";
 
 interface GraphMetadataProps {
-  automaton: string
-  graphType: 'dsl' | 'unrolled'
-  statesCount: number
-  transitionsCount: number
-  initialStates?: string[]
+  automaton: string;
+  graphType: "dsl" | "unrolled";
+  statesCount: number;
+  transitionsCount: number;
+  initialStates?: string[];
 }
 
 export const GraphMetadata = ({
@@ -48,5 +48,5 @@ export const GraphMetadata = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};

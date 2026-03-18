@@ -1,20 +1,20 @@
-import { useState, useRef, useCallback } from 'react'
-import { GraphView } from './GraphView'
-import { GraphControls } from './GraphControls'
-import { GraphMetadata } from './GraphMetadata'
-import { Tabs } from '../common/Tabs'
-import type { paths } from '../../api/types'
-import type { LayoutType } from '../../hooks/useGraphVisualization'
-import './MultiGraphView.css'
+import { useState, useRef, useCallback } from "react";
+import { GraphView } from "./GraphView";
+import { GraphControls } from "./GraphControls";
+import { GraphMetadata } from "./GraphMetadata";
+import { Tabs } from "../common/Tabs";
+import type { paths } from "../../api/types";
+import type { LayoutType } from "../../hooks/useGraphVisualization";
+import "./MultiGraphView.css";
 
 type GraphData =
-  paths['/api/v1/context/graphs']['post']['responses']['200']['content']['application/json']['graphs'][0]
+  paths["/api/v1/context/graphs"]["post"]["responses"]["200"]["content"]["application/json"]["graphs"][0];
 
 interface MultiGraphViewProps {
-  graphs: GraphData[]
-  searchText: string
-  selectedNodeId: string | null
-  onNodeSelect: (nodeId: string | null) => void
+  graphs: GraphData[];
+  searchText: string;
+  selectedNodeId: string | null;
+  onNodeSelect: (nodeId: string | null) => void;
 }
 
 export const MultiGraphView = ({
@@ -23,52 +23,52 @@ export const MultiGraphView = ({
   selectedNodeId,
   onNodeSelect,
 }: MultiGraphViewProps) => {
-  const [selectedGraphIndex, setSelectedGraphIndex] = useState(0)
-  const [layout, setLayout] = useState<LayoutType>('dagre')
+  const [selectedGraphIndex, setSelectedGraphIndex] = useState(0);
+  const [layout, setLayout] = useState<LayoutType>("dagre");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const graphViewRef = useRef<{ cy?: any }>(null)
+  const graphViewRef = useRef<{ cy?: any }>(null);
 
-  const currentGraph = graphs[selectedGraphIndex]
+  const currentGraph = graphs[selectedGraphIndex];
 
   const handleZoomIn = useCallback(() => {
-    const cy = graphViewRef.current?.cy
+    const cy = graphViewRef.current?.cy;
     if (cy) {
-      cy.zoom(cy.zoom() * 1.2)
+      cy.zoom(cy.zoom() * 1.2);
     }
-  }, [])
+  }, []);
 
   const handleZoomOut = useCallback(() => {
-    const cy = graphViewRef.current?.cy
+    const cy = graphViewRef.current?.cy;
     if (cy) {
-      cy.zoom(cy.zoom() * 0.8)
+      cy.zoom(cy.zoom() * 0.8);
     }
-  }, [])
+  }, []);
 
   const handleFit = useCallback(() => {
-    const cy = graphViewRef.current?.cy
+    const cy = graphViewRef.current?.cy;
     if (cy) {
-      cy.fit(undefined, 50)
+      cy.fit(undefined, 50);
     }
-  }, [])
+  }, []);
 
   const handleReset = useCallback(() => {
-    const cy = graphViewRef.current?.cy
+    const cy = graphViewRef.current?.cy;
     if (cy) {
-      cy.reset()
-      cy.fit(undefined, 50)
+      cy.reset();
+      cy.fit(undefined, 50);
     }
-  }, [])
+  }, []);
 
   const handleLayoutChange = useCallback((newLayout: string) => {
-    setLayout(newLayout as LayoutType)
-  }, [])
+    setLayout(newLayout as LayoutType);
+  }, []);
 
   if (!currentGraph) {
     return (
       <div className="multi-graph-view-empty">
         <p>No graphs available</p>
       </div>
-    )
+    );
   }
 
   const tabs = graphs.map((graph: GraphData, index: number) => ({
@@ -102,32 +102,34 @@ export const MultiGraphView = ({
               layout={layout}
             />
             <div
-              ref={el => {
+              ref={(el) => {
                 if (el) {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  graphViewRef.current = { cy: (el.querySelector('.graph-view-canvas') as any)?.cy }
+                  graphViewRef.current = {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    cy: (el.querySelector(".graph-view-canvas") as any)?.cy,
+                  };
                 }
               }}
-              style={{ display: 'none' }}
+              style={{ display: "none" }}
             />
           </div>
         </div>
       </div>
     ),
-  }))
+  }));
 
   return (
     <div className="multi-graph-view">
       <Tabs
         tabs={tabs}
-        onChange={tabId => {
-          const index = parseInt(tabId.replace('graph-', ''), 10)
+        onChange={(tabId) => {
+          const index = parseInt(tabId.replace("graph-", ""), 10);
           if (!isNaN(index)) {
-            setSelectedGraphIndex(index)
+            setSelectedGraphIndex(index);
           }
         }}
         defaultTab={tabs[0]?.id}
       />
     </div>
-  )
-}
+  );
+};

@@ -1,37 +1,48 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react'
-import './Button.css'
+import { ButtonHTMLAttributes, ReactNode } from "react";
+import "./Button.css";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
-  size?: 'sm' | 'md' | 'lg'
-  isLoading?: boolean
-  children: ReactNode
+  variant?: "primary" | "secondary" | "danger" | "ghost";
+  size?: "sm" | "md" | "lg";
+  isLoading?: boolean;
+  children: ReactNode;
 }
 
 export const Button = ({
-  variant = 'primary',
-  size = 'md',
+  variant = "primary",
+  size = "md",
   isLoading = false,
   children,
-  className = '',
+  className = "",
   disabled,
   ...props
 }: ButtonProps) => {
   const classes = [
-    'button',
+    "button",
     `button-${variant}`,
     `button-${size}`,
-    isLoading && 'button-loading',
+    isLoading && "button-loading",
     className,
   ]
     .filter(Boolean)
-    .join(' ')
+    .join(" ");
 
   return (
-    <button className={classes} disabled={disabled || isLoading} aria-busy={isLoading} {...props}>
+    <button
+      className={classes}
+      disabled={disabled || isLoading}
+      aria-busy={isLoading}
+      {...props}
+    >
       {isLoading ? (
         <span className="button-loading">
-          <svg className="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <svg
+            className="spinner"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
             <circle
               className="opacity-25"
               cx="12"
@@ -52,5 +63,5 @@ export const Button = ({
         children
       )}
     </button>
-  )
-}
+  );
+};

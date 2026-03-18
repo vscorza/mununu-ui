@@ -67,7 +67,7 @@
 
 .rate-limit-notification-countdown-time {
   font-weight: 700;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 1rem;
   color: var(--error-text, #991b1b);
 }

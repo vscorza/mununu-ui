@@ -1,17 +1,17 @@
-import { Button } from '../common/Button'
-import { LoadingSpinner } from '../common/LoadingSpinner'
-import './EditorToolbar.css'
+import { Button } from "../common/Button";
+import { LoadingSpinner } from "../common/LoadingSpinner";
+import "./EditorToolbar.css";
 
 interface EditorToolbarProps {
-  fileName: string
-  isDirty: boolean
-  isValidating: boolean
-  onNew: () => void
-  onSave: () => void
-  onValidate: () => void
-  onUndo: () => void
-  onRedo: () => void
-  onLoadFile?: (file: File) => void
+  fileName: string;
+  isDirty: boolean;
+  isValidating: boolean;
+  onNew: () => void;
+  onSave: () => void;
+  onValidate: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onLoadFile?: (file: File) => void;
 }
 
 export const EditorToolbar = ({
@@ -26,13 +26,13 @@ export const EditorToolbar = ({
   onLoadFile,
 }: EditorToolbarProps) => {
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file && onLoadFile) {
-      onLoadFile(file)
+      onLoadFile(file);
     }
     // Reset input so same file can be selected again
-    e.target.value = ''
-  }
+    e.target.value = "";
+  };
 
   return (
     <div className="editor-toolbar">
@@ -62,7 +62,13 @@ export const EditorToolbar = ({
           </label>
         )}
 
-        <Button variant="ghost" size="sm" onClick={onSave} disabled={!isDirty} title="Save file">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onSave}
+          disabled={!isDirty}
+          title="Save file"
+        >
           💾 Save
         </Button>
 
@@ -90,10 +96,10 @@ export const EditorToolbar = ({
               Validating...
             </>
           ) : (
-            '✓ Validate'
+            "✓ Validate"
           )}
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

@@ -71,7 +71,7 @@
   --ghost-hover: #f1f5f9;
 }
 
-[data-theme='dark'],
+[data-theme="dark"],
 .dark {
   /* Colors - Dark Theme */
   --bg-primary: #0f172a;

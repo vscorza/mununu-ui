@@ -1,26 +1,26 @@
-import { useState, useCallback, useRef } from 'react'
-import { getContextGraphs } from '../api/endpoints'
-import { useToast } from './useToast'
-import { useErrorHandler } from './useErrorHandler'
-import type { paths } from '../api/types'
-import type cytoscape from 'cytoscape'
+import { useState, useCallback, useRef } from "react";
+import { getContextGraphs } from "../api/endpoints";
+import { useToast } from "./useToast";
+import { useErrorHandler } from "./useErrorHandler";
+import type { paths } from "../api/types";
+import type cytoscape from "cytoscape";
 
 type ContextGraphsResponse =
-  paths['/api/v1/context/graphs']['post']['responses']['200']['content']['application/json']
+  paths["/api/v1/context/graphs"]["post"]["responses"]["200"]["content"]["application/json"];
 
-export type GraphType = 'dsl' | 'unrolled'
-export type LayoutType = 'dagre' | 'breadthfirst' | 'grid' | 'preset'
+export type GraphType = "dsl" | "unrolled";
+export type LayoutType = "dagre" | "breadthfirst" | "grid" | "preset";
 
 export interface GraphVisualizationState {
-  graphs: ContextGraphsResponse['graphs']
-  isLoading: boolean
-  lastFetched?: Date
-  error?: string
-  selectedGraphIndex: number
-  selectedGraphType: GraphType
-  selectedAutomaton: string | null
-  searchText: string
-  selectedNodeId: string | null
+  graphs: ContextGraphsResponse["graphs"];
+  isLoading: boolean;
+  lastFetched?: Date;
+  error?: string;
+  selectedGraphIndex: number;
+  selectedGraphType: GraphType;
+  selectedAutomaton: string | null;
+  searchText: string;
+  selectedNodeId: string | null;
 }
 
 export const useGraphVisualization = () => {
@@ -28,55 +28,58 @@ export const useGraphVisualization = () => {
     graphs: [],
     isLoading: false,
     selectedGraphIndex: 0,
-    selectedGraphType: 'dsl',
+    selectedGraphType: "dsl",
     selectedAutomaton: null,
-    searchText: '',
+    searchText: "",
     selectedNodeId: null,
-  })
-  const cytoscapeRef = useRef<cytoscape.Core | null>(null)
-  const toast = useToast()
-  const { handleError } = useErrorHandler()
+  });
+  const cytoscapeRef = useRef<cytoscape.Core | null>(null);
+  const toast = useToast();
+  const { handleError } = useErrorHandler();
 
   const fetchGraphs = useCallback(
     async (
       context: string,
       contextName?: string,
-      graphTypes: GraphType[] = ['dsl', 'unrolled'],
+      graphTypes: GraphType[] = ["dsl", "unrolled"],
       automaton?: string | null,
-      sidecars: Array<{ name: string; content: string }> = []
+      sidecars: Array<{ name: string; content: string }> = [],
     ) => {
       if (!context.trim()) {
-        toast.showError('Cannot generate graphs from empty context')
-        return
+        toast.showError("Cannot generate graphs from empty context");
+        return;
       }
 
-      setState(prev => ({ ...prev, isLoading: true, error: undefined }))
+      setState((prev) => ({ ...prev, isLoading: true, error: undefined }));
 
       try {
         const response = await getContextGraphs({
           context: {
-            name: contextName || 'untitled.ctxdsl',
+            name: contextName || "untitled.ctxdsl",
             content: context,
           },
           graph_types: graphTypes,
           automaton: automaton || null,
-          sidecars: sidecars.map(sc => ({ name: sc.name, content: sc.content })),
+          sidecars: sidecars.map((sc) => ({
+            name: sc.name,
+            content: sc.content,
+          })),
           include_controllers: true,
-        })
+        });
 
         if (!response.success || !response.graphs.length) {
-          toast.showError('No graphs generated')
+          toast.showError("No graphs generated");
           setState({
             graphs: [],
             isLoading: false,
-            error: 'No graphs generated',
+            error: "No graphs generated",
             selectedGraphIndex: 0,
-            selectedGraphType: 'dsl',
+            selectedGraphType: "dsl",
             selectedAutomaton: null,
-            searchText: '',
+            searchText: "",
             selectedNodeId: null,
-          })
-          return
+          });
+          return;
         }
 
         setState({
@@ -85,46 +88,46 @@ export const useGraphVisualization = () => {
           lastFetched: new Date(),
           error: undefined,
           selectedGraphIndex: 0,
-          selectedGraphType: graphTypes[0] || 'dsl',
+          selectedGraphType: graphTypes[0] || "dsl",
           selectedAutomaton: automaton || null,
-          searchText: '',
+          searchText: "",
           selectedNodeId: null,
-        })
+        });
 
-        toast.showSuccess(`Generated ${response.graphs.length} graph(s)`)
+        toast.showSuccess(`Generated ${response.graphs.length} graph(s)`);
       } catch (error) {
-        const errorMessage = handleError(error)
-        setState(prev => ({
+        const errorMessage = handleError(error);
+        setState((prev) => ({
           ...prev,
           graphs: [],
           isLoading: false,
           error: errorMessage,
-        }))
-        toast.showError(`Failed to generate graphs: ${errorMessage}`)
+        }));
+        toast.showError(`Failed to generate graphs: ${errorMessage}`);
       }
     },
-    [toast, handleError]
-  )
+    [toast, handleError],
+  );
 
   const setSelectedGraphIndex = useCallback((index: number) => {
-    setState(prev => ({ ...prev, selectedGraphIndex: index }))
-  }, [])
+    setState((prev) => ({ ...prev, selectedGraphIndex: index }));
+  }, []);
 
   const setSelectedGraphType = useCallback((type: GraphType) => {
-    setState(prev => ({ ...prev, selectedGraphType: type }))
-  }, [])
+    setState((prev) => ({ ...prev, selectedGraphType: type }));
+  }, []);
 
   const setSelectedAutomaton = useCallback((automaton: string | null) => {
-    setState(prev => ({ ...prev, selectedAutomaton: automaton }))
-  }, [])
+    setState((prev) => ({ ...prev, selectedAutomaton: automaton }));
+  }, []);
 
   const setSearchText = useCallback((text: string) => {
-    setState(prev => ({ ...prev, searchText: text }))
-  }, [])
+    setState((prev) => ({ ...prev, searchText: text }));
+  }, []);
 
   const setSelectedNodeId = useCallback((nodeId: string | null) => {
-    setState(prev => ({ ...prev, selectedNodeId: nodeId }))
-  }, [])
+    setState((prev) => ({ ...prev, selectedNodeId: nodeId }));
+  }, []);
 
   const clearGraphs = useCallback(() => {
     setState({
@@ -132,49 +135,58 @@ export const useGraphVisualization = () => {
       isLoading: false,
       error: undefined,
       selectedGraphIndex: 0,
-      selectedGraphType: 'dsl',
+      selectedGraphType: "dsl",
       selectedAutomaton: null,
-      searchText: '',
+      searchText: "",
       selectedNodeId: null,
-    })
+    });
     if (cytoscapeRef.current) {
-      cytoscapeRef.current.destroy()
-      cytoscapeRef.current = null
+      cytoscapeRef.current.destroy();
+      cytoscapeRef.current = null;
     }
-  }, [])
+  }, []);
 
   // Get available automata from graphs
   const getAvailableAutomata = useCallback(() => {
-    const automata = new Set<string>()
-    state.graphs.forEach(graph => {
+    const automata = new Set<string>();
+    state.graphs.forEach((graph) => {
       if (graph.automaton) {
-        automata.add(graph.automaton)
+        automata.add(graph.automaton);
       }
-    })
-    return Array.from(automata).sort()
-  }, [state.graphs])
+    });
+    return Array.from(automata).sort();
+  }, [state.graphs]);
 
   // Get filtered graphs based on selected type and automaton
   // Always include controller graphs regardless of type filter
   const getFilteredGraphs = useCallback(() => {
-    return state.graphs.filter(graph => {
-      const graphType = graph.graph_type as string
-      if (graphType === 'controller') {
+    return state.graphs.filter((graph) => {
+      const graphType = graph.graph_type as string;
+      if (graphType === "controller") {
         // Controller graphs always pass the type filter
-        if (state.selectedAutomaton && graph.automaton !== state.selectedAutomaton) {
-          return false
+        if (
+          state.selectedAutomaton &&
+          graph.automaton !== state.selectedAutomaton
+        ) {
+          return false;
         }
-        return true
+        return true;
       }
-      if (state.selectedGraphType && graph.graph_type !== state.selectedGraphType) {
-        return false
+      if (
+        state.selectedGraphType &&
+        graph.graph_type !== state.selectedGraphType
+      ) {
+        return false;
       }
-      if (state.selectedAutomaton && graph.automaton !== state.selectedAutomaton) {
-        return false
+      if (
+        state.selectedAutomaton &&
+        graph.automaton !== state.selectedAutomaton
+      ) {
+        return false;
       }
-      return true
-    })
-  }, [state.graphs, state.selectedGraphType, state.selectedAutomaton])
+      return true;
+    });
+  }, [state.graphs, state.selectedGraphType, state.selectedAutomaton]);
 
   return {
     state,
@@ -188,5 +200,5 @@ export const useGraphVisualization = () => {
     clearGraphs,
     getAvailableAutomata,
     getFilteredGraphs,
-  }
-}
+  };
+};

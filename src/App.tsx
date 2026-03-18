@@ -1,34 +1,34 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { Toaster } from 'react-hot-toast'
-import { ErrorBoundary } from './components/ErrorBoundary'
-import { MainLayout } from './components/layout/MainLayout'
-import { UnifiedEditor } from './components/editors/UnifiedEditor'
-import { TutorialOverlay } from './tutorials/components/TutorialOverlay'
-import { AnalyticsViewer } from './components/common/AnalyticsViewer'
-import { OfflineIndicator } from './components/common/OfflineIndicator'
-import { useAppStore } from './store/appStore'
-import { KeyboardShortcutsProvider } from './components/KeyboardShortcutsProvider'
-import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { MainLayout } from "./components/layout/MainLayout";
+import { UnifiedEditor } from "./components/editors/UnifiedEditor";
+import { TutorialOverlay } from "./tutorials/components/TutorialOverlay";
+import { AnalyticsViewer } from "./components/common/AnalyticsViewer";
+import { OfflineIndicator } from "./components/common/OfflineIndicator";
+import { useAppStore } from "./store/appStore";
+import { KeyboardShortcutsProvider } from "./components/KeyboardShortcutsProvider";
+import { useEffect } from "react";
 
 function App() {
-  const { theme, setTheme } = useAppStore()
+  const { theme, setTheme } = useAppStore();
 
   useEffect(() => {
     // Apply theme to document
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark')
+      document.documentElement.classList.remove("dark");
     }
-  }, [theme])
+  }, [theme]);
 
   // Initialize theme from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark'
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark";
     if (savedTheme) {
-      setTheme(savedTheme)
+      setTheme(savedTheme);
     }
-  }, [setTheme])
+  }, [setTheme]);
 
   return (
     <ErrorBoundary>
@@ -46,19 +46,19 @@ function App() {
           toastOptions={{
             duration: 3000,
             style: {
-              background: 'var(--toast-bg, #fff)',
-              color: 'var(--toast-color, #333)',
+              background: "var(--toast-bg, #fff)",
+              color: "var(--toast-color, #333)",
             },
             success: {
               iconTheme: {
-                primary: '#10b981',
-                secondary: '#fff',
+                primary: "#10b981",
+                secondary: "#fff",
               },
             },
             error: {
               iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
+                primary: "#ef4444",
+                secondary: "#fff",
               },
             },
           }}
@@ -67,7 +67,7 @@ function App() {
         <OfflineIndicator />
       </BrowserRouter>
     </ErrorBoundary>
-  )
+  );
 }
 
-export default App
+export default App;

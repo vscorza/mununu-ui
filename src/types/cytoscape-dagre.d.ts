@@ -1,6 +1,6 @@
-declare module 'cytoscape-dagre' {
-  import cytoscape from 'cytoscape'
+declare module "cytoscape-dagre" {
+  import cytoscape from "cytoscape";
 
-  const dagre: cytoscape.Ext
-  export = dagre
+  const dagre: cytoscape.Ext;
+  export = dagre;
 }

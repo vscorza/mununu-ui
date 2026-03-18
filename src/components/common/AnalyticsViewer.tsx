@@ -3,42 +3,42 @@
  * Displays analytics data in development mode
  */
 
-import { useState, useEffect } from 'react'
-import { useAnalytics } from '../../hooks/useAnalytics'
-import { Button } from './Button'
-import './AnalyticsViewer.css'
+import { useState, useEffect } from "react";
+import { useAnalytics } from "../../hooks/useAnalytics";
+import { Button } from "./Button";
+import "./AnalyticsViewer.css";
 
 export const AnalyticsViewer = () => {
-  const { getSummary, exportData } = useAnalytics()
-  const [summary, setSummary] = useState(getSummary())
-  const [isOpen, setIsOpen] = useState(false)
+  const { getSummary, exportData } = useAnalytics();
+  const [summary, setSummary] = useState(getSummary());
+  const [isOpen, setIsOpen] = useState(false);
 
   // Update summary periodically
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
 
     const interval = setInterval(() => {
-      setSummary(getSummary())
-    }, 1000)
+      setSummary(getSummary());
+    }, 1000);
 
-    return () => clearInterval(interval)
-  }, [isOpen, getSummary])
+    return () => clearInterval(interval);
+  }, [isOpen, getSummary]);
 
   // Only show in development
   if (import.meta.env.PROD) {
-    return null
+    return null;
   }
 
   const handleExport = () => {
-    const data = exportData()
-    const blob = new Blob([data], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `analytics-${new Date().toISOString()}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+    const data = exportData();
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `analytics-${new Date().toISOString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (!isOpen) {
     return (
@@ -49,7 +49,7 @@ export const AnalyticsViewer = () => {
       >
         📊
       </button>
-    )
+    );
   }
 
   return (
@@ -76,7 +76,9 @@ export const AnalyticsViewer = () => {
             </div>
             <div className="analytics-stat">
               <span className="stat-label">Success:</span>
-              <span className="stat-value success">{summary.successfulApiCalls}</span>
+              <span className="stat-value success">
+                {summary.successfulApiCalls}
+              </span>
             </div>
             <div className="analytics-stat">
               <span className="stat-label">Failed:</span>
@@ -84,7 +86,9 @@ export const AnalyticsViewer = () => {
             </div>
             <div className="analytics-stat">
               <span className="stat-label">Avg Duration:</span>
-              <span className="stat-value">{summary.averageApiCallDuration.toFixed(2)}ms</span>
+              <span className="stat-value">
+                {summary.averageApiCallDuration.toFixed(2)}ms
+              </span>
             </div>
           </div>
         </div>
@@ -98,7 +102,9 @@ export const AnalyticsViewer = () => {
             </div>
             <div className="analytics-stat">
               <span className="stat-label">Warnings:</span>
-              <span className="stat-value warning">{summary.totalWarnings}</span>
+              <span className="stat-value warning">
+                {summary.totalWarnings}
+              </span>
             </div>
           </div>
         </div>
@@ -134,7 +140,9 @@ export const AnalyticsViewer = () => {
               {summary.recentErrors.slice(-5).map((error, idx) => (
                 <div key={idx} className="analytics-item error">
                   <span className="item-name">{error.source}</span>
-                  <span className="item-value">{error.message.substring(0, 50)}...</span>
+                  <span className="item-value">
+                    {error.message.substring(0, 50)}...
+                  </span>
                 </div>
               ))}
             </div>
@@ -142,5 +150,5 @@ export const AnalyticsViewer = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};

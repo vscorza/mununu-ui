@@ -4,39 +4,39 @@
  * Shows progress for multi-step operations with step details
  */
 
-import { LoadingSpinner } from './LoadingSpinner'
-import './ProgressIndicator.css'
+import { LoadingSpinner } from "./LoadingSpinner";
+import "./ProgressIndicator.css";
 
 export interface ProgressStep {
   /** Step identifier */
-  id: string
+  id: string;
   /** Step label */
-  label: string
+  label: string;
   /** Step description */
-  description?: string
+  description?: string;
   /** Whether this step is active */
-  active?: boolean
+  active?: boolean;
   /** Whether this step is completed */
-  completed?: boolean
+  completed?: boolean;
   /** Whether this step has an error */
-  error?: boolean
+  error?: boolean;
   /** Estimated time remaining in seconds */
-  estimatedTimeRemaining?: number
+  estimatedTimeRemaining?: number;
   /** Progress percentage (0-100) */
-  progress?: number
+  progress?: number;
 }
 
 interface ProgressIndicatorProps {
   /** Current step */
-  currentStep?: string
+  currentStep?: string;
   /** All steps */
-  steps: ProgressStep[]
+  steps: ProgressStep[];
   /** Optional message */
-  message?: string
+  message?: string;
   /** Show progress percentage */
-  showProgress?: boolean
+  showProgress?: boolean;
   /** Optional className */
-  className?: string
+  className?: string;
 }
 
 export const ProgressIndicator = ({
@@ -44,20 +44,23 @@ export const ProgressIndicator = ({
   steps,
   message,
   showProgress = true,
-  className = '',
+  className = "",
 }: ProgressIndicatorProps) => {
-  const completedSteps = steps.filter(s => s.completed).length
-  const totalSteps = steps.length
-  const overallProgress = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0
+  const completedSteps = steps.filter((s) => s.completed).length;
+  const totalSteps = steps.length;
+  const overallProgress =
+    totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
   const formatTime = (seconds: number): string => {
     if (seconds < 60) {
-      return `${Math.ceil(seconds)}s`
+      return `${Math.ceil(seconds)}s`;
     }
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return remainingSeconds > 0 ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`
-  }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return remainingSeconds > 0
+      ? `${minutes}m ${remainingSeconds}s`
+      : `${minutes}m`;
+  };
 
   return (
     <div className={`progress-indicator ${className}`}>
@@ -66,44 +69,64 @@ export const ProgressIndicator = ({
       {showProgress && (
         <div className="progress-indicator-bar-container">
           <div className="progress-indicator-bar">
-            <div className="progress-indicator-bar-fill" style={{ width: `${overallProgress}%` }} />
+            <div
+              className="progress-indicator-bar-fill"
+              style={{ width: `${overallProgress}%` }}
+            />
           </div>
-          <div className="progress-indicator-percentage">{Math.round(overallProgress)}%</div>
+          <div className="progress-indicator-percentage">
+            {Math.round(overallProgress)}%
+          </div>
         </div>
       )}
 
       <div className="progress-indicator-steps">
         {steps.map((step, idx) => {
-          const isActive = step.active || step.id === currentStep
-          const isCompleted = step.completed
-          const hasError = step.error
+          const isActive = step.active || step.id === currentStep;
+          const isCompleted = step.completed;
+          const hasError = step.error;
 
           return (
             <div
               key={step.id}
               className={`progress-indicator-step ${
-                isActive ? 'active' : isCompleted ? 'completed' : hasError ? 'error' : 'pending'
+                isActive
+                  ? "active"
+                  : isCompleted
+                    ? "completed"
+                    : hasError
+                      ? "error"
+                      : "pending"
               }`}
             >
               <div className="progress-indicator-step-icon">
                 {hasError ? (
                   <span className="progress-indicator-step-icon-error">✕</span>
                 ) : isCompleted ? (
-                  <span className="progress-indicator-step-icon-completed">✓</span>
+                  <span className="progress-indicator-step-icon-completed">
+                    ✓
+                  </span>
                 ) : isActive ? (
                   <LoadingSpinner size="sm" />
                 ) : (
-                  <span className="progress-indicator-step-icon-pending">{idx + 1}</span>
+                  <span className="progress-indicator-step-icon-pending">
+                    {idx + 1}
+                  </span>
                 )}
               </div>
               <div className="progress-indicator-step-content">
-                <div className="progress-indicator-step-label">{step.label}</div>
+                <div className="progress-indicator-step-label">
+                  {step.label}
+                </div>
                 {step.description && (
-                  <div className="progress-indicator-step-description">{step.description}</div>
+                  <div className="progress-indicator-step-description">
+                    {step.description}
+                  </div>
                 )}
                 {isActive && step.estimatedTimeRemaining !== undefined && (
                   <div className="progress-indicator-step-time">
-                    Estimated time remaining: {formatTime(step.estimatedTimeRemaining)}
+                    Estimated time remaining:{" "}
+                    {formatTime(step.estimatedTimeRemaining)}
                   </div>
                 )}
                 {isActive && step.progress !== undefined && (
@@ -121,9 +144,9 @@ export const ProgressIndicator = ({
                 )}
               </div>
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
-}
+  );
+};

@@ -1,13 +1,13 @@
-import { Button } from '../common/Button'
-import './TraceViewer.css'
+import { Button } from "../common/Button";
+import "./TraceViewer.css";
 
 interface TraceViewerProps {
-  traces: string[][]
-  title: string
-  selectedTraceIndex: number
-  selectedStep: number
-  onTraceSelect: (index: number) => void
-  onStepSelect: (step: number) => void
+  traces: string[][];
+  title: string;
+  selectedTraceIndex: number;
+  selectedStep: number;
+  onTraceSelect: (index: number) => void;
+  onStepSelect: (step: number) => void;
 }
 
 export const TraceViewer = ({
@@ -23,11 +23,11 @@ export const TraceViewer = ({
       <div className="trace-viewer-empty">
         <p>No {title.toLowerCase()} available</p>
       </div>
-    )
+    );
   }
 
-  const currentTrace = traces[selectedTraceIndex] || traces[0]
-  const hasMultipleTraces = traces.length > 1
+  const currentTrace = traces[selectedTraceIndex] || traces[0];
+  const hasMultipleTraces = traces.length > 1;
 
   return (
     <div className="trace-viewer">
@@ -39,7 +39,7 @@ export const TraceViewer = ({
             <select
               className="trace-viewer-select"
               value={selectedTraceIndex}
-              onChange={e => onTraceSelect(parseInt(e.target.value, 10))}
+              onChange={(e) => onTraceSelect(parseInt(e.target.value, 10))}
             >
               {traces.map((_, index) => (
                 <option key={index} value={index}>
@@ -56,7 +56,7 @@ export const TraceViewer = ({
           {currentTrace.map((step, index) => (
             <div
               key={index}
-              className={`trace-viewer-step ${selectedStep === index ? 'trace-viewer-step-selected' : ''}`}
+              className={`trace-viewer-step ${selectedStep === index ? "trace-viewer-step-selected" : ""}`}
               onClick={() => onStepSelect(index)}
             >
               <div className="trace-viewer-step-number">{index + 1}</div>
@@ -80,7 +80,9 @@ export const TraceViewer = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onStepSelect(Math.min(currentTrace.length - 1, selectedStep + 1))}
+            onClick={() =>
+              onStepSelect(Math.min(currentTrace.length - 1, selectedStep + 1))
+            }
             disabled={selectedStep === currentTrace.length - 1}
           >
             Next →
@@ -88,5 +90,5 @@ export const TraceViewer = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

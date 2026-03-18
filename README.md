@@ -1,82 +1,75 @@
 # Mununu UI
 
-Web interface for the Mununu CLTS verification tool.
+**Web interface for the [Mununu](https://github.com/vscorza/mununu) CLTS verification tool**
+
+[![CI](https://github.com/vscorza/mununu-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/vscorza/mununu-ui/actions/workflows/ci.yml)
+[![Node.js 20+](https://img.shields.io/badge/node-20%2B-green.svg)](https://nodejs.org/)
+
+<!-- TODO: Add screenshot of the editor with graph visualization -->
+
+**[Live Demo](https://vscorza.github.io/mununu-ui/)** | **[Mununu Backend](https://github.com/vscorza/mununu)**
+
+## Features
+
+- **DSL Editor** &mdash; Monaco-based editor with CTXDSL syntax highlighting and validation
+- **Graph Visualization** &mdash; Interactive Cytoscape/Dagre views of automata, compositions, and synthesized controllers
+- **Verification** &mdash; Evaluate mu-calculus and LTL formulas over CLTS models
+- **Controller Synthesis** &mdash; Automatic synthesis with results visualized as graphs
+- **Internationalization** &mdash; English, Spanish, Portuguese
+
+## Quick Start
+
+```bash
+# 1. Start the Mununu API server
+cd /path/to/mununu
+cargo run --features api -- server --addr 127.0.0.1:8080
+
+# 2. Start the UI
+cd /path/to/mununu-ui
+npm install
+npm run dev
+# Open http://localhost:5173
+```
 
 ## Prerequisites
 
-- Node.js 18+ and npm
-- The Mununu Rust backend running (optional, for API features)
-
-## Setup
-
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Install pre-commit hooks:
-   ```bash
-   ./scripts/setup-hooks.sh
-   ```
-
-## Development
-
-Start the development server:
-```bash
-npm run dev
-```
+- Node.js 20+ and npm
+- [Mununu](https://github.com/vscorza/mununu) backend running for API features
 
 ## Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run format` - Format code with Prettier
-- `npm run format:check` - Check code formatting
-- `npm run test` - Run tests
-- `npm run test:coverage` - Run tests with coverage
-- `npm run type-check` - Type check without emitting
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
+| `npm run format:check` | Check code formatting |
+| `npm run test` | Run tests |
+| `npm run test:coverage` | Run tests with coverage |
+| `npm run type-check` | TypeScript type checking |
+
+## Tech Stack
+
+React 19, TypeScript, Vite 7, TailwindCSS, Monaco Editor, Cytoscape/Dagre, Zustand, Vitest
 
 ## Project Structure
 
 ```
-mununu-ui/
-├── src/
-│   ├── api/                  # API client and endpoints
-│   ├── components/
-│   │   ├── common/           # Shared UI components
-│   │   ├── editors/          # DSL editor (Monaco)
-│   │   ├── layout/           # App layout
-│   │   ├── verification/     # Verification results
-│   │   ├── visualization/    # Graph views, traces
-│   │   └── workflows/        # Verification & synthesis workflows
-│   ├── hooks/                # Custom React hooks
-│   ├── i18n/                 # Internationalization
-│   ├── monaco/               # Monaco editor ctxdsl support
-│   ├── pages/                # Page components
-│   ├── services/             # Analytics, offline support
-│   ├── store/                # Zustand state management
-│   └── tutorials/            # Interactive tutorials
-├── public/
-├── scripts/
-│   ├── pre-commit            # Pre-commit hook
-│   └── setup-hooks.sh        # Hook installer
-└── index.html
+src/
+├── api/              # API client and endpoint definitions
+├── components/
+│   ├── common/       # Shared UI components (Button, Modal, Tabs, etc.)
+│   ├── editors/      # CTXDSL editor (Monaco-based)
+│   ├── layout/       # App layout, header, sidebar
+│   └── visualization/# Graph views, summary tables
+├── hooks/            # Custom React hooks
+├── i18n/             # Internationalization (en, es, pt)
+├── monaco/           # Monaco editor CTXDSL language support
+├── store/            # Zustand state management
+└── styles/           # CSS variables and themes
 ```
 
-## Features
+## License
 
-- **DSL Editor**: Monaco-based editor with ctxdsl syntax highlighting
-- **Verification Workflow**: Evaluate mu-calculus formulas over CLTS models
-- **Synthesis Workflow**: Synthesize controllers with diagnostics
-- **Graph Visualization**: Interactive Cytoscape/React Flow graph views
-- **Counterexample Viewer**: Trace and counterexample visualization
-- **Internationalization**: English, Spanish, Portuguese
-
-## Testing
-
-```bash
-npm run test           # Run tests
-npm run test:coverage  # With coverage
-```
+[Mununu Non-Commercial License](LICENSE)
