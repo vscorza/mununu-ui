@@ -9,7 +9,6 @@ interface GraphMetadataProps {
 }
 
 export const GraphMetadata = ({
-  automaton,
   graphType,
   statesCount,
   transitionsCount,
@@ -21,10 +20,6 @@ export const GraphMetadata = ({
         <h3 className="graph-metadata-title">Graph Information</h3>
       </div>
       <div className="graph-metadata-content">
-        <div className="graph-metadata-item">
-          <span className="graph-metadata-label">Automaton:</span>
-          <span className="graph-metadata-value">{automaton}</span>
-        </div>
         <div className="graph-metadata-item">
           <span className="graph-metadata-label">Type:</span>
           <span className="graph-metadata-value graph-metadata-type">

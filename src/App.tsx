@@ -2,12 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { MainLayout } from './components/layout/MainLayout'
-import { Home } from './pages/Home'
-import { CtxdslEditor } from './components/editors/CtxdslEditor'
-import { SummaryView } from './components/visualization/SummaryView'
-import { GraphsView } from './components/visualization/GraphsView'
-import { SynthesisWorkflow } from './components/workflows/SynthesisWorkflow'
-import { VerificationWorkflow } from './components/workflows/VerificationWorkflow'
+import { UnifiedEditor } from './components/editors/UnifiedEditor'
 import { TutorialOverlay } from './tutorials/components/TutorialOverlay'
 import { AnalyticsViewer } from './components/common/AnalyticsViewer'
 import { OfflineIndicator } from './components/common/OfflineIndicator'
@@ -42,13 +37,7 @@ function App() {
           <TutorialOverlay />
           <MainLayout>
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/editor/ctxdsl" element={<CtxdslEditor />} />
-              <Route path="/visualization/summary" element={<SummaryView />} />
-              <Route path="/visualization/graphs" element={<GraphsView />} />
-              <Route path="/workflows/verification" element={<VerificationWorkflow />} />
-              <Route path="/workflows/synthesis" element={<SynthesisWorkflow />} />
+              <Route path="*" element={<UnifiedEditor />} />
             </Routes>
           </MainLayout>
         </KeyboardShortcutsProvider>

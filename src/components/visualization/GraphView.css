@@ -3,15 +3,12 @@
   height: 100%;
   min-height: 500px;
   position: relative;
-  background: var(--bg-primary, #fff);
-  border: 1px solid var(--border-color, #e0e0e0);
-  border-radius: 8px;
+  background: transparent;
   overflow: hidden;
 }
 
 .dark .graph-view-container {
-  background: var(--bg-primary, #1e1e1e);
-  border-color: var(--border-color, #333);
+  background: transparent;
 }
 
 .graph-view-canvas {

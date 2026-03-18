@@ -3,11 +3,6 @@ import { create } from 'zustand'
 import type { Language } from '../i18n'
 
 interface AppState {
-  // UI State
-  sidebarOpen: boolean
-  setSidebarOpen: (open: boolean) => void
-  toggleSidebar: () => void
-
   // Theme
   theme: 'light' | 'dark'
   setTheme: (theme: 'light' | 'dark') => void
@@ -28,11 +23,6 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>(set => ({
-  // UI State
-  sidebarOpen: false,
-  setSidebarOpen: open => set({ sidebarOpen: open }),
-  toggleSidebar: () => set(state => ({ sidebarOpen: !state.sidebarOpen })),
-
   // Theme
   theme: (localStorage.getItem('theme') as 'light' | 'dark') || 'dark',
   setTheme: theme => {
