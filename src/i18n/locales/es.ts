@@ -39,7 +39,6 @@ export const es: typeof en = {
     summary: 'Resumen',
     graphs: 'Gráficos',
     verification: 'Verificación',
-    synthesis: 'Síntesis',
   },
 
   // Process Capture Workflow
@@ -403,23 +402,6 @@ export const es: typeof en = {
     initialSatisfying: 'Iniciales que Satisfacen',
     initialViolating: 'Iniciales que Violan',
     clear: 'Limpiar Resultados',
-  },
-
-  // Synthesis
-  synthesis: {
-    title: 'Síntesis',
-    synthesize: 'Sintetizar',
-    synthesizing: 'Sintetizando...',
-    context: 'Contexto',
-    automaton: 'Autómata',
-    formula: 'Fórmula',
-    minimize: 'Minimizar controlador',
-    diagnostics: 'Habilitar diagnósticos',
-    results: 'Resultados de Síntesis',
-    realizable: 'Realizable',
-    unrealizable: 'No realizable',
-    controller: 'Controlador',
-    download: 'Descargar Controlador',
   },
 
   // Summary

@@ -7,13 +7,10 @@ type ContextSummarizeRequest =
 type ContextSummarizeResponse =
   paths['/api/v1/context/summarize']['post']['responses']['200']['content']['application/json']
 
-type ContextSynthesizeRequest =
-  paths['/api/v1/context/synthesize']['post']['requestBody']['content']['application/json']
-type ContextSynthesizeResponse =
-  paths['/api/v1/context/synthesize']['post']['responses']['200']['content']['application/json']
-
 type ContextGraphsRequest =
-  paths['/api/v1/context/graphs']['post']['requestBody']['content']['application/json']
+  paths['/api/v1/context/graphs']['post']['requestBody']['content']['application/json'] & {
+    include_controllers?: boolean
+  }
 type ContextGraphsResponse =
   paths['/api/v1/context/graphs']['post']['responses']['200']['content']['application/json']
 
@@ -48,13 +45,6 @@ export const summarizeContext = async (
   request: ContextSummarizeRequest
 ): Promise<ContextSummarizeResponse> => {
   const response = await apiClient.post<ContextSummarizeResponse>('/context/summarize', request)
-  return response.data
-}
-
-export const synthesizeController = async (
-  request: ContextSynthesizeRequest
-): Promise<ContextSynthesizeResponse> => {
-  const response = await apiClient.post<ContextSynthesizeResponse>('/context/synthesize', request)
   return response.data
 }
 

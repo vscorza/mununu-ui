@@ -37,7 +37,6 @@ export const en = {
     summary: 'Summary',
     graphs: 'Graphs',
     verification: 'Verification',
-    synthesis: 'Synthesis',
   },
 
   // Process Capture Workflow
@@ -396,23 +395,6 @@ export const en = {
     initialSatisfying: 'Initial Satisfying',
     initialViolating: 'Initial Violating',
     clear: 'Clear Results',
-  },
-
-  // Synthesis
-  synthesis: {
-    title: 'Synthesis',
-    synthesize: 'Synthesize',
-    synthesizing: 'Synthesizing...',
-    context: 'Context',
-    automaton: 'Automaton',
-    formula: 'Formula',
-    minimize: 'Minimize controller',
-    diagnostics: 'Enable diagnostics',
-    results: 'Synthesis Results',
-    realizable: 'Realizable',
-    unrealizable: 'Unrealizable',
-    controller: 'Controller',
-    download: 'Download Controller',
   },
 
   // Summary

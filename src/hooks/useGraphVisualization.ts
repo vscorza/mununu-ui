@@ -61,6 +61,7 @@ export const useGraphVisualization = () => {
           graph_types: graphTypes,
           automaton: automaton || null,
           sidecars: sidecars.map(sc => ({ name: sc.name, content: sc.content })),
+          include_controllers: true,
         })
 
         if (!response.success || !response.graphs.length) {
@@ -154,8 +155,17 @@ export const useGraphVisualization = () => {
   }, [state.graphs])
 
   // Get filtered graphs based on selected type and automaton
+  // Always include controller graphs regardless of type filter
   const getFilteredGraphs = useCallback(() => {
     return state.graphs.filter(graph => {
+      const graphType = graph.graph_type as string
+      if (graphType === 'controller') {
+        // Controller graphs always pass the type filter
+        if (state.selectedAutomaton && graph.automaton !== state.selectedAutomaton) {
+          return false
+        }
+        return true
+      }
       if (state.selectedGraphType && graph.graph_type !== state.selectedGraphType) {
         return false
       }

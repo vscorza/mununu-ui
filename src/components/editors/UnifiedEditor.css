@@ -273,16 +273,8 @@
   background: #451a1a33;
 }
 
-/* Synthesis */
-.unified-editor__synth-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.unified-editor__synth-options {
-  display: flex;
-  gap: 1rem;
+.unified-editor__controllers-summary {
+  margin-top: 0.75rem;
 }
 
 .unified-editor__checkbox {
@@ -291,28 +283,6 @@
   gap: 0.375rem;
   font-size: 0.8125rem;
   cursor: pointer;
-}
-
-.unified-editor__controller {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.unified-editor__code {
-  padding: 0.75rem;
-  background: #f9fafb;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  overflow-x: auto;
-  max-height: 300px;
-  overflow-y: auto;
-  border: 1px solid var(--color-border, #e5e7eb);
-}
-
-:root.dark .unified-editor__code {
-  background: #111827;
-  border-color: #374151;
 }
 
 /* Mobile: stack vertically */

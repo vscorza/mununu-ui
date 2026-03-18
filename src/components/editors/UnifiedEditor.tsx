@@ -4,7 +4,6 @@ import { useCtxdslEditor } from '../../hooks/useCtxdslEditor'
 import { useSummary } from '../../hooks/useSummary'
 import { useGraphVisualization } from '../../hooks/useGraphVisualization'
 import { useVerification } from '../../hooks/useVerification'
-import { useSynthesis } from '../../hooks/useSynthesis'
 import { EditorToolbar } from './EditorToolbar'
 import { registerCtxdslLanguage } from '../../monaco/ctxdsl-language'
 import { registerCtxdslTheme } from '../../monaco/ctxdsl-theme'
@@ -16,11 +15,10 @@ import { SummaryTable } from '../visualization/SummaryTable'
 import { AutomatonCard } from '../visualization/AutomatonCard'
 import { SummaryJSON } from '../visualization/SummaryJSON'
 import { MultiGraphView } from '../visualization/MultiGraphView'
-import { DiagnosticsView } from '../visualization/DiagnosticsView'
 import type { SortField } from '../../hooks/useSummary'
 import './UnifiedEditor.css'
 
-type RightTab = 'summary' | 'graphs' | 'verification' | 'synthesis'
+type RightTab = 'summary' | 'graphs' | 'verification'
 
 export const UnifiedEditor = () => {
   const { theme } = useAppStore()
@@ -43,26 +41,12 @@ export const UnifiedEditor = () => {
   const summary = useSummary()
   const graphs = useGraphVisualization()
   const verification = useVerification()
-  const synthesis = useSynthesis()
 
   // Panel state
   const [activeTab, setActiveTab] = useState<RightTab>('summary')
   const [dividerPosition, setDividerPosition] = useState(55) // percentage
   const [isDragging, setIsDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  // Diagnostics trace state
-  const [counterStratIdx, setCounterStratIdx] = useState(0)
-  const [counterStratStep, setCounterStratStep] = useState(0)
-  const [deadlockIdx, setDeadlockIdx] = useState(0)
-  const [deadlockStep, setDeadlockStep] = useState(0)
-  const [counterexStep, setCounterexStep] = useState(0)
-
-  // Synthesis inputs
-  const [synthAutomaton, setSynthAutomaton] = useState('')
-  const [synthFormula, setSynthFormula] = useState('')
-  const [synthMinimize, setSynthMinimize] = useState(false)
-  const [synthDiagnostics, setSynthDiagnostics] = useState(true)
 
   // Graph options
   const [graphTypes, setGraphTypes] = useState<('dsl' | 'unrolled')[]>(['dsl', 'unrolled'])
@@ -119,29 +103,6 @@ export const UnifiedEditor = () => {
     )
   }
 
-  const handleSynthesize = () => {
-    const content = getContent()
-    if (!content.trim()) return
-    synthesis.synthesize(content, synthAutomaton, synthFormula, editorState.fileName, {
-      minimize: synthMinimize,
-      diagnostics: synthDiagnostics,
-    })
-  }
-
-  const handleDownloadController = () => {
-    if (!synthesis.state.result?.controller) return
-    const controllerContent = synthesis.state.result.controller.content || ''
-    const blob = new Blob([controllerContent], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${synthAutomaton || 'controller'}.ctxdsl`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
-
   // Divider drag handling
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -174,7 +135,6 @@ export const UnifiedEditor = () => {
     { id: 'summary', label: 'Summary' },
     { id: 'graphs', label: 'Graphs' },
     { id: 'verification', label: 'Verification' },
-    { id: 'synthesis', label: 'Synthesis' },
   ]
 
   const filteredAutomata = summary.getFilteredAndSortedAutomata()
@@ -335,6 +295,60 @@ export const UnifiedEditor = () => {
                       </button>
                     ))}
                   </div>
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {(summary.state.summary as any).controllers &&
+                    (summary.state.summary as any).controllers.length > 0 && (
+                      <div className="unified-editor__controllers-summary">
+                        <strong>Controllers</strong>
+                        <table className="unified-editor__verify-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Source</th>
+                              <th>Formula</th>
+                              <th>Realizable</th>
+                              <th>States</th>
+                              <th>Transitions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(summary.state.summary as any).controllers.map(
+                              (
+                                c: {
+                                  name: string
+                                  source: string
+                                  formula: string
+                                  realizable: boolean
+                                  states_count: number
+                                  transitions_count: number
+                                },
+                                i: number
+                              ) => (
+                                <tr key={i}>
+                                  <td>{c.name}</td>
+                                  <td>{c.source}</td>
+                                  <td>{c.formula}</td>
+                                  <td>
+                                    <span
+                                      className={
+                                        c.realizable
+                                          ? 'unified-editor__verify-badge--pass'
+                                          : 'unified-editor__verify-badge--fail'
+                                      }
+                                      style={{ padding: '2px 6px', borderRadius: '4px' }}
+                                    >
+                                      {c.realizable ? 'Yes' : 'No'}
+                                    </span>
+                                  </td>
+                                  <td>{c.states_count}</td>
+                                  <td>{c.transitions_count}</td>
+                                </tr>
+                              )
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                 </div>
               )}
             </div>
@@ -490,103 +504,6 @@ export const UnifiedEditor = () => {
                         </div>
                       </div>
                     ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'synthesis' && (
-            <div className="unified-editor__section">
-              <div className="unified-editor__synth-inputs">
-                <Input
-                  label="Automaton"
-                  value={synthAutomaton}
-                  onChange={e => setSynthAutomaton(e.target.value)}
-                  placeholder="Automaton name"
-                />
-                <Input
-                  label="Formula"
-                  value={synthFormula}
-                  onChange={e => setSynthFormula(e.target.value)}
-                  placeholder="Formula name"
-                />
-                <div className="unified-editor__synth-options">
-                  <label className="unified-editor__checkbox">
-                    <input
-                      type="checkbox"
-                      checked={synthMinimize}
-                      onChange={e => setSynthMinimize(e.target.checked)}
-                    />
-                    Minimize
-                  </label>
-                  <label className="unified-editor__checkbox">
-                    <input
-                      type="checkbox"
-                      checked={synthDiagnostics}
-                      onChange={e => setSynthDiagnostics(e.target.checked)}
-                    />
-                    Diagnostics
-                  </label>
-                </div>
-              </div>
-              <div className="unified-editor__action-bar">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleSynthesize}
-                  disabled={synthesis.state.isLoading}
-                >
-                  {synthesis.state.isLoading ? (
-                    <>
-                      <LoadingSpinner size="sm" /> Synthesizing...
-                    </>
-                  ) : (
-                    'Synthesize'
-                  )}
-                </Button>
-                {synthesis.state.result && (
-                  <Button variant="ghost" size="sm" onClick={synthesis.clearResult}>
-                    Clear
-                  </Button>
-                )}
-              </div>
-              {synthesis.state.error && (
-                <div className="unified-editor__error">{synthesis.state.error}</div>
-              )}
-              {synthesis.state.result && (
-                <div className="unified-editor__results">
-                  <div
-                    className={`unified-editor__verify-badge ${synthesis.state.result.realizable ? 'unified-editor__verify-badge--pass' : 'unified-editor__verify-badge--fail'}`}
-                  >
-                    {synthesis.state.result.realizable ? 'Realizable' : 'Unrealizable'}
-                  </div>
-                  {synthesis.state.result.controller && (
-                    <div className="unified-editor__controller">
-                      <div className="unified-editor__action-bar">
-                        <Button variant="ghost" size="sm" onClick={handleDownloadController}>
-                          Download Controller
-                        </Button>
-                      </div>
-                      <pre className="unified-editor__code">
-                        {synthesis.state.result.controller.content}
-                      </pre>
-                    </div>
-                  )}
-                  {synthesis.state.result.diagnostics && (
-                    <DiagnosticsView
-                      diagnostics={synthesis.state.result.diagnostics}
-                      selectedCounterstrategyIndex={counterStratIdx}
-                      selectedCounterstrategyStep={counterStratStep}
-                      selectedDeadlockIndex={deadlockIdx}
-                      selectedDeadlockStep={deadlockStep}
-                      selectedCounterexampleStep={counterexStep}
-                      onCounterstrategyTraceSelect={setCounterStratIdx}
-                      onCounterstrategyStepSelect={setCounterStratStep}
-                      onDeadlockTraceSelect={setDeadlockIdx}
-                      onDeadlockStepSelect={setDeadlockStep}
-                      onCounterexampleStepSelect={setCounterexStep}
-                    />
-                  )}
                 </div>
               )}
             </div>
