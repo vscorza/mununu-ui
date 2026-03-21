@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { GraphView } from "./GraphView";
 import { GraphControls } from "./GraphControls";
 import { GraphMetadata } from "./GraphMetadata";
@@ -25,8 +25,19 @@ export const MultiGraphView = ({
 }: MultiGraphViewProps) => {
   const [selectedGraphIndex, setSelectedGraphIndex] = useState(0);
   const [layout, setLayout] = useState<LayoutType>("dagre");
+  const [isExpanded, setIsExpanded] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const graphViewRef = useRef<{ cy?: any }>(null);
+
+  // Escape key exits expanded mode
+  useEffect(() => {
+    if (!isExpanded) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsExpanded(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isExpanded]);
 
   const currentGraph = graphs[selectedGraphIndex];
 
@@ -63,6 +74,16 @@ export const MultiGraphView = ({
     setLayout(newLayout as LayoutType);
   }, []);
 
+  const handleExportPNG = useCallback(() => {
+    const cy = graphViewRef.current?.cy;
+    if (!cy) return;
+    const png = cy.png({ full: true, scale: 2, bg: "#ffffff" });
+    const link = document.createElement("a");
+    link.href = png;
+    link.download = `${currentGraph?.automaton || "graph"}-${currentGraph?.graph_type || "dsl"}.png`;
+    link.click();
+  }, [currentGraph]);
+
   if (!currentGraph) {
     return (
       <div className="multi-graph-view-empty">
@@ -91,6 +112,9 @@ export const MultiGraphView = ({
             onReset={handleReset}
             onLayoutChange={handleLayoutChange}
             currentLayout={layout}
+            onToggleExpand={() => setIsExpanded((prev) => !prev)}
+            isExpanded={isExpanded}
+            onExportPNG={handleExportPNG}
           />
           <div className="multi-graph-view-graph-container">
             <GraphView
@@ -100,17 +124,9 @@ export const MultiGraphView = ({
               selectedNodeId={selectedNodeId}
               onNodeSelect={onNodeSelect}
               layout={layout}
-            />
-            <div
-              ref={(el) => {
-                if (el) {
-                  graphViewRef.current = {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    cy: (el.querySelector(".graph-view-canvas") as any)?.cy,
-                  };
-                }
+              onCyInit={(cy) => {
+                graphViewRef.current = { cy };
               }}
-              style={{ display: "none" }}
             />
           </div>
         </div>
@@ -119,7 +135,7 @@ export const MultiGraphView = ({
   }));
 
   return (
-    <div className="multi-graph-view">
+    <div className={`multi-graph-view ${isExpanded ? "multi-graph-view--expanded" : ""}`}>
       <Tabs
         tabs={tabs}
         onChange={(tabId) => {

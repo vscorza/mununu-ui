@@ -18,6 +18,7 @@ interface GraphViewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onNodeHover?: (nodeId: string | null, data: any) => void;
   layout?: "dagre" | "breadthfirst" | "grid" | "preset";
+  onCyInit?: (cy: Core) => void;
 }
 
 export const GraphView = ({
@@ -27,6 +28,7 @@ export const GraphView = ({
   onNodeSelect,
   onNodeHover,
   layout = "dagre",
+  onCyInit,
 }: GraphViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<Core | null>(null);
@@ -124,6 +126,7 @@ export const GraphView = ({
     });
 
     cyRef.current = cy;
+    if (onCyInit) onCyInit(cy);
 
     // Handle node/edge clicks
     cy.on("tap", "node", (evt) => {
@@ -198,17 +201,6 @@ export const GraphView = ({
       cy.destroy();
     };
   }, [graph, layout, searchText, selectedNodeId, onNodeSelect, onNodeHover]);
-
-  // Expose cytoscape instance methods
-  useEffect(() => {
-    if (!cyRef.current) return;
-
-    const cy = cyRef.current;
-
-    // Store methods for parent component
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (containerRef.current as any).cy = cy;
-  }, []);
 
   return (
     <div className="graph-view-container">

@@ -39,3 +39,15 @@
   min-height: 0;
   position: relative;
 }
+
+/* Expanded / fullscreen mode */
+.multi-graph-view--expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--bg-primary, #fff);
+}
+
+.dark .multi-graph-view--expanded {
+  background: var(--bg-primary, #1e1e1e);
+}

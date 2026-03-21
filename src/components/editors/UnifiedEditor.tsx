@@ -15,6 +15,7 @@ import { SummaryTable } from "../visualization/SummaryTable";
 import { AutomatonCard } from "../visualization/AutomatonCard";
 import { SummaryJSON } from "../visualization/SummaryJSON";
 import { MultiGraphView } from "../visualization/MultiGraphView";
+import { DiagnosticsPanel } from "../visualization/DiagnosticsPanel";
 import type { SortField } from "../../hooks/useSummary";
 import "./UnifiedEditor.css";
 
@@ -502,6 +503,7 @@ export const UnifiedEditor = () => {
                         <th>Status</th>
                         <th>Satisfying</th>
                         <th>Initial</th>
+                        <th></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -524,23 +526,48 @@ export const UnifiedEditor = () => {
                             {r.initial_satisfying.length}/
                             {r.initial_states.length}
                           </td>
+                          <td>
+                            {!r.satisfied && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={verification.isDiagnosing(r.formula_name, r.automaton)}
+                                onClick={() =>
+                                  verification.diagnoseFormula(
+                                    editorState.content,
+                                    r.formula_name,
+                                    r.automaton,
+                                  )
+                                }
+                              >
+                                {verification.isDiagnosing(r.formula_name, r.automaton)
+                                  ? "Diagnosing..."
+                                  : verification.getDiagnosis(r.formula_name, r.automaton)
+                                    ? "Re-diagnose"
+                                    : "Diagnose"}
+                              </Button>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                   {verification.state.result.results
-                    .filter((r) => r.initial_violating.length > 0)
-                    .map((r, i) => (
-                      <div key={i} className="unified-editor__verify-detail">
-                        <strong>
-                          {r.formula_name} on {r.automaton}
-                        </strong>
-                        <div>
-                          Violating initial states:{" "}
-                          {r.initial_violating.join(", ")}
+                    .filter((r) => !r.satisfied && verification.getDiagnosis(r.formula_name, r.automaton))
+                    .map((r, i) => {
+                      const diagnosis = verification.getDiagnosis(r.formula_name, r.automaton)!;
+                      return (
+                        <div key={i} className="unified-editor__verify-detail">
+                          <strong>
+                            {r.formula_name} on {r.automaton}
+                          </strong>
+                          <DiagnosticsPanel
+                            diagnostics={diagnosis.diagnostics}
+                            realizable={diagnosis.realizable}
+                          />
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               )}
             </div>

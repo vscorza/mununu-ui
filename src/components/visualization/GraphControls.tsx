@@ -8,6 +8,9 @@ interface GraphControlsProps {
   onReset: () => void;
   onLayoutChange?: (layout: string) => void;
   currentLayout?: string;
+  onToggleExpand?: () => void;
+  isExpanded?: boolean;
+  onExportPNG?: () => void;
 }
 
 export const GraphControls = ({
@@ -17,6 +20,9 @@ export const GraphControls = ({
   onReset,
   onLayoutChange,
   currentLayout,
+  onToggleExpand,
+  isExpanded,
+  onExportPNG,
 }: GraphControlsProps) => {
   return (
     <div className="graph-controls">
@@ -47,6 +53,25 @@ export const GraphControls = ({
             <option value="grid">Grid</option>
             <option value="preset">Preset</option>
           </select>
+        </div>
+      )}
+      {onExportPNG && (
+        <div className="graph-controls-group">
+          <Button variant="ghost" size="sm" onClick={onExportPNG} title="Download as PNG">
+            PNG
+          </Button>
+        </div>
+      )}
+      {onToggleExpand && (
+        <div className="graph-controls-group">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleExpand}
+            title={isExpanded ? "Exit fullscreen" : "Fullscreen"}
+          >
+            {isExpanded ? "↙ Exit" : "↗ Expand"}
+          </Button>
         </div>
       )}
     </div>

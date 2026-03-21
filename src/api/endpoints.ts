@@ -71,3 +71,22 @@ export const verifyContext = async (
   );
   return response.data;
 };
+
+// Synthesis types (from auto-generated OpenAPI types)
+type SynthesizeRequest =
+  paths["/api/v1/context/synthesize"]["post"]["requestBody"]["content"]["application/json"];
+type SynthesizeResponse =
+  paths["/api/v1/context/synthesize"]["post"]["responses"]["200"]["content"]["application/json"];
+
+export type { SynthesizeResponse };
+
+// Synthesize endpoint (used for diagnostics on failed formulas)
+export const synthesizeContext = async (
+  request: SynthesizeRequest,
+): Promise<SynthesizeResponse> => {
+  const response = await apiClient.post<SynthesizeResponse>(
+    "/context/synthesize",
+    request,
+  );
+  return response.data;
+};

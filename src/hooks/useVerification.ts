@@ -1,14 +1,24 @@
 import { useState, useCallback } from "react";
 import {
   verifyContext,
+  synthesizeContext,
   type ContextVerifyResponse,
   type FormulaVerificationResult,
+  type SynthesizeResponse,
 } from "../api/endpoints";
 import { useToast } from "./useToast";
 import { useErrorHandler } from "./useErrorHandler";
 import { useRetry } from "./useRetry";
+import type { components } from "../api/types";
 
 export type { FormulaVerificationResult };
+
+type SynthesisDiagnostics = components["schemas"]["SynthesisDiagnostics"];
+
+export interface DiagnosisResult {
+  realizable: boolean;
+  diagnostics: SynthesisDiagnostics;
+}
 
 export interface VerificationState {
   result: ContextVerifyResponse | null;
@@ -22,6 +32,12 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
     isLoading: initialState?.isLoading ?? false,
     error: initialState?.error ?? null,
   });
+  const [diagnosisResults, setDiagnosisResults] = useState<
+    Map<string, DiagnosisResult>
+  >(new Map());
+  const [diagnosingKeys, setDiagnosingKeys] = useState<Set<string>>(
+    new Set(),
+  );
   const toast = useToast();
   const { handleError } = useErrorHandler();
   const { retry } = useRetry();
@@ -39,6 +55,8 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
       }
 
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
+      setDiagnosisResults(new Map());
+      setDiagnosingKeys(new Set());
 
       try {
         const response = await retry(
@@ -88,17 +106,82 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
     [toast, handleError, retry],
   );
 
+  const diagnoseFormula = useCallback(
+    async (
+      content: string,
+      formulaName: string,
+      automatonName: string,
+      contextName?: string,
+    ): Promise<void> => {
+      const key = `${formulaName}:${automatonName}`;
+      setDiagnosingKeys((prev) => new Set(prev).add(key));
+
+      try {
+        const response: SynthesizeResponse = await synthesizeContext({
+          context: { name: contextName || "editor.ctxdsl", content },
+          formula: formulaName,
+          automaton: automatonName,
+          options: {
+            minimize: false,
+            diagnostics: {
+              counterexample: true,
+              deadlock_traces: true,
+            },
+          },
+        });
+
+        setDiagnosisResults((prev) => {
+          const next = new Map(prev);
+          next.set(key, {
+            realizable: response.realizable,
+            diagnostics: response.diagnostics,
+          });
+          return next;
+        });
+      } catch (err) {
+        const errorMessage = handleError(err);
+        toast.showError(`Diagnosis failed: ${errorMessage}`);
+      } finally {
+        setDiagnosingKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          return next;
+        });
+      }
+    },
+    [handleError, toast],
+  );
+
+  const getDiagnosis = useCallback(
+    (formulaName: string, automatonName: string): DiagnosisResult | null => {
+      return diagnosisResults.get(`${formulaName}:${automatonName}`) ?? null;
+    },
+    [diagnosisResults],
+  );
+
+  const isDiagnosing = useCallback(
+    (formulaName: string, automatonName: string): boolean => {
+      return diagnosingKeys.has(`${formulaName}:${automatonName}`);
+    },
+    [diagnosingKeys],
+  );
+
   const clearResult = useCallback(() => {
     setState({
       result: null,
       isLoading: false,
       error: null,
     });
+    setDiagnosisResults(new Map());
+    setDiagnosingKeys(new Set());
   }, []);
 
   return {
     state,
     verify,
+    diagnoseFormula,
+    getDiagnosis,
+    isDiagnosing,
     clearResult,
   };
 };
