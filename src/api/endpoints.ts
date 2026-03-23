@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, aiApiClient } from "./client";
 import type { paths } from "./types";
 
 // Context endpoint type aliases
@@ -20,6 +20,32 @@ export interface ContextVerifyRequest {
   sidecars?: { name: string; content: string }[];
   formula?: string;
   automaton?: string;
+  counterstrategy?: boolean;
+  minimize_counterstrategy?: boolean;
+}
+
+export interface GraphElementData {
+  id: string;
+  label?: string;
+  parent?: string;
+  source?: string;
+  target?: string;
+  action_type?: string;
+  type?: string;
+  [key: string]: unknown;
+}
+
+export interface GraphElement {
+  data: GraphElementData;
+  position?: { x: number; y: number };
+  classes?: string;
+}
+
+export interface CounterstrategyResult {
+  environment_winning_states: string[];
+  graph_elements: GraphElement[];
+  inverted_formula: string;
+  minimized: boolean;
 }
 
 export interface FormulaVerificationResult {
@@ -32,6 +58,7 @@ export interface FormulaVerificationResult {
   initial_satisfying: string[];
   initial_violating: string[];
   satisfying_state_names: string[];
+  counterstrategy?: CounterstrategyResult;
 }
 
 export interface ContextVerifyResponse {
@@ -62,31 +89,15 @@ export const getContextGraphs = async (
 };
 
 // Verification endpoint
+// Uses extended timeout when counterstrategy is requested (formula inversion + evaluation)
 export const verifyContext = async (
   request: ContextVerifyRequest,
 ): Promise<ContextVerifyResponse> => {
-  const response = await apiClient.post<ContextVerifyResponse>(
+  const client = request.counterstrategy ? aiApiClient : apiClient;
+  const response = await client.post<ContextVerifyResponse>(
     "/context/verify",
     request,
   );
   return response.data;
 };
 
-// Synthesis types (from auto-generated OpenAPI types)
-type SynthesizeRequest =
-  paths["/api/v1/context/synthesize"]["post"]["requestBody"]["content"]["application/json"];
-type SynthesizeResponse =
-  paths["/api/v1/context/synthesize"]["post"]["responses"]["200"]["content"]["application/json"];
-
-export type { SynthesizeResponse };
-
-// Synthesize endpoint (used for diagnostics on failed formulas)
-export const synthesizeContext = async (
-  request: SynthesizeRequest,
-): Promise<SynthesizeResponse> => {
-  const response = await apiClient.post<SynthesizeResponse>(
-    "/context/synthesize",
-    request,
-  );
-  return response.data;
-};

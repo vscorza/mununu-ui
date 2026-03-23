@@ -15,7 +15,7 @@ import { SummaryTable } from "../visualization/SummaryTable";
 import { AutomatonCard } from "../visualization/AutomatonCard";
 import { SummaryJSON } from "../visualization/SummaryJSON";
 import { MultiGraphView } from "../visualization/MultiGraphView";
-import { DiagnosticsPanel } from "../visualization/DiagnosticsPanel";
+import { CounterstrategyView } from "../visualization/CounterstrategyView";
 import type { SortField } from "../../hooks/useSummary";
 import "./UnifiedEditor.css";
 
@@ -531,20 +531,20 @@ export const UnifiedEditor = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                disabled={verification.isDiagnosing(r.formula_name, r.automaton)}
+                                disabled={verification.isFetchingCounterstrategy(r.formula_name, r.automaton)}
                                 onClick={() =>
-                                  verification.diagnoseFormula(
+                                  verification.fetchCounterstrategy(
                                     editorState.content,
                                     r.formula_name,
                                     r.automaton,
                                   )
                                 }
                               >
-                                {verification.isDiagnosing(r.formula_name, r.automaton)
-                                  ? "Diagnosing..."
-                                  : verification.getDiagnosis(r.formula_name, r.automaton)
-                                    ? "Re-diagnose"
-                                    : "Diagnose"}
+                                {verification.isFetchingCounterstrategy(r.formula_name, r.automaton)
+                                  ? "Computing..."
+                                  : verification.getCounterstrategy(r.formula_name, r.automaton)
+                                    ? "Refresh"
+                                    : "Counterstrategy"}
                               </Button>
                             )}
                           </td>
@@ -553,17 +553,15 @@ export const UnifiedEditor = () => {
                     </tbody>
                   </table>
                   {verification.state.result.results
-                    .filter((r) => !r.satisfied && verification.getDiagnosis(r.formula_name, r.automaton))
+                    .filter((r) => !r.satisfied && verification.getCounterstrategy(r.formula_name, r.automaton)?.counterstrategy)
                     .map((r, i) => {
-                      const diagnosis = verification.getDiagnosis(r.formula_name, r.automaton)!;
+                      const csResult = verification.getCounterstrategy(r.formula_name, r.automaton)!;
                       return (
-                        <div key={i} className="unified-editor__verify-detail">
-                          <strong>
-                            {r.formula_name} on {r.automaton}
-                          </strong>
-                          <DiagnosticsPanel
-                            diagnostics={diagnosis.diagnostics}
-                            realizable={diagnosis.realizable}
+                        <div key={`cs-${i}`} className="unified-editor__verify-detail">
+                          <CounterstrategyView
+                            result={csResult.counterstrategy!}
+                            formulaName={r.formula_name}
+                            automatonName={r.automaton}
                           />
                         </div>
                       );
