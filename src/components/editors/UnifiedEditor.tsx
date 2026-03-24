@@ -16,10 +16,11 @@ import { AutomatonCard } from "../visualization/AutomatonCard";
 import { SummaryJSON } from "../visualization/SummaryJSON";
 import { MultiGraphView } from "../visualization/MultiGraphView";
 import { CounterstrategyView } from "../visualization/CounterstrategyView";
+import { SynthesisPanel } from "../synthesis/SynthesisPanel";
 import type { SortField } from "../../hooks/useSummary";
 import "./UnifiedEditor.css";
 
-type RightTab = "summary" | "graphs" | "verification";
+type RightTab = "summary" | "graphs" | "verification" | "synthesis";
 
 export const UnifiedEditor = () => {
   const { theme } = useAppStore();
@@ -139,6 +140,7 @@ export const UnifiedEditor = () => {
     { id: "summary", label: "Summary" },
     { id: "graphs", label: "Graphs" },
     { id: "verification", label: "Verification" },
+    { id: "synthesis", label: "Synthesis" },
   ];
 
   const filteredAutomata = summary.getFilteredAndSortedAutomata();
@@ -164,6 +166,7 @@ export const UnifiedEditor = () => {
             onUndo={undo}
             onRedo={redo}
             onLoadFile={handleLoadFile}
+            onLoadExample={(content, fileName) => loadFile(content, fileName)}
           />
           <div className="unified-editor__monaco">
             <Editor
@@ -568,6 +571,12 @@ export const UnifiedEditor = () => {
                     })}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "synthesis" && (
+            <div className="unified-editor__section">
+              <SynthesisPanel content={editorState.content} />
             </div>
           )}
         </div>

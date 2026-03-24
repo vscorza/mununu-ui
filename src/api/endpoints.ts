@@ -101,3 +101,28 @@ export const verifyContext = async (
   return response.data;
 };
 
+// Synthesis types (matches mununu backend /api/v1/context/synthesize)
+type SynthesizeRequest =
+  paths["/api/v1/context/synthesize"]["post"]["requestBody"]["content"]["application/json"];
+type SynthesizeResponse =
+  paths["/api/v1/context/synthesize"]["post"]["responses"]["200"]["content"]["application/json"];
+
+export type { SynthesizeRequest, SynthesizeResponse };
+
+export interface LassoTrace {
+  prefix: string[];
+  cycle: string[];
+}
+
+// Synthesis endpoint
+// Uses aiApiClient for extended timeout since synthesis can be slow
+export const synthesizeContext = async (
+  request: SynthesizeRequest,
+): Promise<SynthesizeResponse> => {
+  const response = await aiApiClient.post<SynthesizeResponse>(
+    "/context/synthesize",
+    request,
+  );
+  return response.data;
+};
+
