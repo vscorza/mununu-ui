@@ -1,0 +1,99 @@
+// Round-Robin Arbiter (from hw-verification-uba lab02)
+//
+// 2-client arbiter with round-robin priority. When both clients request
+// simultaneously, the arbiter grants the client that was NOT granted last.
+// Grants are held until the requesting client deasserts.
+//
+// Key property: mutual exclusion — grant_a and grant_b never both high.
+
+context arbiter {
+    alphabet {
+        label req_a;
+        label req_b;
+        label grant_a;
+        label grant_b;
+        label release_a;
+        label release_b;
+    }
+
+    automata {
+        automaton Arbiter {
+            controllable {
+                label grant_a;
+                label grant_b;
+            }
+
+            states {
+                state Idle initial;
+                state GrantA;
+                state GrantB;
+            }
+
+            transitions {
+                // From Idle: grant based on requests
+                transition Idle -> GrantA on label req_a;
+                transition Idle -> GrantB on label req_b;
+                // Arbitration happens at decision point (both requests)
+                transition Idle -> GrantA on label grant_a;
+                transition Idle -> GrantB on label grant_b;
+
+                // Hold grant while request active
+                transition GrantA -> GrantA on label req_a;
+                // Release when request drops
+                transition GrantA -> Idle on label release_a;
+
+                // Same for client B
+                transition GrantB -> GrantB on label req_b;
+                transition GrantB -> Idle on label release_b;
+            }
+        }
+    }
+
+    // Safety and liveness properties derived from lab02 props.sv assertions.
+
+    mu_formulas {
+        // Safety invariant: the arbiter always stays in a valid state.
+        formula safety_invariant {
+            over Arbiter;
+            body = nu X. ([] X);
+        }
+
+        // Reachability: GrantA is reachable from any state.
+        formula grant_a_reachable {
+            over Arbiter;
+            body = mu X. (GrantA || <> X);
+        }
+
+        // Reachability: GrantB is reachable from any state.
+        formula grant_b_reachable {
+            over Arbiter;
+            body = mu X. (GrantB || <> X);
+        }
+
+        // Liveness: from any grant state, Idle is reachable.
+        formula grant_a_releases {
+            over Arbiter;
+            body = (! GrantA) || (mu Y. (Idle || <> Y));
+        }
+
+        formula grant_b_releases {
+            over Arbiter;
+            body = (! GrantB) || (mu Y. (Idle || <> Y));
+        }
+
+        // Mutual exclusion: structurally guaranteed since GrantA and GrantB
+        // are distinct states. No state is both GrantA and GrantB.
+        // Expressed as: every state is either not-GrantA or not-GrantB.
+        formula mutual_exclusion {
+            over Arbiter;
+            body = (! GrantA) || (! GrantB);
+        }
+    }
+
+    controllers {
+        controller arbiter_safe {
+            source Arbiter;
+            satisfying safety_invariant;
+        }
+    }
+}

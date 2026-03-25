@@ -10,6 +10,7 @@ type ContextSummarizeResponse =
 type ContextGraphsRequest =
   paths["/api/v1/context/graphs"]["post"]["requestBody"]["content"]["application/json"] & {
     include_controllers?: boolean;
+    minimize_controllers?: boolean;
   };
 type ContextGraphsResponse =
   paths["/api/v1/context/graphs"]["post"]["responses"]["200"]["content"]["application/json"];

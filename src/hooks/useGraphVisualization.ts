@@ -44,6 +44,8 @@ export const useGraphVisualization = () => {
       graphTypes: GraphType[] = ["dsl", "unrolled"],
       automaton?: string | null,
       sidecars: Array<{ name: string; content: string }> = [],
+      includeControllers: boolean = true,
+      minimizeControllers?: boolean,
     ) => {
       if (!context.trim()) {
         toast.showError("Cannot generate graphs from empty context");
@@ -64,7 +66,8 @@ export const useGraphVisualization = () => {
             name: sc.name,
             content: sc.content,
           })),
-          include_controllers: true,
+          include_controllers: includeControllers,
+          minimize_controllers: minimizeControllers,
         });
 
         if (!response.success || !response.graphs.length) {

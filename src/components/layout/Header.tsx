@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAppStore } from "../../store/appStore";
 import { Button } from "../common/Button";
-import { TutorialLauncher } from "../../tutorials/components/TutorialLauncher";
 import { KeyboardShortcutsHelp } from "../common/KeyboardShortcutsHelp";
 import { LanguageSelector } from "../common/LanguageSelector";
 
@@ -29,7 +28,6 @@ export const Header = () => {
 
         <div className="flex items-center gap-2">
           <LanguageSelector />
-          <TutorialLauncher />
           <KeyboardShortcutsHelp />
           <Button
             variant="ghost"

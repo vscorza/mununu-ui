@@ -1,5 +1,6 @@
 import { Button } from "../common/Button";
 import { LoadingSpinner } from "../common/LoadingSpinner";
+import { ExamplesPicker } from "./ExamplesPicker";
 import "./EditorToolbar.css";
 
 interface EditorToolbarProps {
@@ -8,10 +9,11 @@ interface EditorToolbarProps {
   isValidating: boolean;
   onNew: () => void;
   onSave: () => void;
-  onValidate: () => void;
+  onValidate: () => void | Promise<void>;
   onUndo: () => void;
   onRedo: () => void;
-  onLoadFile?: (file: File) => void;
+  onLoadFile?: (file: File) => void | Promise<void>;
+  onLoadExample?: (content: string, fileName: string) => void;
 }
 
 export const EditorToolbar = ({
@@ -24,6 +26,7 @@ export const EditorToolbar = ({
   onUndo,
   onRedo,
   onLoadFile,
+  onLoadExample,
 }: EditorToolbarProps) => {
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,6 +63,10 @@ export const EditorToolbar = ({
               📂 Open
             </span>
           </label>
+        )}
+
+        {onLoadExample && (
+          <ExamplesPicker onLoadExample={onLoadExample} />
         )}
 
         <Button

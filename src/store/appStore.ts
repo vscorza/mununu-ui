@@ -12,14 +12,6 @@ interface AppState {
   language: Language;
   setLanguage: (language: Language) => void;
 
-  // Tutorial
-  tutorialActive: boolean;
-  tutorialStep: number;
-  tutorialCompleted: Set<string>;
-  setTutorialActive: (active: boolean) => void;
-  setTutorialStep: (step: number) => void;
-  completeTutorial: (tutorialId: string) => void;
-  resetTutorial: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -43,22 +35,4 @@ export const useAppStore = create<AppState>((set) => ({
     set({ language });
   },
 
-  // Tutorial
-  tutorialActive: false,
-  tutorialStep: 0,
-  tutorialCompleted: new Set<string>(),
-  setTutorialActive: (active) => set({ tutorialActive: active }),
-  setTutorialStep: (step) => set({ tutorialStep: step }),
-  completeTutorial: (tutorialId) =>
-    set((state) => {
-      const completed = new Set(state.tutorialCompleted);
-      completed.add(tutorialId);
-      return { tutorialCompleted: completed };
-    }),
-  resetTutorial: () =>
-    set({
-      tutorialActive: false,
-      tutorialStep: 0,
-      tutorialCompleted: new Set(),
-    }),
 }));

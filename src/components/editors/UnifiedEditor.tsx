@@ -166,7 +166,7 @@ export const UnifiedEditor = () => {
             onUndo={undo}
             onRedo={redo}
             onLoadFile={handleLoadFile}
-            onLoadExample={(content, fileName) => loadFile(content, fileName)}
+            onLoadExample={(content: string, fileName: string) => loadFile(content, fileName)}
           />
           <div className="unified-editor__monaco">
             <Editor
