@@ -36,3 +36,6 @@ coverage
 # Build
 build
 
+# Claude
+CLAUDE.md
+.claude/

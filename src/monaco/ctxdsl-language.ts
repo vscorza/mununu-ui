@@ -7,7 +7,7 @@ export const ctxdslLanguageDefinition: monaco.languages.IMonarchLanguage = {
     root: [
       // Keywords
       [
-        /(context|alphabet|automata|automaton|states|state|transitions|transition|formulas|formula|controllers|controller|label|initial|accepting|on|with|guard|effect|action|vars|actions)/,
+        /(context|alphabet|automata|automaton|states|state|transitions|transition|formulas|formula|controllers|controller|label|initial|accepting|on|with|guard|effects|effect|action|vars|actions|variables|var|constants|const|ranges|range|enums|enum|composition|synchronous|asynchronous|superset|members|parameters|param|in|state_groups|group|wildcard|controllable|internal|over|body|mu_formulas|source|satisfying|export|minimize|diagnostics|ltl|mu|true|false|epsilon)/,
         "keyword",
       ],
       // Strings
