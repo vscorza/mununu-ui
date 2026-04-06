@@ -12,9 +12,8 @@
 ## Features
 
 - **DSL Editor** &mdash; Monaco-based editor with CTXDSL syntax highlighting and validation
-- **Graph Visualization** &mdash; Interactive Cytoscape/Dagre views of automata, compositions, and synthesized controllers
-- **Verification** &mdash; Evaluate mu-calculus and LTL formulas over CLTS models
-- **Controller Synthesis** &mdash; Automatic synthesis with results visualized as graphs
+- **Graph Visualization** &mdash; Interactive Cytoscape/Dagre views with controllable (blue) / uncontrollable (red dashed) edge styling and green diamond initial states
+- **Unified Verification** &mdash; Evaluate mu-calculus and LTL formulas, with inline counterstrategy graphs and counterexample traces per unsatisfied formula
 - **Internationalization** &mdash; English, Spanish, Portuguese
 
 ## Quick Start
