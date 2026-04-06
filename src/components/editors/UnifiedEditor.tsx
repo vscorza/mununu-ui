@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import Editor, { BeforeMount, OnMount } from "@monaco-editor/react";
 import { useCtxdslEditor } from "../../hooks/useCtxdslEditor";
 import { useSummary } from "../../hooks/useSummary";
@@ -16,11 +16,12 @@ import { AutomatonCard } from "../visualization/AutomatonCard";
 import { SummaryJSON } from "../visualization/SummaryJSON";
 import { MultiGraphView } from "../visualization/MultiGraphView";
 import { CounterstrategyView } from "../visualization/CounterstrategyView";
-import { SynthesisPanel } from "../synthesis/SynthesisPanel";
+import { TraceViewer } from "../visualization/TraceViewer";
+import { LassoTraceViewer } from "../visualization/LassoTraceViewer";
 import type { SortField } from "../../hooks/useSummary";
 import "./UnifiedEditor.css";
 
-type RightTab = "summary" | "graphs" | "verification" | "synthesis";
+type RightTab = "summary" | "graphs" | "verification";
 
 export const UnifiedEditor = () => {
   const { theme } = useAppStore();
@@ -46,6 +47,9 @@ export const UnifiedEditor = () => {
 
   // Panel state
   const [activeTab, setActiveTab] = useState<RightTab>("summary");
+  const [activatedTabs, setActivatedTabs] = useState<Set<RightTab>>(
+    new Set(["summary"]),
+  );
   const [dividerPosition, setDividerPosition] = useState(55); // percentage
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -59,6 +63,34 @@ export const UnifiedEditor = () => {
   // Verification options
   const [verifyFormula, setVerifyFormula] = useState("");
   const [verifyAutomaton, setVerifyAutomaton] = useState("");
+
+  // Expandable detail rows for verification results
+  const [expandedRows, setExpandedRows] = useState<
+    Map<string, Set<"counterstrategy" | "countertraces">>
+  >(new Map());
+
+  // Trace viewer selection state per row
+  const [traceSelection, setTraceSelection] = useState<
+    Map<string, { traceIndex: number; step: number }>
+  >(new Map());
+
+  const toggleExpanded = (
+    key: string,
+    kind: "counterstrategy" | "countertraces",
+  ) => {
+    setExpandedRows((prev) => {
+      const next = new Map(prev);
+      const current = next.get(key) ?? new Set();
+      const updated = new Set(current);
+      if (updated.has(kind)) {
+        updated.delete(kind);
+      } else {
+        updated.add(kind);
+      }
+      next.set(key, updated);
+      return next;
+    });
+  };
 
   // Monaco setup
   const handleEditorWillMount: BeforeMount = (monacoInstance) => {
@@ -100,6 +132,8 @@ export const UnifiedEditor = () => {
   const handleVerify = () => {
     const content = getContent();
     if (!content.trim()) return;
+    setExpandedRows(new Map());
+    setTraceSelection(new Map());
     verification.verify(
       content,
       editorState.fileName,
@@ -140,7 +174,6 @@ export const UnifiedEditor = () => {
     { id: "summary", label: "Summary" },
     { id: "graphs", label: "Graphs" },
     { id: "verification", label: "Verification" },
-    { id: "synthesis", label: "Synthesis" },
   ];
 
   const filteredAutomata = summary.getFilteredAndSortedAutomata();
@@ -215,7 +248,10 @@ export const UnifiedEditor = () => {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setActivatedTabs((prev) => new Set(prev).add(tab.id));
+              }}
               className={`unified-editor__tab ${activeTab === tab.id ? "unified-editor__tab--active" : ""}`}
             >
               {tab.label}
@@ -372,78 +408,83 @@ export const UnifiedEditor = () => {
             </div>
           )}
 
-          {activeTab === "graphs" && (
-            <div className="unified-editor__section">
-              <div className="unified-editor__action-bar">
-                <label className="unified-editor__checkbox">
-                  <input
-                    type="checkbox"
-                    checked={graphTypes.includes("dsl")}
-                    onChange={(e) => {
-                      setGraphTypes((prev) =>
-                        e.target.checked
-                          ? [...prev, "dsl"]
-                          : prev.filter((t) => t !== "dsl"),
-                      );
-                    }}
-                  />
-                  DSL
-                </label>
-                <label className="unified-editor__checkbox">
-                  <input
-                    type="checkbox"
-                    checked={graphTypes.includes("unrolled")}
-                    onChange={(e) => {
-                      setGraphTypes((prev) =>
-                        e.target.checked
-                          ? [...prev, "unrolled"]
-                          : prev.filter((t) => t !== "unrolled"),
-                      );
-                    }}
-                  />
-                  Unrolled
-                </label>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleGraphs}
-                  disabled={graphs.state.isLoading}
-                >
-                  {graphs.state.isLoading ? (
-                    <>
-                      <LoadingSpinner size="sm" /> Generating...
-                    </>
-                  ) : (
-                    "Generate Graphs"
-                  )}
-                </Button>
-                {graphs.state.graphs.length > 0 && (
+          <div
+            className="unified-editor__section"
+            style={{ display: activeTab === "graphs" ? "block" : "none" }}
+          >
+            {activatedTabs.has("graphs") && (
+              <>
+                <div className="unified-editor__action-bar">
+                  <label className="unified-editor__checkbox">
+                    <input
+                      type="checkbox"
+                      checked={graphTypes.includes("dsl")}
+                      onChange={(e) => {
+                        setGraphTypes((prev) =>
+                          e.target.checked
+                            ? [...prev, "dsl"]
+                            : prev.filter((t) => t !== "dsl"),
+                        );
+                      }}
+                    />
+                    DSL
+                  </label>
+                  <label className="unified-editor__checkbox">
+                    <input
+                      type="checkbox"
+                      checked={graphTypes.includes("unrolled")}
+                      onChange={(e) => {
+                        setGraphTypes((prev) =>
+                          e.target.checked
+                            ? [...prev, "unrolled"]
+                            : prev.filter((t) => t !== "unrolled"),
+                        );
+                      }}
+                    />
+                    Unrolled
+                  </label>
                   <Button
-                    variant="ghost"
+                    variant="primary"
                     size="sm"
-                    onClick={graphs.clearGraphs}
+                    onClick={handleGraphs}
+                    disabled={graphs.state.isLoading}
                   >
-                    Clear
+                    {graphs.state.isLoading ? (
+                      <>
+                        <LoadingSpinner size="sm" /> Generating...
+                      </>
+                    ) : (
+                      "Generate Graphs"
+                    )}
                   </Button>
+                  {graphs.state.graphs.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={graphs.clearGraphs}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+                {graphs.state.error && (
+                  <div className="unified-editor__error">
+                    {graphs.state.error}
+                  </div>
                 )}
-              </div>
-              {graphs.state.error && (
-                <div className="unified-editor__error">
-                  {graphs.state.error}
-                </div>
-              )}
-              {graphs.state.graphs.length > 0 && (
-                <div className="unified-editor__results unified-editor__graphs">
-                  <MultiGraphView
-                    graphs={graphs.getFilteredGraphs()}
-                    searchText={graphs.state.searchText}
-                    selectedNodeId={graphs.state.selectedNodeId}
-                    onNodeSelect={graphs.setSelectedNodeId}
-                  />
-                </div>
-              )}
-            </div>
-          )}
+                {graphs.state.graphs.length > 0 && (
+                  <div className="unified-editor__results unified-editor__graphs">
+                    <MultiGraphView
+                      graphs={graphs.getFilteredGraphs()}
+                      searchText={graphs.state.searchText}
+                      selectedNodeId={graphs.state.selectedNodeId}
+                      onNodeSelect={graphs.setSelectedNodeId}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
 
           {activeTab === "verification" && (
             <div className="unified-editor__section">
@@ -510,73 +551,155 @@ export const UnifiedEditor = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {verification.state.result.results.map((r, i) => (
-                        <tr
-                          key={i}
-                          className={
-                            r.satisfied
-                              ? ""
-                              : "unified-editor__verify-row--fail"
-                          }
-                        >
-                          <td>{r.formula_name}</td>
-                          <td>{r.automaton}</td>
-                          <td>{r.satisfied ? "Satisfied" : "Not Satisfied"}</td>
-                          <td>
-                            {r.satisfying_states}/{r.total_states}
-                          </td>
-                          <td>
-                            {r.initial_satisfying.length}/
-                            {r.initial_states.length}
-                          </td>
-                          <td>
-                            {!r.satisfied && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={verification.isFetchingCounterstrategy(r.formula_name, r.automaton)}
-                                onClick={() =>
-                                  verification.fetchCounterstrategy(
-                                    editorState.content,
-                                    r.formula_name,
-                                    r.automaton,
-                                  )
-                                }
-                              >
-                                {verification.isFetchingCounterstrategy(r.formula_name, r.automaton)
-                                  ? "Computing..."
-                                  : verification.getCounterstrategy(r.formula_name, r.automaton)
-                                    ? "Refresh"
-                                    : "Counterstrategy"}
-                              </Button>
+                      {verification.state.result.results.map((r, i) => {
+                        const rowKey = `${r.formula_name}:${r.automaton}`;
+                        const expanded = expandedRows.get(rowKey);
+                        const csResult = verification.getCounterstrategy(r.formula_name, r.automaton);
+                        const ctResult = verification.getCountertraces(r.formula_name, r.automaton);
+                        const traceState = traceSelection.get(rowKey) ?? { traceIndex: 0, step: 0 };
+
+                        // Countertraces: show lasso traces if available, else deadlock traces
+                        const hasLassoTraces = ctResult && ctResult.lasso_traces.length > 0;
+                        const hasDeadlockTraces = ctResult && ctResult.deadlock_traces.length > 0;
+                        const hasTraces = hasLassoTraces || hasDeadlockTraces;
+
+                        return (
+                          <React.Fragment key={i}>
+                            <tr
+                              className={
+                                r.satisfied
+                                  ? ""
+                                  : "unified-editor__verify-row--fail"
+                              }
+                            >
+                              <td>{r.formula_name}</td>
+                              <td>{r.automaton}</td>
+                              <td>{r.satisfied ? "Satisfied" : "Not Satisfied"}</td>
+                              <td>
+                                {r.satisfying_states}/{r.total_states}
+                              </td>
+                              <td>
+                                {r.initial_satisfying.length}/
+                                {r.initial_states.length}
+                              </td>
+                              <td>
+                                {!r.satisfied && (
+                                  <div style={{ display: "flex", gap: "4px", flexWrap: "nowrap" }}>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      disabled={verification.isFetchingCounterstrategy(r.formula_name, r.automaton)}
+                                      onClick={() => {
+                                        if (!csResult?.counterstrategy) {
+                                          verification.fetchCounterstrategy(
+                                            editorState.content,
+                                            r.formula_name,
+                                            r.automaton,
+                                          );
+                                        }
+                                        toggleExpanded(rowKey, "counterstrategy");
+                                      }}
+                                    >
+                                      {verification.isFetchingCounterstrategy(r.formula_name, r.automaton)
+                                        ? "Computing..."
+                                        : expanded?.has("counterstrategy")
+                                          ? "Hide Strategy"
+                                          : "Counterstrategy"}
+                                    </Button>
+                                    {/* Show Countertraces button only when traces exist or haven't been fetched yet */}
+                                    {(!ctResult || hasTraces) && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        disabled={verification.isFetchingCountertraces(r.formula_name, r.automaton)}
+                                        onClick={() => {
+                                          if (!ctResult) {
+                                            verification.fetchCountertraces(
+                                              editorState.content,
+                                              r.formula_name,
+                                              r.automaton,
+                                            );
+                                          }
+                                          toggleExpanded(rowKey, "countertraces");
+                                        }}
+                                      >
+                                        {verification.isFetchingCountertraces(r.formula_name, r.automaton)
+                                          ? "Computing..."
+                                          : expanded?.has("countertraces")
+                                            ? "Hide Traces"
+                                            : "Countertraces"}
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+
+                            {/* Expanded: Counterstrategy graph */}
+                            {expanded?.has("counterstrategy") && csResult?.counterstrategy && (
+                              <tr>
+                                <td colSpan={6}>
+                                  <div className="unified-editor__verify-detail">
+                                    <CounterstrategyView
+                                      result={csResult.counterstrategy}
+                                      formulaName={r.formula_name}
+                                      automatonName={r.automaton}
+                                    />
+                                  </div>
+                                </td>
+                              </tr>
                             )}
-                          </td>
-                        </tr>
-                      ))}
+
+                            {/* Expanded: Countertraces — lasso traces if available, else deadlock traces */}
+                            {expanded?.has("countertraces") && ctResult && hasTraces && (
+                              <tr>
+                                <td colSpan={6}>
+                                  <div className="unified-editor__verify-detail">
+                                    {ctResult.violating_initials.length > 0 && (
+                                      <div style={{ marginBottom: "8px" }}>
+                                        <strong>Violating Initial States: </strong>
+                                        {ctResult.violating_initials.join(", ")}
+                                      </div>
+                                    )}
+
+                                    {hasLassoTraces ? (
+                                      <LassoTraceViewer
+                                        traces={ctResult.lasso_traces}
+                                        title="Lasso Traces"
+                                      />
+                                    ) : hasDeadlockTraces ? (
+                                      <TraceViewer
+                                        traces={ctResult.deadlock_traces}
+                                        title="Deadlock Traces"
+                                        selectedTraceIndex={traceState.traceIndex}
+                                        selectedStep={traceState.step}
+                                        onTraceSelect={(index) =>
+                                          setTraceSelection((prev) => {
+                                            const next = new Map(prev);
+                                            next.set(rowKey, { traceIndex: index, step: 0 });
+                                            return next;
+                                          })
+                                        }
+                                        onStepSelect={(step) =>
+                                          setTraceSelection((prev) => {
+                                            const next = new Map(prev);
+                                            next.set(rowKey, { ...traceState, step });
+                                            return next;
+                                          })
+                                        }
+                                      />
+                                    ) : null}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
                     </tbody>
                   </table>
-                  {verification.state.result.results
-                    .filter((r) => !r.satisfied && verification.getCounterstrategy(r.formula_name, r.automaton)?.counterstrategy)
-                    .map((r, i) => {
-                      const csResult = verification.getCounterstrategy(r.formula_name, r.automaton)!;
-                      return (
-                        <div key={`cs-${i}`} className="unified-editor__verify-detail">
-                          <CounterstrategyView
-                            result={csResult.counterstrategy!}
-                            formulaName={r.formula_name}
-                            automatonName={r.automaton}
-                          />
-                        </div>
-                      );
-                    })}
                 </div>
               )}
-            </div>
-          )}
-
-          {activeTab === "synthesis" && (
-            <div className="unified-editor__section">
-              <SynthesisPanel content={editorState.content} />
             </div>
           )}
         </div>

@@ -1,8 +1,11 @@
 import { useState, useCallback } from "react";
 import {
   verifyContext,
+  synthesizeContext,
   type ContextVerifyResponse,
   type FormulaVerificationResult,
+  type CounterstrategyResult,
+  type LassoTrace,
 } from "../api/endpoints";
 import { useToast } from "./useToast";
 import { useErrorHandler } from "./useErrorHandler";
@@ -16,6 +19,19 @@ export interface VerificationState {
   error: string | null;
 }
 
+/** Diagnostics produced by synthesis for a single formula/automaton pair. */
+export interface CountertracesResult {
+  realizable: boolean;
+  counterexample_trace?: string[];
+  counterstrategy_traces: string[][];
+  deadlock_traces: string[][];
+  lasso_traces: LassoTrace[];
+  violating_initials: string[];
+  messages: string[];
+  /** Counterstrategy graph (also returned by synthesis for unrealizable). */
+  counterstrategy?: CounterstrategyResult;
+}
+
 export const useVerification = (initialState?: Partial<VerificationState>) => {
   const [state, setState] = useState<VerificationState>({
     result: initialState?.result ?? null,
@@ -25,7 +41,11 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
   const [counterstrategies, setCounterstrategies] = useState<
     Map<string, FormulaVerificationResult>
   >(new Map());
+  const [countertraces, setCountertraces] = useState<
+    Map<string, CountertracesResult>
+  >(new Map());
   const [csLoadingKeys, setCsLoadingKeys] = useState<Set<string>>(new Set());
+  const [ctLoadingKeys, setCtLoadingKeys] = useState<Set<string>>(new Set());
   const toast = useToast();
   const { handleError } = useErrorHandler();
   const { retry } = useRetry();
@@ -44,7 +64,9 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
 
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
       setCounterstrategies(new Map());
+      setCountertraces(new Map());
       setCsLoadingKeys(new Set());
+      setCtLoadingKeys(new Set());
 
       try {
         const response = await retry(
@@ -100,7 +122,6 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
       formulaName: string,
       automatonName: string,
       contextName?: string,
-      minimize?: boolean,
     ): Promise<void> => {
       const key = `${formulaName}:${automatonName}`;
       setCsLoadingKeys((prev) => new Set(prev).add(key));
@@ -111,7 +132,7 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
           formula: formulaName,
           automaton: automatonName,
           counterstrategy: true,
-          minimize_counterstrategy: minimize || false,
+          minimize_counterstrategy: true,
         });
         const result = response.results[0];
         if (result) {
@@ -135,6 +156,61 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
     [handleError, toast],
   );
 
+  /** Fetch countertraces for a failed formula by running synthesis. */
+  const fetchCountertraces = useCallback(
+    async (
+      content: string,
+      formulaName: string,
+      automatonName: string,
+      contextName?: string,
+    ): Promise<void> => {
+      const key = `${formulaName}:${automatonName}`;
+      setCtLoadingKeys((prev) => new Set(prev).add(key));
+
+      try {
+        const response = await synthesizeContext({
+          context: { name: contextName || "editor.ctxdsl", content },
+          formula: formulaName,
+          automaton: automatonName,
+          options: {
+            minimize: true,
+            diagnostics: {
+              counterexample: true,
+              deadlock_traces: true,
+              counterstrategy: true,
+            },
+          },
+        });
+
+        const diag = response.diagnostics;
+        setCountertraces((prev) => {
+          const next = new Map(prev);
+          next.set(key, {
+            realizable: response.realizable,
+            counterexample_trace: diag.counterexample_trace ?? undefined,
+            counterstrategy_traces: diag.counterstrategy_traces ?? [],
+            deadlock_traces: diag.deadlock_traces ?? [],
+            lasso_traces: (diag as Record<string, unknown>).lasso_traces as LassoTrace[] ?? [],
+            violating_initials: diag.violating_initials ?? [],
+            messages: diag.messages ?? [],
+            counterstrategy: response.counterstrategy,
+          });
+          return next;
+        });
+      } catch (err) {
+        const errorMessage = handleError(err);
+        toast.showError(`Countertraces failed: ${errorMessage}`);
+      } finally {
+        setCtLoadingKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          return next;
+        });
+      }
+    },
+    [handleError, toast],
+  );
+
   const getCounterstrategy = useCallback(
     (
       formulaName: string,
@@ -145,11 +221,28 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
     [counterstrategies],
   );
 
+  const getCountertraces = useCallback(
+    (
+      formulaName: string,
+      automatonName: string,
+    ): CountertracesResult | null => {
+      return countertraces.get(`${formulaName}:${automatonName}`) ?? null;
+    },
+    [countertraces],
+  );
+
   const isFetchingCounterstrategy = useCallback(
     (formulaName: string, automatonName: string): boolean => {
       return csLoadingKeys.has(`${formulaName}:${automatonName}`);
     },
     [csLoadingKeys],
+  );
+
+  const isFetchingCountertraces = useCallback(
+    (formulaName: string, automatonName: string): boolean => {
+      return ctLoadingKeys.has(`${formulaName}:${automatonName}`);
+    },
+    [ctLoadingKeys],
   );
 
   const clearResult = useCallback(() => {
@@ -159,15 +252,20 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
       error: null,
     });
     setCounterstrategies(new Map());
+    setCountertraces(new Map());
     setCsLoadingKeys(new Set());
+    setCtLoadingKeys(new Set());
   }, []);
 
   return {
     state,
     verify,
     fetchCounterstrategy,
+    fetchCountertraces,
     getCounterstrategy,
+    getCountertraces,
     isFetchingCounterstrategy,
+    isFetchingCountertraces,
     clearResult,
   };
 };

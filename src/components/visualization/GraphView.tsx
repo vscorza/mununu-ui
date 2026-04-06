@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import cytoscape, { Core } from "cytoscape";
 import dagre from "cytoscape-dagre";
 import type { paths } from "../../api/types";
+import { graphViewStyles } from "./graphStyles";
 import "./GraphView.css";
 
 // Register dagre layout
@@ -59,64 +60,7 @@ export const GraphView = ({
       container: containerRef.current,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       elements: elements as any,
-      style: [
-        {
-          selector: "node",
-          style: {
-            "background-color": "#ffffff",
-            label: "data(label)",
-            width: 40,
-            height: 40,
-            "font-size": 12,
-            "text-valign": "bottom",
-            "text-halign": "center",
-            color: "#000000",
-            "border-width": 2,
-            "border-color": "#9ca3af",
-            "text-margin-y": 4,
-          },
-        },
-        {
-          selector: "node:selected",
-          style: {
-            "background-color": "#ef4444",
-            "border-color": "#fca5a5",
-            "border-width": 3,
-          },
-        },
-        {
-          selector: "node[?initial]",
-          style: {
-            "background-color": "#ffffff",
-            "border-color": "#10b981",
-            "border-width": 3,
-            shape: "diamond",
-          },
-        },
-        {
-          selector: "edge",
-          style: {
-            width: 2,
-            "line-color": "#9ca3af",
-            "target-arrow-color": "#9ca3af",
-            "target-arrow-shape": "triangle",
-            "curve-style": "bezier",
-            label: "data(label)",
-            "font-size": 10,
-            "text-rotation": "autorotate",
-            "text-margin-y": -10,
-            color: "#000000",
-          },
-        },
-        {
-          selector: "edge:selected",
-          style: {
-            "line-color": "#ef4444",
-            "target-arrow-color": "#ef4444",
-            width: 3,
-          },
-        },
-      ],
+      style: graphViewStyles,
       layout: {
         name: layout === "preset" ? "preset" : layout,
         fit: true,
@@ -197,7 +141,20 @@ export const GraphView = ({
       });
     }
 
+    // Resize Cytoscape when container becomes visible (e.g., tab switch)
+    const resizeObserver = new ResizeObserver(() => {
+      if (
+        containerRef.current &&
+        containerRef.current.offsetWidth > 0 &&
+        containerRef.current.offsetHeight > 0
+      ) {
+        cy.resize();
+      }
+    });
+    resizeObserver.observe(containerRef.current);
+
     return () => {
+      resizeObserver.disconnect();
       cy.destroy();
     };
   }, [graph, layout, searchText, selectedNodeId, onNodeSelect, onNodeHover]);

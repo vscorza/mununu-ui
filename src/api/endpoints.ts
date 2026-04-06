@@ -105,14 +105,21 @@ export const verifyContext = async (
 // Synthesis types (matches mununu backend /api/v1/context/synthesize)
 type SynthesizeRequest =
   paths["/api/v1/context/synthesize"]["post"]["requestBody"]["content"]["application/json"];
-type SynthesizeResponse =
+type BaseSynthesizeResponse =
   paths["/api/v1/context/synthesize"]["post"]["responses"]["200"]["content"]["application/json"];
 
-export type { SynthesizeRequest, SynthesizeResponse };
+// Extend generated type with counterstrategy field added to the backend
+export type SynthesizeResponse = BaseSynthesizeResponse & {
+  counterstrategy?: CounterstrategyResult;
+};
+
+export type { SynthesizeRequest };
 
 export interface LassoTrace {
   prefix: string[];
   cycle: string[];
+  prefix_labels?: string[];
+  cycle_labels?: string[];
 }
 
 // Synthesis endpoint
