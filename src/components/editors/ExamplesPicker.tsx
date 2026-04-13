@@ -5,6 +5,7 @@ interface ExampleEntry {
   name: string;
   category: string;
   path: string;
+  format?: string; // "xstate", "systemverilog" — absent for CTXDSL
 }
 
 interface ExamplesPickerProps {
@@ -15,6 +16,13 @@ const CATEGORY_LABELS: Record<string, string> = {
   examples: "Examples",
   property_examples: "Property Examples",
   tutorial: "Tutorial",
+  adapter_examples: "Adapter Formats",
+};
+
+const FORMAT_BADGES: Record<string, string> = {
+  agentic: "Agentic",
+  xstate: "XState",
+  systemverilog: "SV",
 };
 
 export const ExamplesPicker = ({ onLoadExample }: ExamplesPickerProps) => {
@@ -149,7 +157,22 @@ export const ExamplesPicker = ({ onLoadExample }: ExamplesPickerProps) => {
                       (e.currentTarget.style.background = "none")
                     }
                   >
-                    {entry.name}
+                      {entry.name}
+                    {entry.format && FORMAT_BADGES[entry.format] && (
+                      <span
+                        style={{
+                          marginLeft: 6,
+                          fontSize: "0.625rem",
+                          padding: "1px 4px",
+                          borderRadius: 3,
+                          background: "var(--color-accent-muted, #e0e7ff)",
+                          color: "var(--color-accent, #4f46e5)",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {FORMAT_BADGES[entry.format]}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>

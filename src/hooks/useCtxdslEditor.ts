@@ -1,8 +1,23 @@
 import { useState, useCallback, useRef } from "react";
 import * as monaco from "monaco-editor";
-import { summarizeContext } from "../api/endpoints";
+import {
+  summarizeContext,
+  importContext,
+  ADAPTER_EXTENSIONS,
+} from "../api/endpoints";
 import { useToast } from "./useToast";
 import { useErrorHandler } from "./useErrorHandler";
+
+/** Metadata about an imported adapter format file. */
+export interface ImportSource {
+  originalFileName: string;
+  originalContent: string;
+  sourceFormat: string;
+  warnings: string[];
+  signalCount: number;
+  stateCount: number;
+  propertyCount: number;
+}
 
 export interface CtxdslEditorState {
   content: string;
@@ -23,6 +38,8 @@ export interface CtxdslEditorState {
     };
     error?: string;
   };
+  /** Tracks the original imported file when an adapter format was loaded. */
+  importSource?: ImportSource;
 }
 
 export const useCtxdslEditor = () => {
@@ -58,20 +75,71 @@ export const useCtxdslEditor = () => {
       isDirty: false,
       lastValidated: undefined,
       validationResult: undefined,
+      importSource: undefined,
     });
     editorRef.current?.setValue("");
   }, []);
 
-  const loadFile = useCallback((content: string, fileName: string) => {
-    setState({
-      content,
-      fileName,
-      isDirty: false,
-      lastValidated: undefined,
-      validationResult: undefined,
-    });
-    editorRef.current?.setValue(content);
-  }, []);
+  const loadFile = useCallback(
+    async (content: string, fileName: string) => {
+      const ext = fileName.split(".").pop()?.toLowerCase() || "";
+
+      // If the file is an adapter format, translate it via the import endpoint
+      if (ADAPTER_EXTENSIONS.includes(ext) && ext !== "txt") {
+        try {
+          const response = await importContext({
+            content,
+            format: "auto",
+            filename: fileName,
+          });
+
+          if (response.warnings.length > 0) {
+            toast.showInfo(
+              `Imported ${response.source_format}: ${response.warnings.join("; ")}`,
+            );
+          } else {
+            toast.showSuccess(
+              `Imported ${response.source_format} (${response.signal_count} signals, ${response.state_count} states, ${response.property_count} properties)`,
+            );
+          }
+
+          setState({
+            content: response.ctxdsl,
+            fileName: fileName.replace(`.${ext}`, ".ctxdsl"),
+            isDirty: false,
+            lastValidated: undefined,
+            validationResult: undefined,
+            importSource: {
+              originalFileName: fileName,
+              originalContent: content,
+              sourceFormat: response.source_format,
+              warnings: response.warnings,
+              signalCount: response.signal_count,
+              stateCount: response.state_count,
+              propertyCount: response.property_count,
+            },
+          });
+          editorRef.current?.setValue(response.ctxdsl);
+          return;
+        } catch (err) {
+          handleError(err, "adapter import");
+          // Fall through to load raw content on error
+        }
+      }
+
+      // Direct CTXDSL load (existing behavior)
+      setState({
+        content,
+        fileName,
+        isDirty: false,
+        lastValidated: undefined,
+        validationResult: undefined,
+        importSource: undefined,
+      });
+      editorRef.current?.setValue(content);
+    },
+    [toast, handleError],
+  );
 
   const saveFile = useCallback(() => {
     const content = editorRef.current?.getValue() || state.content;
@@ -142,6 +210,10 @@ export const useCtxdslEditor = () => {
     editorRef.current?.trigger("redo", "redo", {});
   }, []);
 
+  const clearImportSource = useCallback(() => {
+    setState((prev) => ({ ...prev, importSource: undefined }));
+  }, []);
+
   return {
     state,
     editorRef,
@@ -154,5 +226,6 @@ export const useCtxdslEditor = () => {
     isValidating,
     undo,
     redo,
+    clearImportSource,
   };
 };

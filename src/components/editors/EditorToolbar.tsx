@@ -55,7 +55,7 @@ export const EditorToolbar = ({
           <label className="editor-toolbar-file-label">
             <input
               type="file"
-              accept=".ctxdsl,.txt"
+              accept=".ctxdsl,.txt,.sv,.v,.json,.xstate,.tlsf,.aag,.aig,.pml,.promela"
               onChange={handleFileInput}
               className="editor-toolbar-file-input"
             />

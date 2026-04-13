@@ -102,6 +102,77 @@ export const verifyContext = async (
   return response.data;
 };
 
+// Import types (matches mununu backend /api/v1/context/import)
+export interface ContextImportRequest {
+  content: string;
+  format?: string; // "auto", "tlsf", "aiger", "promela", "xstate", "systemverilog"
+  filename?: string;
+}
+
+export interface ContextImportResponse {
+  success: boolean;
+  ctxdsl: string;
+  source_format: string;
+  warnings: string[];
+  signal_count: number;
+  state_count: number;
+  property_count: number;
+}
+
+// Import endpoint — translate adapter formats to CTXDSL
+export const importContext = async (
+  request: ContextImportRequest,
+): Promise<ContextImportResponse> => {
+  const response = await apiClient.post<ContextImportResponse>(
+    "/context/import",
+    request,
+  );
+  return response.data;
+};
+
+// Adapter format file extensions that require translation via the import endpoint
+export const ADAPTER_EXTENSIONS = [
+  "sv",
+  "v",
+  "json",
+  "xstate",
+  "tlsf",
+  "aag",
+  "aig",
+  "pml",
+  "promela",
+];
+
+/**
+ * Download content as a file in the browser.
+ */
+export const downloadAsFile = (
+  content: string,
+  fileName: string,
+  mimeType: string = "text/plain",
+): void => {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+/**
+ * Export controller output format options.
+ */
+export type ControllerExportFormat = "ctxdsl" | "xstate" | "systemverilog";
+
+export const EXPORT_FORMAT_EXTENSIONS: Record<ControllerExportFormat, string> = {
+  ctxdsl: ".ctxdsl",
+  xstate: ".json",
+  systemverilog: ".sv",
+};
+
 // Synthesis types (matches mununu backend /api/v1/context/synthesize)
 type SynthesizeRequest =
   paths["/api/v1/context/synthesize"]["post"]["requestBody"]["content"]["application/json"];

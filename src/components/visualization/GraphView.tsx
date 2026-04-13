@@ -157,7 +157,7 @@ export const GraphView = ({
       resizeObserver.disconnect();
       cy.destroy();
     };
-  }, [graph, layout, searchText, selectedNodeId, onNodeSelect, onNodeHover]);
+  }, [graph, layout, searchText, selectedNodeId, onNodeSelect, onNodeHover, onCyInit]);
 
   return (
     <div className="graph-view-container">

@@ -8,6 +8,11 @@ import { EditorToolbar } from "./EditorToolbar";
 import { registerCtxdslLanguage } from "../../monaco/ctxdsl-language";
 import { registerCtxdslTheme } from "../../monaco/ctxdsl-theme";
 import { useAppStore } from "../../store/appStore";
+import {
+  synthesizeContext,
+  downloadAsFile,
+  type ControllerExportFormat,
+} from "../../api/endpoints";
 import { Button } from "../common/Button";
 import { Input } from "../common/Input";
 import { LoadingSpinner } from "../common/LoadingSpinner";
@@ -38,6 +43,7 @@ export const UnifiedEditor = () => {
     isValidating,
     undo,
     redo,
+    clearImportSource,
   } = useCtxdslEditor();
 
   // Feature hooks
@@ -73,6 +79,75 @@ export const UnifiedEditor = () => {
   const [traceSelection, setTraceSelection] = useState<
     Map<string, { traceIndex: number; step: number }>
   >(new Map());
+
+  // Import source viewer
+  const [showOriginalSource, setShowOriginalSource] = useState(false);
+
+  // Export controller in a native format
+  const [exportingController, setExportingController] = useState<string | null>(
+    null,
+  );
+  const handleExportController = useCallback(
+    async (
+      controllerName: string,
+      source: string,
+      formula: string,
+      format: ControllerExportFormat,
+    ) => {
+      if (format === "ctxdsl") {
+        // Use existing CTXDSL content from the editor
+        const content = editorRef.current?.getValue() || editorState.content;
+        if (!content.trim()) return;
+        try {
+          setExportingController(controllerName);
+          const response = await synthesizeContext({
+            context: { name: editorState.fileName, content },
+            formula,
+            automaton: source,
+            options: { minimize: true },
+          });
+          if (response.controller) {
+            downloadAsFile(
+              response.controller.content,
+              response.controller.name,
+            );
+          }
+        } finally {
+          setExportingController(null);
+        }
+        return;
+      }
+
+      // For native formats, call synthesis with output_format
+      const content = editorRef.current?.getValue() || editorState.content;
+      if (!content.trim()) return;
+      try {
+        setExportingController(controllerName);
+        const response = await synthesizeContext({
+          context: { name: editorState.fileName, content },
+          formula,
+          automaton: source,
+          options: { minimize: true, output_format: format } as Record<
+            string,
+            unknown
+          >,
+        });
+        const native = (response as Record<string, unknown>)
+          .controller_native as { name: string; content: string } | undefined;
+        if (native) {
+          downloadAsFile(native.content, native.name);
+        } else if (response.controller) {
+          downloadAsFile(
+            response.controller.content,
+            response.controller.name,
+          );
+        }
+      } finally {
+        setExportingController(null);
+      }
+    },
+    [editorRef, editorState.content, editorState.fileName],
+  );
 
   const toggleExpanded = (
     key: string,
@@ -201,6 +276,63 @@ export const UnifiedEditor = () => {
             onLoadFile={handleLoadFile}
             onLoadExample={(content: string, fileName: string) => loadFile(content, fileName)}
           />
+          {editorState.importSource && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "4px 12px",
+                fontSize: "0.75rem",
+                background: "var(--color-accent-muted, #e0e7ff)",
+                color: "var(--text-secondary, #4b5563)",
+                borderBottom: "1px solid var(--color-border, #e5e7eb)",
+              }}
+            >
+              <span>
+                Imported from:{" "}
+                <strong>{editorState.importSource.originalFileName}</strong> (
+                {editorState.importSource.sourceFormat})
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowOriginalSource((p) => !p)}
+                title="Toggle original source view"
+              >
+                {showOriginalSource ? "Hide Original" : "View Original"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearImportSource}
+                title="Dismiss import banner"
+              >
+                Dismiss
+              </Button>
+            </div>
+          )}
+          {showOriginalSource && editorState.importSource && (
+            <div
+              style={{
+                height: "40%",
+                borderBottom: "2px solid var(--color-border, #e5e7eb)",
+                overflow: "auto",
+              }}
+            >
+              <Editor
+                height="100%"
+                language={
+                  editorState.importSource.sourceFormat === "SystemVerilog"
+                    ? "systemverilog"
+                    : "json"
+                }
+                theme={theme === "dark" ? "vs-dark" : "vs"}
+                value={editorState.importSource.originalContent}
+                options={{ readOnly: true, minimap: { enabled: false } }}
+              />
+            </div>
+          )}
           <div className="unified-editor__monaco">
             <Editor
               height="100%"
@@ -372,6 +504,7 @@ export const UnifiedEditor = () => {
                               <th>Realizable</th>
                               <th>States</th>
                               <th>Transitions</th>
+                              <th>Export</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -397,6 +530,43 @@ export const UnifiedEditor = () => {
                                 </td>
                                 <td>{c.states_count}</td>
                                 <td>{c.transitions_count}</td>
+                                <td>
+                                  {c.realizable && (
+                                    <select
+                                      disabled={exportingController === c.name}
+                                      onChange={(e) => {
+                                        const fmt = e.target
+                                          .value as ControllerExportFormat;
+                                        if (fmt) {
+                                          handleExportController(
+                                            c.name,
+                                            c.source,
+                                            c.formula,
+                                            fmt,
+                                          );
+                                          e.target.value = "";
+                                        }
+                                      }}
+                                      style={{
+                                        fontSize: "0.75rem",
+                                        padding: "2px 4px",
+                                      }}
+                                    >
+                                      <option value="">
+                                        {exportingController === c.name
+                                          ? "..."
+                                          : "Download"}
+                                      </option>
+                                      <option value="ctxdsl">CTXDSL</option>
+                                      <option value="xstate">
+                                        XState JSON
+                                      </option>
+                                      <option value="systemverilog">
+                                        SystemVerilog
+                                      </option>
+                                    </select>
+                                  )}
+                                </td>
                               </tr>
                             ))}
                           </tbody>
