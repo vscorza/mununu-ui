@@ -23,9 +23,12 @@ echo "Syncing to:   $DEST"
 rm -rf "$DEST"
 mkdir -p "$DEST/examples" "$DEST/property_examples" "$DEST/tutorial" "$DEST/adapter_examples/xstate" "$DEST/adapter_examples/systemverilog" "$DEST/adapter_examples/agentic"
 
-# Copy CTXDSL examples
+# Copy CTXDSL examples (excluding agentic/, xstate/, systemverilog/ — handled as adapter_examples)
 if [ -d "$MUNUNU_REPO/examples" ]; then
-  find "$MUNUNU_REPO/examples" -name '*.ctxdsl' | while read -r f; do
+  find "$MUNUNU_REPO/examples" -name '*.ctxdsl' \
+    -not -path "*/agentic/*" \
+    -not -path "*/xstate/*" \
+    -not -path "*/systemverilog/*" | while read -r f; do
     rel="${f#$MUNUNU_REPO/examples/}"
     dir="$(dirname "$rel")"
     mkdir -p "$DEST/examples/$dir"
@@ -55,9 +58,13 @@ if [ -d "$MUNUNU_REPO/examples/xstate" ]; then
 fi
 
 # Copy adapter examples — Agentic (XState JSON + CTXDSL)
+# Preserves subdirectory structure for mcp_usecases/ and mcp_extracted/
 if [ -d "$MUNUNU_REPO/examples/agentic" ]; then
   find "$MUNUNU_REPO/examples/agentic" \( -name '*.json' -o -name '*.ctxdsl' \) -type f | while read -r f; do
-    cp "$f" "$DEST/adapter_examples/agentic/"
+    rel="${f#$MUNUNU_REPO/examples/agentic/}"
+    dir="$(dirname "$rel")"
+    mkdir -p "$DEST/adapter_examples/agentic/$dir"
+    cp "$f" "$DEST/adapter_examples/agentic/$rel"
   done
 fi
 
@@ -107,11 +114,26 @@ if [ -d "$DEST/adapter_examples/agentic" ]; then
     pretty="Agentic: $(echo "$name" | tr '_' ' ')"
     entries+=("  {\"name\": \"$pretty\", \"category\": \"adapter_examples\", \"path\": \"$rel\", \"format\": \"agentic\"}")
   done < <(find "$DEST/adapter_examples/agentic" -name '*.json' -type f | sort)
-  # CTXDSL agentic examples
+  # CTXDSL agentic examples — with subcategory prefixes
   while IFS= read -r f; do
     rel="${f#$DEST/}"
     name="$(basename "$f" .ctxdsl)"
-    pretty="Agentic: $(echo "$name" | tr '_' ' ')"
+    # Determine prefix from subdirectory
+    subdir="${f#$DEST/adapter_examples/agentic/}"
+    subdir="$(dirname "$subdir")"
+    case "$subdir" in
+      mcp_usecases)
+        # Strip leading number prefix (01_, 02_, etc.) for cleaner display
+        clean="$(echo "$name" | sed 's/^[0-9]*_//')"
+        pretty="MCP: $(echo "$clean" | tr '_' ' ')"
+        ;;
+      mcp_extracted)
+        pretty="MCP Extracted: $(echo "$name" | tr '_' ' ')"
+        ;;
+      *)
+        pretty="Agentic: $(echo "$name" | tr '_' ' ')"
+        ;;
+    esac
     entries+=("  {\"name\": \"$pretty\", \"category\": \"adapter_examples\", \"path\": \"$rel\", \"format\": \"agentic\"}")
   done < <(find "$DEST/adapter_examples/agentic" -name '*.ctxdsl' -type f | sort)
 fi
