@@ -33,9 +33,10 @@ dist-ssr
 coverage
 .nyc_output
 
+# Claude Code (user-local)
+.claude/settings.json
+.claude/reviews/
+
 # Build
 build
 
-# Claude
-CLAUDE.md
-.claude/
