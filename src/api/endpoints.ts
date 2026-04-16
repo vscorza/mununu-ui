@@ -23,6 +23,12 @@ export interface ContextVerifyRequest {
   automaton?: string;
   counterstrategy?: boolean;
   minimize_counterstrategy?: boolean;
+  /** Labels to hide (reclassify as internal) before evaluation. */
+  hide?: string[];
+  /** Apply bisimulation minimization before evaluation. */
+  minimize?: boolean;
+  /** Stub .espec.json content to compose as sidecars. */
+  stubs?: { name: string; content: string }[];
 }
 
 export interface GraphElementData {
@@ -105,7 +111,7 @@ export const verifyContext = async (
 // Import types (matches mununu backend /api/v1/context/import)
 export interface ContextImportRequest {
   content: string;
-  format?: string; // "auto", "tlsf", "aiger", "promela", "xstate", "systemverilog"
+  format?: string; // "auto", "tlsf", "aiger", "promela", "xstate", "systemverilog", "extraction"
   filename?: string;
 }
 
@@ -141,6 +147,7 @@ export const ADAPTER_EXTENSIONS = [
   "aig",
   "pml",
   "promela",
+  "espec.json",
 ];
 
 /**
@@ -195,6 +202,26 @@ export interface LassoTrace {
 
 // Synthesis endpoint
 // Uses aiApiClient for extended timeout since synthesis can be slow
+// Extraction endpoints
+
+export interface DomainProfileInfo {
+  name: string;
+  language: string;
+  description: string;
+}
+
+export interface ExtractionDomainsResponse {
+  profiles: DomainProfileInfo[];
+}
+
+/** List available domain profiles for extraction. */
+export const getExtractionDomains = async (): Promise<ExtractionDomainsResponse> => {
+  const response = await apiClient.get<ExtractionDomainsResponse>(
+    "/extraction/domains",
+  );
+  return response.data;
+};
+
 export const synthesizeContext = async (
   request: SynthesizeRequest,
 ): Promise<SynthesizeResponse> => {
