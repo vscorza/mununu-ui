@@ -215,12 +215,40 @@ export interface ExtractionDomainsResponse {
 }
 
 /** List available domain profiles for extraction. */
-export const getExtractionDomains = async (): Promise<ExtractionDomainsResponse> => {
-  const response = await apiClient.get<ExtractionDomainsResponse>(
-    "/extraction/domains",
-  );
-  return response.data;
-};
+export const getExtractionDomains =
+  async (): Promise<ExtractionDomainsResponse> => {
+    const response = await apiClient.get<ExtractionDomainsResponse>(
+      "/extraction/domains",
+    );
+    return response.data;
+  };
+
+/** Request for AST-based extraction from source code. */
+export interface ExtractionExtractRequest {
+  config: string;
+  source: string;
+  language?: string;
+}
+
+/** Response from AST-based extraction. */
+export interface ExtractionExtractResponse {
+  success: boolean;
+  espec: string;
+  warnings: string[];
+  automata: { id: string; state_count: number; transition_count: number }[];
+}
+
+/** Extract a model from source code using the AST-based pipeline. */
+export const extractSource =
+  async (
+    request: ExtractionExtractRequest,
+  ): Promise<ExtractionExtractResponse> => {
+    const response = await apiClient.post<ExtractionExtractResponse>(
+      "/extraction/extract",
+      request,
+    );
+    return response.data;
+  };
 
 export const synthesizeContext = async (
   request: SynthesizeRequest,
