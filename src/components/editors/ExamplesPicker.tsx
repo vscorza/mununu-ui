@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import toast from "react-hot-toast";
 import { Button } from "../common/Button";
 
 interface ExampleEntry {
@@ -58,7 +59,7 @@ export const ExamplesPicker = ({ onLoadExample }: ExamplesPickerProps) => {
         }
       })
       .catch(() => {
-        /* ignore */
+        toast.error("Failed to load examples list");
       });
     return () => {
       cancelled = true;
@@ -73,7 +74,7 @@ export const ExamplesPicker = ({ onLoadExample }: ExamplesPickerProps) => {
       onLoadExample(text, fileName);
       setIsOpen(false);
     } catch {
-      // silently fail
+      toast.error("Failed to load example file");
     }
   };
 
