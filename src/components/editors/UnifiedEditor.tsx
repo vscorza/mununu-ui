@@ -23,10 +23,11 @@ import { MultiGraphView } from "../visualization/MultiGraphView";
 import { CounterstrategyView } from "../visualization/CounterstrategyView";
 import { TraceViewer } from "../visualization/TraceViewer";
 import { LassoTraceViewer } from "../visualization/LassoTraceViewer";
+import { ExtractionPanel } from "../extraction/ExtractionPanel";
 import type { SortField } from "../../hooks/useSummary";
 import "./UnifiedEditor.css";
 
-type RightTab = "summary" | "graphs" | "verification";
+type RightTab = "summary" | "graphs" | "verification" | "extraction";
 
 export const UnifiedEditor = () => {
   const { theme } = useAppStore();
@@ -249,6 +250,7 @@ export const UnifiedEditor = () => {
     { id: "summary", label: "Summary" },
     { id: "graphs", label: "Graphs" },
     { id: "verification", label: "Verification" },
+    { id: "extraction", label: "Extraction" },
   ];
 
   const filteredAutomata = summary.getFilteredAndSortedAutomata();
@@ -870,6 +872,12 @@ export const UnifiedEditor = () => {
                   </table>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "extraction" && (
+            <div className="unified-editor__section">
+              <ExtractionPanel />
             </div>
           )}
         </div>

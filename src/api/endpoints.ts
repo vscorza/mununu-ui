@@ -260,3 +260,150 @@ export const synthesizeContext = async (
   return response.data;
 };
 
+// ============================================================================
+// SV Init / Discover Endpoints
+// ============================================================================
+
+export interface SvInitRequest {
+  source: { name: string; content: string };
+  additional_sources?: { name: string; content: string }[];
+}
+
+export interface SvSignalInfo {
+  name: string;
+  width: number;
+  abstraction: string;
+  preserve: boolean;
+  note: string | null;
+}
+
+export interface SvInputInfo {
+  name: string;
+  abstraction: string;
+}
+
+export interface SvInitResponse {
+  success: boolean;
+  sidecar: string;
+  schema: string;
+  signals: SvSignalInfo[];
+  inputs: SvInputInfo[];
+  warnings: string[];
+}
+
+/** Generate a .mununu.json sidecar from SystemVerilog source. */
+export const svInit = async (
+  request: SvInitRequest,
+): Promise<SvInitResponse> => {
+  const response = await apiClient.post<SvInitResponse>("/sv/init", request);
+  return response.data;
+};
+
+export interface SvDiscoverRequest {
+  source: { name: string; content: string };
+  sidecar: string;
+}
+
+export interface SvDiscoveryResult {
+  signal: string;
+  values_found: number;
+}
+
+export interface SvDiscoverResponse {
+  success: boolean;
+  sidecar: string;
+  discoveries: SvDiscoveryResult[];
+  smt_available: boolean;
+  warnings: string[];
+}
+
+/** Run SMT-based value discovery for SV registers. Uses extended timeout. */
+export const svDiscover = async (
+  request: SvDiscoverRequest,
+): Promise<SvDiscoverResponse> => {
+  const response = await aiApiClient.post<SvDiscoverResponse>(
+    "/sv/discover",
+    request,
+  );
+  return response.data;
+};
+
+// ============================================================================
+// Extraction Validate Endpoint
+// ============================================================================
+
+export interface ExtractionValidateRequest {
+  spec: string;
+  source: string;
+  drift_window?: number;
+}
+
+export interface ValidationSummary {
+  total: number;
+  exact: number;
+  drifted: number;
+  mismatch: number;
+  error: number;
+  uncovered_accesses: number;
+}
+
+export interface AnchorResult {
+  id: string;
+  section: string;
+  status: "exact" | "drifted" | "mismatch" | "error";
+  line: number | null;
+  found_line: number | null;
+  message: string | null;
+}
+
+export interface UncoveredAccess {
+  line: number;
+  field: string;
+  content: string;
+}
+
+export interface ExtractionValidateResponse {
+  success: boolean;
+  summary: ValidationSummary;
+  anchors: AnchorResult[];
+  uncovered: UncoveredAccess[];
+  commit_match: boolean | null;
+}
+
+/** Validate extraction spec line anchors against source code. */
+export const validateExtraction = async (
+  request: ExtractionValidateRequest,
+): Promise<ExtractionValidateResponse> => {
+  const response = await apiClient.post<ExtractionValidateResponse>(
+    "/extraction/validate",
+    request,
+  );
+  return response.data;
+};
+
+// ============================================================================
+// Context Predicates Endpoint
+// ============================================================================
+
+export interface ContextPredicatesRequest {
+  context: { name: string; content: string };
+  sidecars?: { name: string; content: string }[];
+  automaton?: string;
+}
+
+export interface ContextPredicatesResponse {
+  success: boolean;
+  predicates: Record<string, string[]>;
+}
+
+/** List guard predicates per automaton. */
+export const getContextPredicates = async (
+  request: ContextPredicatesRequest,
+): Promise<ContextPredicatesResponse> => {
+  const response = await apiClient.post<ContextPredicatesResponse>(
+    "/context/predicates",
+    request,
+  );
+  return response.data;
+};
+
