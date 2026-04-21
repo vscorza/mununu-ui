@@ -113,6 +113,10 @@ export interface ContextImportRequest {
   content: string;
   format?: string; // "auto", "tlsf", "aiger", "promela", "xstate", "systemverilog", "extraction"
   filename?: string;
+  /** Optional sidecar content (.mununu.json for SV, .espec.json for extraction). */
+  sidecar?: string;
+  /** Additional source files (for multi-module SV compositions). */
+  additional_sources?: { name: string; content: string }[];
 }
 
 export interface ContextImportResponse {

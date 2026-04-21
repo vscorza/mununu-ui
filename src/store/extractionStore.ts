@@ -21,6 +21,12 @@ export interface StepResult {
   timestamp: number;
 }
 
+/** A named source file (primary or additional). */
+export interface SourceFile {
+  name: string;
+  content: string;
+}
+
 export interface ExtractionState {
   /** Currently active workflow definition, or null if none selected. */
   activeWorkflow: WorkflowDefinition | null;
@@ -34,10 +40,12 @@ export interface ExtractionState {
   stepResults: Map<string, StepResult>;
 
   // Artifacts produced during the workflow
-  /** Original source file content. */
+  /** Primary source file content. */
   sourceContent: string;
-  /** Original source file name. */
+  /** Primary source file name. */
   sourceFileName: string;
+  /** Additional source files (for multi-module SV, multi-file extraction). */
+  additionalSources: SourceFile[];
   /** Sidecar content (.mununu.json or .espec.json), or null if not yet generated. */
   sidecarContent: string | null;
   /** Generated CTXDSL content, or null if not yet translated. */
@@ -45,6 +53,8 @@ export interface ExtractionState {
 
   // Actions
   startWorkflow: (workflow: WorkflowDefinition, source: string, fileName: string) => void;
+  addSource: (name: string, content: string) => void;
+  removeSource: (name: string) => void;
   completeStep: (stepId: string, result: StepResult) => void;
   skipStep: (stepId: string) => void;
   goToStep: (stepId: string) => void;
@@ -65,6 +75,7 @@ const initialState = {
   stepResults: new Map<string, StepResult>(),
   sourceContent: "",
   sourceFileName: "",
+  additionalSources: [] as SourceFile[],
   sidecarContent: null as string | null,
   ctxdslContent: null as string | null,
 };
@@ -85,9 +96,23 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
       stepResults: new Map(),
       sourceContent: source,
       sourceFileName: fileName,
+      additionalSources: [],
       sidecarContent: null,
       ctxdslContent: null,
     }),
+
+  addSource: (name, content) =>
+    set((state) => ({
+      additionalSources: [
+        ...state.additionalSources.filter((s) => s.name !== name),
+        { name, content },
+      ],
+    })),
+
+  removeSource: (name) =>
+    set((state) => ({
+      additionalSources: state.additionalSources.filter((s) => s.name !== name),
+    })),
 
   completeStep: (stepId, result) =>
     set((state) => {

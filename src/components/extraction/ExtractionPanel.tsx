@@ -8,6 +8,7 @@ import { getWorkflow } from "../../types/workflow";
 import type { WorkflowStep } from "../../types/workflow";
 import { WorkflowStepper } from "./WorkflowStepper";
 import { DomainSelector } from "./DomainSelector";
+import { SidecarEditor } from "./SidecarEditor";
 
 // ---------------------------------------------------------------------------
 // File upload area (shared between domain selection and load step)
@@ -121,7 +122,27 @@ function StepRunButton({
 }
 
 function LoadStepContent({ onFileLoad }: { onFileLoad: (content: string, name: string) => void }) {
-  const { sourceContent, sourceFileName } = useExtractionStore();
+  const { sourceContent, sourceFileName, additionalSources, addSource, removeSource } =
+    useExtractionStore();
+  const additionalInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAdditionalFiles = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files) return;
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            addSource(file.name, reader.result);
+          }
+        };
+        reader.readAsText(file);
+      });
+      e.target.value = "";
+    },
+    [addSource],
+  );
 
   if (sourceContent) {
     return (
@@ -131,13 +152,65 @@ function LoadStepContent({ onFileLoad }: { onFileLoad: (content: string, name: s
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>
-            Loaded: <span className="font-medium text-gray-900 dark:text-gray-100">{sourceFileName}</span>
+            Primary: <span className="font-medium text-gray-900 dark:text-gray-100">{sourceFileName}</span>
           </span>
         </div>
-        <pre className="max-h-64 overflow-auto rounded-md bg-gray-100 p-3 text-xs text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-          {sourceContent.slice(0, 2000)}
-          {sourceContent.length > 2000 && "\n... (truncated)"}
+        <pre className="max-h-48 overflow-auto rounded-md bg-gray-100 p-3 text-xs text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          {sourceContent.slice(0, 1500)}
+          {sourceContent.length > 1500 && "\n... (truncated)"}
         </pre>
+
+        {/* Additional sources section */}
+        <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Additional Source Files
+              <span className="ml-1 text-gray-400">
+                ({additionalSources.length} file{additionalSources.length !== 1 ? "s" : ""})
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => additionalInputRef.current?.click()}
+              className="rounded-md bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              + Add Files
+            </button>
+            <input
+              ref={additionalInputRef}
+              type="file"
+              multiple
+              accept=".sv,.v,.ts,.tsx,.py,.rs"
+              onChange={handleAdditionalFiles}
+              className="hidden"
+            />
+          </div>
+          {additionalSources.length > 0 && (
+            <ul className="mt-2 space-y-1">
+              {additionalSources.map((src) => (
+                <li
+                  key={src.name}
+                  className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-1.5 text-xs dark:bg-gray-800"
+                >
+                  <span className="text-gray-700 dark:text-gray-300">{src.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeSource(src.name)}
+                    className="text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+                    title="Remove"
+                  >
+                    &times;
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {additionalSources.length === 0 && (
+            <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+              For multi-module designs, add sub-module source files here.
+            </p>
+          )}
+        </div>
       </div>
     );
   }
@@ -145,49 +218,191 @@ function LoadStepContent({ onFileLoad }: { onFileLoad: (content: string, name: s
   return <FileUploadArea onFileLoad={onFileLoad} />;
 }
 
-function PlaceholderStepContent({ step }: { step: WorkflowStep }) {
+function StepContent({ step }: { step: WorkflowStep }) {
   const state = useExtractionStore();
   const available = isStepAvailable(state, step.id);
+  const [running, setRunning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<string | null>(null);
 
-  const placeholders: Record<string, string> = {
-    init: "Initialize and generate sidecar configuration",
-    extract: "Run AST-based extraction to build model",
-    discover: "Run SMT Discovery to find significant values",
-    edit_sidecar: "Sidecar editor placeholder (Monaco JSON editor coming soon)",
-    translate: "Generate CTXDSL from source and sidecar",
-    verify: "Switch to the Verification tab to evaluate properties",
-    validate: "Validate extraction spec anchors against source",
-  };
+  const runStep = useCallback(async () => {
+    setRunning(true);
+    setError(null);
+    setResult(null);
+    try {
+      const stepResult = await executeStep(step.id, state);
+      state.completeStep(step.id, { success: true, data: stepResult, timestamp: Date.now() });
+      if (typeof stepResult === "string") {
+        setResult(stepResult);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg);
+      state.completeStep(step.id, { success: false, error: msg, timestamp: Date.now() });
+    } finally {
+      setRunning(false);
+    }
+  }, [step.id, state]);
 
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
+  // Sidecar editor step
+  if (step.id === "edit_sidecar") {
+    const sidecarExt = state.activeWorkflow?.sidecarExtension ?? ".json";
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
+        {state.sidecarContent ? (
+          <div className="h-80 rounded-md border border-gray-200 dark:border-gray-700">
+            <SidecarEditor
+              content={state.sidecarContent}
+              onChange={state.updateSidecar}
+              extension={sidecarExt}
+            />
+          </div>
+        ) : (
+          <div className="rounded-md bg-yellow-50 p-3 text-sm text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300">
+            No sidecar generated yet. Complete the init/extract step first.
+          </div>
+        )}
+      </div>
+    );
+  }
 
-      {step.id === "verify" ? (
+  // Verify step — prompt to switch tabs
+  if (step.id === "verify") {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
         <div className="rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            Model translated successfully. Switch to the Verification tab to evaluate properties.
+            {state.ctxdslContent
+              ? "CTXDSL generated. Switch to the Verification tab to evaluate properties."
+              : "Complete the Translate step first to generate CTXDSL."}
           </p>
         </div>
-      ) : step.id === "edit_sidecar" ? (
-        <div className="rounded-md border border-dashed border-gray-300 p-6 text-center text-sm text-gray-400 dark:border-gray-600 dark:text-gray-500">
-          {placeholders[step.id]}
+      </div>
+    );
+  }
+
+  // Steps with API endpoints
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
+
+      <div className="flex items-center gap-3">
+        <StepRunButton step={step} disabled={!available || running} onClick={runStep} />
+        {running && (
+          <span className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">
+            Running...
+          </span>
+        )}
+      </div>
+
+      {error && (
+        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
+          {error}
         </div>
-      ) : step.endpoint ? (
-        <StepRunButton
-          step={step}
-          disabled={!available}
-          onClick={() => {
-            /* Endpoint call will be wired later */
-          }}
-        />
-      ) : (
-        <div className="rounded-md border border-dashed border-gray-300 p-6 text-center text-sm text-gray-400 dark:border-gray-600 dark:text-gray-500">
-          {placeholders[step.id] ?? step.label}
+      )}
+      {result && (
+        <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-300">
+          {result}
         </div>
       )}
     </div>
   );
+}
+
+/**
+ * Execute a workflow step by calling the appropriate API endpoint.
+ * Returns a human-readable result message.
+ */
+async function executeStep(
+  stepId: string,
+  state: ReturnType<typeof useExtractionStore.getState>,
+): Promise<string> {
+  const {
+    sourceContent,
+    sourceFileName,
+    additionalSources,
+    sidecarContent,
+    updateSidecar,
+    updateCtxdsl,
+  } = state;
+
+  switch (stepId) {
+    case "init": {
+      const { svInit } = await import("../../api/endpoints");
+      const response = await svInit({
+        source: { name: sourceFileName, content: sourceContent },
+        additional_sources: additionalSources.map((s) => ({
+          name: s.name,
+          content: s.content,
+        })),
+      });
+      updateSidecar(response.sidecar);
+      const sigCount = response.signals.length;
+      const inpCount = response.inputs.length;
+      return `Sidecar generated (${response.schema}): ${sigCount} signal(s), ${inpCount} input(s)`;
+    }
+
+    case "discover": {
+      const { svDiscover } = await import("../../api/endpoints");
+      if (!sidecarContent) throw new Error("No sidecar — run Init first");
+      const response = await svDiscover({
+        source: { name: sourceFileName, content: sourceContent },
+        sidecar: sidecarContent,
+      });
+      if (!response.smt_available) {
+        throw new Error(response.warnings.join("; ") || "SMT not available");
+      }
+      updateSidecar(response.sidecar);
+      const totalFound = response.discoveries.reduce((s, d) => s + d.values_found, 0);
+      return `Discovered ${totalFound} value(s) across ${response.discoveries.length} signal(s)`;
+    }
+
+    case "extract": {
+      const { extractSource } = await import("../../api/endpoints");
+      const response = await extractSource({
+        source: sourceContent,
+        config: "{}",
+      });
+      updateSidecar(response.espec);
+      const autCount = response.automata.length;
+      return `Extracted ${autCount} automaton/a. ${response.warnings.length} warning(s).`;
+    }
+
+    case "validate": {
+      const { validateExtraction } = await import("../../api/endpoints");
+      if (!sidecarContent) throw new Error("No spec — run Extract first");
+      const response = await validateExtraction({
+        spec: sidecarContent,
+        source: sourceContent,
+      });
+      const s = response.summary;
+      return `Anchors: ${s.exact} exact, ${s.drifted} drifted, ${s.mismatch} mismatch, ${s.error} error. ${s.uncovered_accesses} uncovered.`;
+    }
+
+    case "translate": {
+      const { importContext } = await import("../../api/endpoints");
+      const domain = state.activeWorkflow?.domain;
+      const format = domain === "rtl" ? "systemverilog" : domain === "software" ? "extraction" : "auto";
+      const content = format === "extraction" && sidecarContent ? sidecarContent : sourceContent;
+      const response = await importContext({
+        content,
+        format,
+        filename: sourceFileName,
+        sidecar: format === "systemverilog" ? sidecarContent ?? undefined : undefined,
+        additional_sources:
+          format === "systemverilog"
+            ? additionalSources.map((s) => ({ name: s.name, content: s.content }))
+            : [],
+      });
+      updateCtxdsl(response.ctxdsl);
+      return `Translated to CTXDSL (${response.source_format}): ${response.state_count} states, ${response.property_count} properties`;
+    }
+
+    default:
+      throw new Error(`Unknown step: ${stepId}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -314,7 +529,7 @@ export const ExtractionPanel = () => {
         {currentStepDef?.id === "load" ? (
           <LoadStepContent onFileLoad={handleFileLoad} />
         ) : currentStepDef ? (
-          <PlaceholderStepContent step={currentStepDef} />
+          <StepContent step={currentStepDef} />
         ) : (
           <p className="text-sm text-gray-400 dark:text-gray-500">No step selected.</p>
         )}
