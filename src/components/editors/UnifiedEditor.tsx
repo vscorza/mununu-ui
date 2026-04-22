@@ -55,11 +55,13 @@ export const UnifiedEditor = () => {
 
   // Bridge: when extraction workflow produces CTXDSL, load it into the editor
   const extractionCtxdsl = useExtractionStore((s) => s.ctxdslContent);
+  const lastLoadedCtxdsl = useRef<string | null>(null);
   useEffect(() => {
-    if (extractionCtxdsl) {
+    if (extractionCtxdsl && extractionCtxdsl !== lastLoadedCtxdsl.current) {
+      lastLoadedCtxdsl.current = extractionCtxdsl;
       loadFile(extractionCtxdsl, "extraction.ctxdsl");
     }
-  }, [extractionCtxdsl, loadFile]);
+  }, [extractionCtxdsl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Panel state
   const [activeTab, setActiveTab] = useState<RightTab>("summary");
