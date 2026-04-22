@@ -19,7 +19,7 @@ const statusColors: Record<StepStatus, { circle: string; label: string; line: st
   },
   completed: {
     circle:
-      "border-green-600 bg-green-500 text-white dark:border-green-400 dark:bg-green-600 dark:text-white",
+      "border-green-600 bg-green-100 text-green-800 dark:border-green-400 dark:bg-green-900/40 dark:text-green-300",
     label: "text-green-700 dark:text-green-300",
     line: "bg-green-500 dark:bg-green-400",
   },

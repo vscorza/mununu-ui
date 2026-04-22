@@ -24,6 +24,7 @@ import { CounterstrategyView } from "../visualization/CounterstrategyView";
 import { TraceViewer } from "../visualization/TraceViewer";
 import { LassoTraceViewer } from "../visualization/LassoTraceViewer";
 import { ExtractionPanel } from "../extraction/ExtractionPanel";
+import { useExtractionStore } from "../../store/extractionStore";
 import type { SortField } from "../../hooks/useSummary";
 import "./UnifiedEditor.css";
 
@@ -51,6 +52,14 @@ export const UnifiedEditor = () => {
   const summary = useSummary();
   const graphs = useGraphVisualization();
   const verification = useVerification();
+
+  // Bridge: when extraction workflow produces CTXDSL, load it into the editor
+  const extractionCtxdsl = useExtractionStore((s) => s.ctxdslContent);
+  useEffect(() => {
+    if (extractionCtxdsl) {
+      loadFile(extractionCtxdsl, "extraction.ctxdsl");
+    }
+  }, [extractionCtxdsl, loadFile]);
 
   // Panel state
   const [activeTab, setActiveTab] = useState<RightTab>("summary");
