@@ -53,6 +53,7 @@ export interface ExtractionState {
 
   // Actions
   startWorkflow: (workflow: WorkflowDefinition, source: string, fileName: string) => void;
+  replaceSource: (content: string, fileName: string) => void;
   addSource: (name: string, content: string) => void;
   removeSource: (name: string) => void;
   completeStep: (stepId: string, result: StepResult) => void;
@@ -88,32 +89,13 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
   ...initialState,
 
   startWorkflow: (workflow, source, fileName) => {
-    // Auto-complete the "load" step since the file is provided at start
-    const loadStep = workflow.steps[0];
-    const completed = new Set<string>();
-    const results = new Map<string, StepResult>();
-    let current = loadStep?.id ?? "";
-
-    if (loadStep?.id === "load") {
-      completed.add("load");
-      results.set("load", {
-        success: true,
-        data: fileName,
-        timestamp: Date.now(),
-      });
-      // Advance to the next step
-      const next = workflow.steps[1];
-      if (next) {
-        current = next.id;
-      }
-    }
-
+    const firstStep = workflow.steps[0];
     set({
       activeWorkflow: workflow,
-      currentStep: current,
-      completedSteps: completed,
+      currentStep: firstStep?.id ?? "",
+      completedSteps: new Set(),
       skippedSteps: new Set(),
-      stepResults: results,
+      stepResults: new Map(),
       sourceContent: source,
       sourceFileName: fileName,
       additionalSources: [],
@@ -121,6 +103,9 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
       ctxdslContent: null,
     });
   },
+
+  replaceSource: (content, fileName) =>
+    set({ sourceContent: content, sourceFileName: fileName }),
 
   addSource: (name, content) =>
     set((state) => ({

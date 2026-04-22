@@ -53,7 +53,7 @@ export const WorkflowStepper = () => {
         {steps.map((step, idx) => {
           const status = getStepStatus(state, step.id);
           const available = isStepAvailable(state, step.id);
-          const clickable = status === "completed" || (available && status !== "pending");
+          const clickable = status === "completed" || available;
           const colors = statusColors[status];
           const isLast = idx === steps.length - 1;
 

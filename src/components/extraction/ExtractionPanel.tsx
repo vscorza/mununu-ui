@@ -123,9 +123,10 @@ function StepRunButton({
 }
 
 function LoadStepContent({ onFileLoad }: { onFileLoad: (content: string, name: string) => void }) {
-  const { sourceContent, sourceFileName, additionalSources, addSource, removeSource } =
+  const { sourceContent, sourceFileName, additionalSources, addSource, removeSource, replaceSource, completeStep } =
     useExtractionStore();
   const additionalInputRef = useRef<HTMLInputElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
 
   const handleAdditionalFiles = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,16 +146,48 @@ function LoadStepContent({ onFileLoad }: { onFileLoad: (content: string, name: s
     [addSource],
   );
 
+  const handleReplaceFile = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            replaceSource(reader.result, file.name);
+          }
+        };
+        reader.readAsText(file);
+      }
+      e.target.value = "";
+    },
+    [replaceSource],
+  );
+
   if (sourceContent) {
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>
-            Primary: <span className="font-medium text-gray-900 dark:text-gray-100">{sourceFileName}</span>
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>
+              Primary: <span className="font-medium text-gray-900 dark:text-gray-100">{sourceFileName}</span>
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => replaceInputRef.current?.click()}
+            className="rounded-md bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+          >
+            Replace
+          </button>
+          <input
+            ref={replaceInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleReplaceFile}
+          />
         </div>
         <pre className="max-h-48 overflow-auto rounded-md bg-gray-100 p-3 text-xs text-gray-800 dark:bg-gray-800 dark:text-gray-200">
           {sourceContent.slice(0, 1500)}
@@ -191,17 +224,30 @@ function LoadStepContent({ onFileLoad }: { onFileLoad: (content: string, name: s
               {additionalSources.map((src) => (
                 <li
                   key={src.name}
-                  className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-1.5 text-xs dark:bg-gray-800"
+                  className="rounded-md bg-gray-50 dark:bg-gray-800"
                 >
-                  <span className="text-gray-700 dark:text-gray-300">{src.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeSource(src.name)}
-                    className="text-gray-400 hover:text-red-500 dark:hover:text-red-400"
-                    title="Remove"
-                  >
-                    &times;
-                  </button>
+                  <div className="flex items-center justify-between px-3 py-1.5 text-xs">
+                    <details className="flex-1">
+                      <summary className="cursor-pointer text-gray-700 dark:text-gray-300">
+                        {src.name}
+                        <span className="ml-2 text-gray-400">
+                          ({(src.content.length / 1024).toFixed(1)} KB)
+                        </span>
+                      </summary>
+                      <pre className="mt-1 max-h-32 overflow-auto rounded bg-gray-100 p-2 text-xs text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                        {src.content.slice(0, 800)}
+                        {src.content.length > 800 && "\n... (truncated)"}
+                      </pre>
+                    </details>
+                    <button
+                      type="button"
+                      onClick={() => removeSource(src.name)}
+                      className="ml-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+                      title="Remove"
+                    >
+                      &times;
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -211,6 +257,24 @@ function LoadStepContent({ onFileLoad }: { onFileLoad: (content: string, name: s
               For multi-module designs, add sub-module source files here.
             </p>
           )}
+        </div>
+
+        {/* Continue button */}
+        <div className="flex justify-end border-t border-gray-200 pt-3 dark:border-gray-700">
+          <button
+            type="button"
+            onClick={() => {
+              completeStep("load", {
+                success: true,
+                data: sourceFileName,
+                timestamp: Date.now(),
+              });
+            }}
+            style={{ backgroundColor: "#2563eb", color: "#ffffff" }}
+            className="rounded-md px-4 py-2 text-sm font-medium hover:bg-blue-700 dark:hover:bg-blue-600"
+          >
+            Continue
+          </button>
         </div>
       </div>
     );
@@ -363,16 +427,80 @@ async function executeStep(
     case "discover": {
       const { svDiscover } = await import("../../api/endpoints");
       if (!sidecarContent) throw new Error("No sidecar — run Init first");
-      const response = await svDiscover({
-        source: { name: sourceFileName, content: sourceContent },
-        sidecar: sidecarContent,
-      });
-      if (!response.smt_available) {
-        throw new Error(response.warnings.join("; ") || "SMT not available");
+
+      const parsed = JSON.parse(sidecarContent);
+      const isMultiModule =
+        parsed.$schema === "mununu_sv_multi_v1" || Array.isArray(parsed.modules);
+
+      if (!isMultiModule) {
+        // Single-module: send as-is
+        const response = await svDiscover({
+          source: { name: sourceFileName, content: sourceContent },
+          sidecar: sidecarContent,
+        });
+        if (!response.smt_available) {
+          throw new Error(response.warnings.join("; ") || "SMT not available");
+        }
+        updateSidecar(response.sidecar);
+        const totalFound = response.discoveries.reduce((s, d) => s + d.values_found, 0);
+        return `Discovered ${totalFound} value(s) across ${response.discoveries.length} signal(s)`;
       }
-      updateSidecar(response.sidecar);
-      const totalFound = response.discoveries.reduce((s, d) => s + d.values_found, 0);
-      return `Discovered ${totalFound} value(s) across ${response.discoveries.length} signal(s)`;
+
+      // Multi-module: run discover per module, merge results back
+      const allSources = [
+        { name: sourceFileName, content: sourceContent },
+        ...additionalSources,
+      ];
+      let totalFound = 0;
+      let totalSignals = 0;
+      const warnings: string[] = [];
+
+      for (const mod of parsed.modules) {
+        const modSource = allSources.find(
+          (s) => s.name === mod.source || s.name.endsWith(`/${mod.source}`),
+        );
+        if (!modSource) {
+          warnings.push(`Skipped ${mod.name}: source file "${mod.source}" not loaded`);
+          continue;
+        }
+
+        // Build a single-module sidecar for this module
+        const singleSidecar = JSON.stringify({
+          $schema: "mununu_sv_annotation_v1",
+          module: mod.name,
+          source: mod.source,
+          signals: mod.signals ?? [],
+          inputs: mod.inputs ?? [],
+          controllable: mod.controllable ?? [],
+          properties: [],
+          discovered_values: {},
+          parameters: mod.parameters ?? {},
+        });
+
+        const response = await svDiscover({
+          source: { name: modSource.name, content: modSource.content },
+          sidecar: singleSidecar,
+        });
+
+        if (!response.smt_available) {
+          warnings.push(`${mod.name}: SMT not available`);
+          continue;
+        }
+
+        // Merge discovered values back into the module entry
+        const updatedSingle = JSON.parse(response.sidecar);
+        if (updatedSingle.discovered_values && Object.keys(updatedSingle.discovered_values).length > 0) {
+          mod.discovered_values = updatedSingle.discovered_values;
+        }
+
+        const modFound = response.discoveries.reduce((s: number, d: { values_found: number }) => s + d.values_found, 0);
+        totalFound += modFound;
+        totalSignals += response.discoveries.length;
+      }
+
+      updateSidecar(JSON.stringify(parsed, null, 2));
+      const msg = `Discovered ${totalFound} value(s) across ${totalSignals} signal(s) in ${parsed.modules.length} module(s)`;
+      return warnings.length > 0 ? `${msg}. Warnings: ${warnings.join("; ")}` : msg;
     }
 
     case "extract": {
