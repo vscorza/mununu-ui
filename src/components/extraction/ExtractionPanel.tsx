@@ -111,7 +111,7 @@ function StepRunButton({
         rounded-md px-4 py-2 text-sm font-medium transition-colors
         ${
           disabled
-            ? "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
+            ? "bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400"
             : "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
         }
       `}

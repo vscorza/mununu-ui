@@ -203,6 +203,8 @@ export function isStepAvailable(
   stepId: string,
 ): boolean {
   if (!state.activeWorkflow) return false;
+  // The current step is always available
+  if (state.currentStep === stepId) return true;
   const step = state.activeWorkflow.steps.find((s) => s.id === stepId);
   if (!step) return false;
   return step.requires.every(
