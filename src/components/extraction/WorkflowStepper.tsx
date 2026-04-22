@@ -7,26 +7,26 @@ import type { StepStatus } from "../../store/extractionStore";
 
 const statusColors: Record<StepStatus, { circle: string; label: string; line: string }> = {
   pending: {
-    circle: "border-gray-300 bg-gray-100 text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-500",
-    label: "text-gray-400 dark:text-gray-500",
+    circle: "border-gray-300 bg-white text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400",
+    label: "text-gray-500 dark:text-gray-400",
     line: "bg-gray-300 dark:bg-gray-600",
   },
   active: {
     circle:
-      "border-blue-500 bg-blue-50 text-blue-600 ring-4 ring-blue-100 animate-pulse dark:border-blue-400 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-900/50",
-    label: "text-blue-600 font-semibold dark:text-blue-400",
+      "border-blue-500 bg-blue-50 text-blue-700 ring-4 ring-blue-100 dark:border-blue-400 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-900/50",
+    label: "text-blue-700 font-semibold dark:text-blue-300",
     line: "bg-gray-300 dark:bg-gray-600",
   },
   completed: {
     circle:
-      "border-green-500 bg-green-50 text-green-600 dark:border-green-400 dark:bg-green-900/30 dark:text-green-400",
-    label: "text-green-600 dark:text-green-400",
+      "border-green-600 bg-green-500 text-white dark:border-green-400 dark:bg-green-600 dark:text-white",
+    label: "text-green-700 dark:text-green-300",
     line: "bg-green-500 dark:bg-green-400",
   },
   skipped: {
     circle:
-      "border-amber-400 bg-amber-50 text-amber-500 dark:border-amber-400 dark:bg-amber-900/30 dark:text-amber-400",
-    label: "text-amber-500 dark:text-amber-400",
+      "border-amber-500 bg-amber-100 text-amber-700 dark:border-amber-400 dark:bg-amber-900/30 dark:text-amber-300",
+    label: "text-amber-600 dark:text-amber-300",
     line: "bg-amber-400 dark:bg-amber-400",
   },
 };

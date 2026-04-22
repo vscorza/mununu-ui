@@ -247,17 +247,31 @@ function StepContent({ step }: { step: WorkflowStep }) {
   // Sidecar editor step
   if (step.id === "edit_sidecar") {
     const sidecarExt = state.activeWorkflow?.sidecarExtension ?? ".json";
+    const handleContinue = () => {
+      state.completeStep(step.id, { success: true, timestamp: Date.now() });
+    };
     return (
       <div className="space-y-3">
         <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
         {state.sidecarContent ? (
-          <div className="h-80 rounded-md border border-gray-200 dark:border-gray-700">
-            <SidecarEditor
-              content={state.sidecarContent}
-              onChange={state.updateSidecar}
-              extension={sidecarExt}
-            />
-          </div>
+          <>
+            <div className="h-80 rounded-md border border-gray-200 dark:border-gray-700">
+              <SidecarEditor
+                content={state.sidecarContent}
+                onChange={state.updateSidecar}
+                extension={sidecarExt}
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleContinue}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              >
+                Continue to Translate
+              </button>
+            </div>
+          </>
         ) : (
           <div className="rounded-md bg-yellow-50 p-3 text-sm text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300">
             No sidecar generated yet. Complete the init/extract step first.
