@@ -87,19 +87,40 @@ const initialState = {
 export const useExtractionStore = create<ExtractionState>((set) => ({
   ...initialState,
 
-  startWorkflow: (workflow, source, fileName) =>
+  startWorkflow: (workflow, source, fileName) => {
+    // Auto-complete the "load" step since the file is provided at start
+    const loadStep = workflow.steps[0];
+    const completed = new Set<string>();
+    const results = new Map<string, StepResult>();
+    let current = loadStep?.id ?? "";
+
+    if (loadStep?.id === "load") {
+      completed.add("load");
+      results.set("load", {
+        success: true,
+        data: fileName,
+        timestamp: Date.now(),
+      });
+      // Advance to the next step
+      const next = workflow.steps[1];
+      if (next) {
+        current = next.id;
+      }
+    }
+
     set({
       activeWorkflow: workflow,
-      currentStep: workflow.steps[0]?.id ?? "",
-      completedSteps: new Set(),
+      currentStep: current,
+      completedSteps: completed,
       skippedSteps: new Set(),
-      stepResults: new Map(),
+      stepResults: results,
       sourceContent: source,
       sourceFileName: fileName,
       additionalSources: [],
       sidecarContent: null,
       ctxdslContent: null,
-    }),
+    });
+  },
 
   addSource: (name, content) =>
     set((state) => ({
