@@ -107,12 +107,13 @@ function StepRunButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
+      style={disabled ? undefined : { backgroundColor: "#2563eb", color: "#ffffff" }}
       className={`
         rounded-md px-4 py-2 text-sm font-medium transition-colors
         ${
           disabled
-            ? "bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400"
-            : "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            ? "bg-gray-300 text-gray-600 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400"
+            : "hover:bg-blue-700 dark:hover:bg-blue-600"
         }
       `}
     >
@@ -266,7 +267,8 @@ function StepContent({ step }: { step: WorkflowStep }) {
               <button
                 type="button"
                 onClick={handleContinue}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                style={{ backgroundColor: "#2563eb", color: "#ffffff" }}
+                className="rounded-md px-4 py-2 text-sm font-medium hover:bg-blue-700 dark:hover:bg-blue-600"
               >
                 Continue to Translate
               </button>
