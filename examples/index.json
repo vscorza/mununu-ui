@@ -1,6 +1,8 @@
 [
   {"name": "amba arbiter gr1", "category": "examples", "path": "examples/amba_arbiter_gr1.ctxdsl"},
   {"name": "amba arbiter gr1 synthesis", "category": "examples", "path": "examples/amba_arbiter_gr1_synthesis.ctxdsl"},
+  {"name": "bus arbiter retry (alt-4)", "category": "examples", "path": "examples/bus_arbiter_retry.ctxdsl"},
+  {"name": "dual arbiter (alt-4 + memory)", "category": "examples", "path": "examples/dual_arbiter_alt4.ctxdsl"},
   {"name": "counters", "category": "examples", "path": "examples/counters/counters.ctxdsl"},
   {"name": "counters properties", "category": "examples", "path": "examples/counters/counters_properties.ctxdsl"},
   {"name": "dual condition start", "category": "examples", "path": "examples/dual_condition_start.ctxdsl"},
