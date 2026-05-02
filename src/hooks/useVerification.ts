@@ -56,6 +56,7 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
       contextName?: string,
       formula?: string,
       automaton?: string,
+      templateRef?: { template: string; args: Record<string, string> },
     ): Promise<void> => {
       if (!content.trim()) {
         toast.showError("Context content is required for verification");
@@ -74,6 +75,7 @@ export const useVerification = (initialState?: Partial<VerificationState>) => {
             verifyContext({
               context: { name: contextName || "editor.ctxdsl", content },
               formula: formula || undefined,
+              template_ref: templateRef || undefined,
               automaton: automaton || undefined,
             }),
           {

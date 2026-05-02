@@ -1376,6 +1376,31 @@ export interface components {
     SynthesisOptions: {
       diagnostics?: components["schemas"]["DiagnosticsOptions"];
       minimize?: boolean;
+      /**
+       * Legacy positional-strategy flag. When `controller_mode` is set,
+       * it overrides this. Kept for backwards compatibility.
+       */
+      extract_strategy?: boolean;
+      /**
+       * Controller extraction mode. Case-insensitive, dashes/underscores
+       * interchangeable. When set, overrides `extract_strategy`.
+       *
+       * - `projection` (default): keep all winning transitions.
+       * - `functional`: one signature-decreasing controllable transition per state.
+       * - `permissive`: all signature-non-increasing controllable transitions.
+       * - `signature-memory`: like `functional`, with iteration-rank annotations on state names.
+       * - `product-game`: memory-aware Mealy controller via mu-obligation rotation (alternation 2).
+       * - `parity-game`: full parity-game synthesis via Zielonka (arbitrary alternation).
+       */
+      controller_mode?:
+        | "projection"
+        | "functional"
+        | "permissive"
+        | "signature-memory"
+        | "product-game"
+        | "parity-game";
+      /** Output format for the controller. */
+      output_format?: string;
     };
     TermDefinitionApi: {
       definition: string;

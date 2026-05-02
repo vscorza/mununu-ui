@@ -25,6 +25,17 @@ Tests MUST run in pre-commit hooks. Install with:
 
 The pre-commit hook runs: type-check, lint, and tests.
 
+## Git Identity
+
+All commits in this repository must use the following author identity:
+
+```
+Name:  Mariano Cerrutti
+Email: vscorza@gmail.com
+```
+
+When committing, pass `--author="Mariano Cerrutti <vscorza@gmail.com>"` or set it via the commit environment. Do not use the machine's default hostname-based email.
+
 ## Architecture
 
 ```

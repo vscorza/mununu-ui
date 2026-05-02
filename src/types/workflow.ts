@@ -245,6 +245,72 @@ const xstateWorkflow: WorkflowDefinition = {
   ],
 };
 
+const gameEngineWorkflow: WorkflowDefinition = {
+  domain: "gameengine",
+  displayName: "Game Engine (Godot)",
+  description:
+    "Verify game state machines for softlocks, unreachable states, and AI behavior loops. Supports GDScript extraction and .espec.json specs.",
+  sourceExtensions: [".gd", ".espec.json"],
+  sidecarSchema: null,
+  sidecarExtension: ".espec.json",
+  steps: [
+    {
+      id: "load",
+      label: "Load Source",
+      description:
+        "Load a GDScript source file (.gd) or an extraction spec (.espec.json)",
+      endpoint: null,
+      optional: false,
+      repeatable: false,
+      requires: [],
+      timeout: "standard",
+    },
+    {
+      id: "extract",
+      label: "Extract",
+      description:
+        "Extract state machine from GDScript source (skipped for .espec.json)",
+      endpoint: "/extraction/extract",
+      optional: true,
+      repeatable: true,
+      requires: ["load"],
+      timeout: "standard",
+    },
+    {
+      id: "edit",
+      label: "Edit Spec",
+      description:
+        "Review and refine the extracted spec (states, transitions, properties)",
+      endpoint: null,
+      optional: true,
+      repeatable: true,
+      requires: ["load"],
+      timeout: "standard",
+    },
+    {
+      id: "translate",
+      label: "Translate",
+      description: "Generate CTXDSL from the extraction spec",
+      endpoint: "/context/import",
+      optional: false,
+      repeatable: true,
+      requires: ["load"],
+      timeout: "standard",
+    },
+    {
+      id: "verify",
+      label: "Verify",
+      description:
+        "Evaluate properties (softlock detection, reachability, liveness)",
+      endpoint: "/context/verify",
+      optional: false,
+      repeatable: true,
+      requires: ["translate"],
+      timeout: "extended",
+    },
+  ],
+};
+
 // ---------------------------------------------------------------------------
 // Registry
 // ---------------------------------------------------------------------------
@@ -263,6 +329,7 @@ export const WORKFLOW_REGISTRY: Record<string, WorkflowDefinition> = {
   rtl: rtlWorkflow,
   software: softwareWorkflow,
   xstate: xstateWorkflow,
+  gameengine: gameEngineWorkflow,
 };
 
 /**

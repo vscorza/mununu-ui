@@ -24,7 +24,9 @@ import { CounterstrategyView } from "../visualization/CounterstrategyView";
 import { TraceViewer } from "../visualization/TraceViewer";
 import { LassoTraceViewer } from "../visualization/LassoTraceViewer";
 import { ExtractionPanel } from "../extraction/ExtractionPanel";
+import { TemplatePicker } from "../templates/TemplatePicker";
 import { useExtractionStore } from "../../store/extractionStore";
+import type { TemplateRef } from "../../types/templates";
 import type { SortField } from "../../hooks/useSummary";
 import "./UnifiedEditor.css";
 
@@ -81,6 +83,12 @@ export const UnifiedEditor = () => {
   // Verification options
   const [verifyFormula, setVerifyFormula] = useState("");
   const [verifyAutomaton, setVerifyAutomaton] = useState("");
+  const [useTemplate, setUseTemplate] = useState(false);
+  const [activeTemplateRef, setActiveTemplateRef] = useState<{
+    template: string;
+    args: Record<string, string>;
+  } | null>(null);
+  const [templateFormulaPreview, setTemplateFormulaPreview] = useState("");
 
   // Expandable detail rows for verification results
   const [expandedRows, setExpandedRows] = useState<
@@ -99,6 +107,88 @@ export const UnifiedEditor = () => {
   const [exportingController, setExportingController] = useState<string | null>(
     null,
   );
+  // Controller extraction mode selector. Affects all controller exports
+  // until changed. `projection` is the default; the other modes implement
+  // increasingly memory-aware strategies (see Controller-Modes wiki page).
+  type ControllerMode =
+    | "projection"
+    | "functional"
+    | "permissive"
+    | "signature-memory"
+    | "product-game"
+    | "parity-game";
+  const [controllerMode, setControllerMode] =
+    useState<ControllerMode>("projection");
+
+  // Per-controller "Preview synthesis" results. Keyed by controller name,
+  // value carries the synth verdict + state/transition counts under the
+  // currently-selected `controllerMode`. Populated by `handlePreviewSynthesis`
+  // and used to override the summarize endpoint's placeholder values
+  // (which are always realizable=false, states=0, transitions=0 because the
+  // summarize endpoint deliberately does not run synthesis).
+  type PreviewResult = {
+    mode: ControllerMode;
+    realizable: boolean;
+    statesCount: number;
+    transitionsCount: number;
+  };
+  const [previewResults, setPreviewResults] = useState<
+    Map<string, PreviewResult>
+  >(new Map());
+  const [previewingController, setPreviewingController] = useState<
+    string | null
+  >(null);
+
+  const handlePreviewSynthesis = useCallback(
+    async (controllerName: string, source: string, formula: string) => {
+      const content = editorRef.current?.getValue() || editorState.content;
+      if (!content.trim()) return;
+      try {
+        setPreviewingController(controllerName);
+        const response = await synthesizeContext({
+          context: { name: editorState.fileName, content },
+          formula,
+          automaton: source,
+          options: {
+            minimize: false,
+            controller_mode: controllerMode,
+          } as Record<string, unknown>,
+        });
+        // Parse the controller's CTXDSL to count states + transitions, since
+        // the response shape only exposes the source text. A trivial regex is
+        // enough — the emitted format always uses one `state <name>` line per
+        // state and one `transition <src> -> <tgt>` line per transition.
+        let statesCount = 0;
+        let transitionsCount = 0;
+        const ctrl = response.controller;
+        if (ctrl?.content) {
+          const stateMatches = ctrl.content.match(/^\s*state\s+\w+/gm);
+          statesCount = stateMatches?.length ?? 0;
+          const transitionMatches = ctrl.content.match(/^\s*transition\s+/gm);
+          transitionsCount = transitionMatches?.length ?? 0;
+        }
+        setPreviewResults((prev) => {
+          const next = new Map(prev);
+          next.set(controllerName, {
+            mode: controllerMode,
+            realizable: response.realizable,
+            statesCount,
+            transitionsCount,
+          });
+          return next;
+        });
+      } finally {
+        setPreviewingController(null);
+      }
+    },
+    [editorRef, editorState.content, editorState.fileName, controllerMode],
+  );
+
+  // Whenever the user changes the mode, invalidate prior previews — they're
+  // mode-specific and would mislead.
+  useEffect(() => {
+    setPreviewResults(new Map());
+  }, [controllerMode]);
   const handleExportController = useCallback(
     async (
       controllerName: string,
@@ -116,7 +206,10 @@ export const UnifiedEditor = () => {
             context: { name: editorState.fileName, content },
             formula,
             automaton: source,
-            options: { minimize: true },
+            options: { minimize: true, controller_mode: controllerMode } as Record<
+              string,
+              unknown
+            >,
           });
           if (response.controller) {
             downloadAsFile(
@@ -139,10 +232,11 @@ export const UnifiedEditor = () => {
           context: { name: editorState.fileName, content },
           formula,
           automaton: source,
-          options: { minimize: true, output_format: format } as Record<
-            string,
-            unknown
-          >,
+          options: {
+            minimize: true,
+            output_format: format,
+            controller_mode: controllerMode,
+          } as Record<string, unknown>,
         });
         const native = (response as Record<string, unknown>)
           .controller_native as { name: string; content: string } | undefined;
@@ -158,7 +252,7 @@ export const UnifiedEditor = () => {
         setExportingController(null);
       }
     },
-    [editorRef, editorState.content, editorState.fileName],
+    [editorRef, editorState.content, editorState.fileName, controllerMode],
   );
 
   const toggleExpanded = (
@@ -221,12 +315,23 @@ export const UnifiedEditor = () => {
     if (!content.trim()) return;
     setExpandedRows(new Map());
     setTraceSelection(new Map());
-    verification.verify(
-      content,
-      editorState.fileName,
-      verifyFormula || undefined,
-      verifyAutomaton || undefined,
-    );
+    if (useTemplate && activeTemplateRef) {
+      // Template mode: pass template_ref instead of formula name
+      verification.verify(
+        content,
+        editorState.fileName,
+        undefined,
+        verifyAutomaton || undefined,
+        activeTemplateRef,
+      );
+    } else {
+      verification.verify(
+        content,
+        editorState.fileName,
+        verifyFormula || undefined,
+        verifyAutomaton || undefined,
+      );
+    }
   };
 
   // Divider drag handling
@@ -508,6 +613,49 @@ export const UnifiedEditor = () => {
                     summary.state.summary.controllers.length > 0 && (
                       <div className="unified-editor__controllers-summary">
                         <strong>Controllers</strong>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            margin: "0.4rem 0",
+                            fontSize: "0.85rem",
+                          }}
+                        >
+                          <label htmlFor="controller-mode-select">
+                            Extraction mode:
+                          </label>
+                          <select
+                            id="controller-mode-select"
+                            data-testid="controller-mode-select"
+                            value={controllerMode}
+                            onChange={(e) =>
+                              setControllerMode(
+                                e.target.value as ControllerMode,
+                              )
+                            }
+                            style={{ padding: "2px 6px", fontSize: "0.85rem" }}
+                          >
+                            <option value="projection">
+                              Projection (default)
+                            </option>
+                            <option value="functional">
+                              Functional (one transition per state)
+                            </option>
+                            <option value="permissive">
+                              Permissive (Ramadge-Wonham)
+                            </option>
+                            <option value="signature-memory">
+                              Signature Memory (rank-annotated)
+                            </option>
+                            <option value="product-game">
+                              Product Game (mu-obligation rotation)
+                            </option>
+                            <option value="parity-game">
+                              Parity Game (full Zielonka)
+                            </option>
+                          </select>
+                        </div>
                         <table className="unified-editor__verify-table">
                           <thead>
                             <tr>
@@ -521,7 +669,18 @@ export const UnifiedEditor = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {summary.state.summary.controllers.map((c, i) => (
+                            {summary.state.summary.controllers.map((c, i) => {
+                              const preview = previewResults.get(c.name);
+                              const realizable = preview
+                                ? preview.realizable
+                                : c.realizable;
+                              const states = preview
+                                ? preview.statesCount
+                                : c.states_count;
+                              const transitions = preview
+                                ? preview.transitionsCount
+                                : c.transitions_count;
+                              return (
                               <tr key={i}>
                                 <td>{c.name}</td>
                                 <td>{c.source}</td>
@@ -529,7 +688,7 @@ export const UnifiedEditor = () => {
                                 <td>
                                   <span
                                     className={
-                                      c.realizable
+                                      realizable
                                         ? "unified-editor__verify-badge--pass"
                                         : "unified-editor__verify-badge--fail"
                                     }
@@ -538,13 +697,50 @@ export const UnifiedEditor = () => {
                                       borderRadius: "4px",
                                     }}
                                   >
-                                    {c.realizable ? "Yes" : "No"}
+                                    {realizable ? "Yes" : "No"}
                                   </span>
                                 </td>
-                                <td>{c.states_count}</td>
-                                <td>{c.transitions_count}</td>
+                                <td
+                                  title={
+                                    preview
+                                      ? `Synthesized under '${preview.mode}'`
+                                      : "Run Preview to compute the count under the selected mode"
+                                  }
+                                >
+                                  {preview ? states : "—"}
+                                </td>
+                                <td
+                                  title={
+                                    preview
+                                      ? `Synthesized under '${preview.mode}'`
+                                      : "Run Preview to compute the count under the selected mode"
+                                  }
+                                >
+                                  {preview ? transitions : "—"}
+                                </td>
                                 <td>
-                                  {c.realizable && (
+                                  <button
+                                    type="button"
+                                    disabled={previewingController === c.name}
+                                    onClick={() =>
+                                      handlePreviewSynthesis(
+                                        c.name,
+                                        c.source,
+                                        c.formula,
+                                      )
+                                    }
+                                    style={{
+                                      fontSize: "0.75rem",
+                                      padding: "2px 6px",
+                                      marginRight: "0.25rem",
+                                    }}
+                                    title={`Run synthesis under '${controllerMode}' and update this row's state and transition counts`}
+                                  >
+                                    {previewingController === c.name
+                                      ? "..."
+                                      : "Preview"}
+                                  </button>
+                                  {realizable && (
                                     <select
                                       disabled={exportingController === c.name}
                                       onChange={(e) => {
@@ -577,11 +773,15 @@ export const UnifiedEditor = () => {
                                       <option value="systemverilog">
                                         SystemVerilog
                                       </option>
+                                      <option value="gdscript">
+                                        GDScript (.gd)
+                                      </option>
                                     </select>
                                   )}
                                 </td>
                               </tr>
-                            ))}
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -672,12 +872,35 @@ export const UnifiedEditor = () => {
           {activeTab === "verification" && (
             <div className="unified-editor__section">
               <div className="unified-editor__action-bar">
-                <Input
-                  label=""
-                  value={verifyFormula}
-                  onChange={(e) => setVerifyFormula(e.target.value)}
-                  placeholder="Formula (optional, all if empty)"
-                />
+                <label className="unified-editor__template-toggle">
+                  <input
+                    type="checkbox"
+                    checked={useTemplate}
+                    onChange={(e) => {
+                      setUseTemplate(e.target.checked);
+                      if (!e.target.checked) {
+                        setActiveTemplateRef(null);
+                        setTemplateFormulaPreview("");
+                      }
+                    }}
+                  />
+                  Use Template
+                </label>
+                {!useTemplate && (
+                  <Input
+                    label=""
+                    value={verifyFormula}
+                    onChange={(e) => setVerifyFormula(e.target.value)}
+                    placeholder="Formula (optional, all if empty)"
+                  />
+                )}
+                {useTemplate && activeTemplateRef && (
+                  <span className="unified-editor__template-active" title={templateFormulaPreview}>
+                    {activeTemplateRef.template}
+                    {Object.keys(activeTemplateRef.args).length > 0 &&
+                      `(${Object.values(activeTemplateRef.args).join(", ")})`}
+                  </span>
+                )}
                 <Input
                   label=""
                   value={verifyAutomaton}
@@ -688,7 +911,7 @@ export const UnifiedEditor = () => {
                   variant="primary"
                   size="sm"
                   onClick={handleVerify}
-                  disabled={verification.state.isLoading}
+                  disabled={verification.state.isLoading || (useTemplate && !activeTemplateRef)}
                 >
                   {verification.state.isLoading ? (
                     <>
@@ -708,6 +931,18 @@ export const UnifiedEditor = () => {
                   </Button>
                 )}
               </div>
+              {useTemplate && !activeTemplateRef && (
+                <TemplatePicker
+                  onSelect={(ref: TemplateRef, preview: string) => {
+                    setActiveTemplateRef(ref);
+                    setTemplateFormulaPreview(preview);
+                  }}
+                  onClear={() => {
+                    setActiveTemplateRef(null);
+                    setTemplateFormulaPreview("");
+                  }}
+                />
+              )}
               {verification.state.error && (
                 <div className="unified-editor__error">
                   {verification.state.error}
