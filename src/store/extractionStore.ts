@@ -50,6 +50,16 @@ export interface ExtractionState {
   sidecarContent: string | null;
   /** Generated CTXDSL content, or null if not yet translated. */
   ctxdslContent: string | null;
+  /**
+   * Compositional-extraction config block as a JSON string. Authored in
+   * the `compose` workflow step and merged into the extract config when
+   * re-running extraction. Null when the user hasn't opened the compose
+   * step yet (single-class verification path).
+   *
+   * Shape mirrors the backend's `composition` config field:
+   * `{type, name, instances: [{of, as}], shared: [...]}`.
+   */
+  compositionConfig: string | null;
 
   // Actions
   startWorkflow: (workflow: WorkflowDefinition, source: string, fileName: string) => void;
@@ -61,6 +71,8 @@ export interface ExtractionState {
   goToStep: (stepId: string) => void;
   updateSidecar: (content: string) => void;
   updateCtxdsl: (content: string) => void;
+  /** Update the compositional-extraction config (raw JSON string). */
+  updateCompositionConfig: (content: string) => void;
   resetWorkflow: () => void;
 }
 
@@ -79,6 +91,7 @@ const initialState = {
   additionalSources: [] as SourceFile[],
   sidecarContent: null as string | null,
   ctxdslContent: null as string | null,
+  compositionConfig: null as string | null,
 };
 
 // ---------------------------------------------------------------------------
@@ -101,6 +114,7 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
       additionalSources: [],
       sidecarContent: null,
       ctxdslContent: null,
+      compositionConfig: null,
     });
   },
 
@@ -171,6 +185,9 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
 
   updateCtxdsl: (content) =>
     set({ ctxdslContent: content }),
+
+  updateCompositionConfig: (content) =>
+    set({ compositionConfig: content }),
 
   resetWorkflow: () =>
     set({ ...initialState }),

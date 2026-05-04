@@ -9,6 +9,7 @@ import type { WorkflowStep } from "../../types/workflow";
 import { WorkflowStepper } from "./WorkflowStepper";
 import { DomainSelector } from "./DomainSelector";
 import { SidecarEditor } from "./SidecarEditor";
+import { CompositionEditor } from "./CompositionEditor";
 
 // ---------------------------------------------------------------------------
 // File upload area (shared between domain selection and load step)
@@ -308,6 +309,51 @@ function StepContent({ step }: { step: WorkflowStep }) {
       setRunning(false);
     }
   }, [step.id, state]);
+
+  // Compose step (compositional extraction config)
+  if (step.id === "compose") {
+    const handleContinue = () => {
+      state.completeStep(step.id, { success: true, timestamp: Date.now() });
+    };
+    const handleSkip = () => {
+      state.skipStep(step.id);
+      // Auto-advance to the next step after skipping. Mirror completeStep
+      // semantics so the workflow stepper moves forward even when the
+      // user chose not to use composition.
+      state.completeStep(step.id, { success: true, timestamp: Date.now() });
+    };
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
+        <CompositionEditor
+          content={state.compositionConfig}
+          onChange={state.updateCompositionConfig}
+        />
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={handleSkip}
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+          >
+            Skip (single-class verification)
+          </button>
+          <button
+            type="button"
+            onClick={handleContinue}
+            disabled={!state.compositionConfig?.trim()}
+            style={
+              state.compositionConfig?.trim()
+                ? { backgroundColor: "#2563eb", color: "#ffffff" }
+                : undefined
+            }
+            className="rounded-md px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 dark:hover:bg-blue-600 dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Sidecar editor step
   if (step.id === "edit_sidecar") {

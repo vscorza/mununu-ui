@@ -160,6 +160,17 @@ const softwareWorkflow: WorkflowDefinition = {
       timeout: "standard",
     },
     {
+      id: "compose",
+      label: "Compose Instances",
+      description:
+        "Optional: declare multiple instances of the extracted classes plus shared labels. Use this for concurrency / race-condition modeling (N workers contending for a shared resource). Skip for single-class verification.",
+      endpoint: null,
+      optional: true,
+      repeatable: true,
+      requires: ["extract"],
+      timeout: "standard",
+    },
+    {
       id: "validate",
       label: "Validate Anchors",
       description:
