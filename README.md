@@ -69,6 +69,10 @@ src/
 └── styles/           # CSS variables and themes
 ```
 
+## Documentation
+
+- [Phase B local-testing guide](docs/phase-b-local-testing.md) — exercise the `Suggest from source` auto-detection feature end-to-end (CLI, HTTP, UI flow).
+
 ## License
 
 [Mununu Non-Commercial License](LICENSE)
