@@ -60,6 +60,18 @@ export interface ExtractionState {
    * `{type, name, instances: [{of, as}], shared: [...]}`.
    */
   compositionConfig: string | null;
+  /**
+   * Full extract config as a JSON string. Authored in the `extract`
+   * workflow step and shipped verbatim to the backend's
+   * `/extraction/extract` endpoint. Includes `targets[]`, optional
+   * `composition` (which the editor can sync from `compositionConfig`
+   * on demand), and optional `properties[]`.
+   *
+   * Null until the user opens the extract step or starts a workflow —
+   * the editor seeds a sensible default from `sourceFileName` and
+   * `compositionConfig` when present.
+   */
+  extractConfig: string | null;
 
   // Actions
   startWorkflow: (workflow: WorkflowDefinition, source: string, fileName: string) => void;
@@ -73,6 +85,8 @@ export interface ExtractionState {
   updateCtxdsl: (content: string) => void;
   /** Update the compositional-extraction config (raw JSON string). */
   updateCompositionConfig: (content: string) => void;
+  /** Update the full extract config sent to the backend (raw JSON string). */
+  updateExtractConfig: (content: string) => void;
   resetWorkflow: () => void;
 }
 
@@ -92,6 +106,7 @@ const initialState = {
   sidecarContent: null as string | null,
   ctxdslContent: null as string | null,
   compositionConfig: null as string | null,
+  extractConfig: null as string | null,
 };
 
 // ---------------------------------------------------------------------------
@@ -115,6 +130,7 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
       sidecarContent: null,
       ctxdslContent: null,
       compositionConfig: null,
+      extractConfig: null,
     });
   },
 
@@ -188,6 +204,9 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
 
   updateCompositionConfig: (content) =>
     set({ compositionConfig: content }),
+
+  updateExtractConfig: (content) =>
+    set({ extractConfig: content }),
 
   resetWorkflow: () =>
     set({ ...initialState }),

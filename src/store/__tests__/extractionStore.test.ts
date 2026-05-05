@@ -53,4 +53,33 @@ describe("extractionStore — compositional extraction state", () => {
     expect(composeStep?.optional).toBe(true);
     expect(composeStep?.requires).toContain("extract");
   });
+
+  it("initializes extractConfig to null", () => {
+    expect(useExtractionStore.getState().extractConfig).toBeNull();
+  });
+
+  it("updateExtractConfig stores the JSON string verbatim", () => {
+    const json = JSON.stringify({
+      $schema: "extraction_config_v1",
+      source: { file: "x.ts" },
+      targets: [{ class: "X", state_fields: ["_x"], methods: { include: ["m"] } }],
+    });
+    useExtractionStore.getState().updateExtractConfig(json);
+    expect(useExtractionStore.getState().extractConfig).toBe(json);
+  });
+
+  it("startWorkflow resets extractConfig to null", () => {
+    useExtractionStore.getState().updateExtractConfig('{"x":1}');
+    expect(useExtractionStore.getState().extractConfig).not.toBeNull();
+    const workflow = getWorkflow("software");
+    if (!workflow) throw new Error("software workflow should exist");
+    useExtractionStore.getState().startWorkflow(workflow, "src", "test.ts");
+    expect(useExtractionStore.getState().extractConfig).toBeNull();
+  });
+
+  it("resetWorkflow clears extractConfig", () => {
+    useExtractionStore.getState().updateExtractConfig('{"x":1}');
+    useExtractionStore.getState().resetWorkflow();
+    expect(useExtractionStore.getState().extractConfig).toBeNull();
+  });
 });

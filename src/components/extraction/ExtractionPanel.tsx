@@ -10,6 +10,7 @@ import { WorkflowStepper } from "./WorkflowStepper";
 import { DomainSelector } from "./DomainSelector";
 import { SidecarEditor } from "./SidecarEditor";
 import { CompositionEditor } from "./CompositionEditor";
+import { ExtractConfigEditor } from "./ExtractConfigEditor";
 
 /**
  * Map a source file name (e.g. `index.ts`, `worker.py`) to the language
@@ -339,6 +340,45 @@ function StepContent({ step }: { step: WorkflowStep }) {
     }
   }, [step.id, state]);
 
+  // Extract step — author the full extract config and run extraction.
+  // Software-domain workflow: surfaces the extract config as JSON so the
+  // user controls targets[] / composition / properties[]. The compose
+  // step (later) edits only the composition sub-block; this editor can
+  // sync that block in on demand.
+  // Other domains (xstate, sv, etc.) fall through to the generic Run
+  // button below — their extract handlers don't need a config payload.
+  if (step.id === "extract" && state.activeWorkflow?.domain === "software") {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
+        <ExtractConfigEditor
+          content={state.extractConfig}
+          onChange={state.updateExtractConfig}
+          sourceFileName={state.sourceFileName}
+          compositionConfig={state.compositionConfig}
+        />
+        <div className="flex items-center gap-3">
+          <StepRunButton step={step} disabled={!available || running} onClick={runStep} />
+          {running && (
+            <span className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">
+              Running...
+            </span>
+          )}
+        </div>
+        {error && (
+          <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
+            {error}
+          </div>
+        )}
+        {result && (
+          <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-300">
+            {result}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Compose step (compositional extraction config)
   if (step.id === "compose") {
     const handleContinue = () => {
@@ -582,9 +622,35 @@ async function executeStep(
 
     case "extract": {
       const { extractSource } = await import("../../api/endpoints");
+      const cfg = state.extractConfig?.trim();
+      if (!cfg) {
+        throw new Error(
+          "No extract config — open the Extract step and click 'Start from template'.",
+        );
+      }
+      // Validate the JSON shape locally so the user gets a clearer error
+      // than the backend's "missing field source" message.
+      try {
+        const parsed = JSON.parse(cfg);
+        if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+          throw new Error("Extract config must be a JSON object.");
+        }
+        const obj = parsed as Record<string, unknown>;
+        if (!obj.source || typeof obj.source !== "object") {
+          throw new Error("Extract config is missing the `source` block.");
+        }
+        if (!Array.isArray(obj.targets) || obj.targets.length === 0) {
+          throw new Error("Extract config is missing `targets[]` (at least one entry).");
+        }
+      } catch (e) {
+        if (e instanceof SyntaxError) {
+          throw new Error(`Extract config has invalid JSON: ${e.message}`);
+        }
+        throw e;
+      }
       const response = await extractSource({
         source: sourceContent,
-        config: "{}",
+        config: cfg,
       });
       updateSidecar(response.espec);
       const autCount = response.automata.length;
