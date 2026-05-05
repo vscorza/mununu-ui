@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { CompositionEditor } from "../CompositionEditor";
+import * as endpoints from "../../../api/endpoints";
 
 describe("CompositionEditor", () => {
   it("renders a textarea and the wiki-link help text", () => {
@@ -114,5 +115,117 @@ describe("CompositionEditor", () => {
     ) as HTMLTextAreaElement;
     fireEvent.change(textarea, { target: { value: '{"type":"synchronous"}' } });
     expect(onChange).toHaveBeenCalledWith('{"type":"synchronous"}');
+  });
+
+  it("hides the suggest button when source content is missing", () => {
+    render(<CompositionEditor content={null} onChange={() => {}} />);
+    expect(
+      screen.queryByLabelText("Suggest composition from source"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the suggest button when source + language are provided", () => {
+    render(
+      <CompositionEditor
+        content={null}
+        onChange={() => {}}
+        sourceContent="import asyncio\nawait asyncio.gather(a(), b())"
+        sourceLanguage="python"
+      />,
+    );
+    expect(
+      screen.getByLabelText("Suggest composition from source"),
+    ).toBeInTheDocument();
+  });
+
+  it("calls proposeComposition and renders findings on suggest", async () => {
+    const spy = vi
+      .spyOn(endpoints, "proposeComposition")
+      .mockResolvedValue({
+        findings: [
+          {
+            detector_id: "python_asyncio_gather",
+            description: "asyncio.gather over 2 coroutine(s)",
+            line: 7,
+            branch_count: 2,
+            suggested_instance_names: ["task_0", "task_1"],
+            suggested_class_hint: null,
+          },
+        ],
+      });
+    const onChange = vi.fn();
+    render(
+      <CompositionEditor
+        content={null}
+        onChange={onChange}
+        sourceContent="..."
+        sourceLanguage="python"
+      />,
+    );
+    fireEvent.click(screen.getByLabelText("Suggest composition from source"));
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalledWith({
+        source: "...",
+        language: "python",
+      });
+      expect(
+        screen.getByText("1 concurrency idiom(s) detected"),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(
+      screen.getByLabelText(
+        "Apply finding python_asyncio_gather at line 7",
+      ),
+    );
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const written = JSON.parse(onChange.mock.calls[0][0] as string);
+    expect(written.type).toBe("asynchronous");
+    expect(written.instances).toHaveLength(2);
+    expect(written.instances[0]).toEqual({ of: "Worker", as: "task_0" });
+    expect(written.shared).toEqual([]);
+    spy.mockRestore();
+  });
+
+  it("shows a 'no idioms detected' fallback when findings is empty", async () => {
+    const spy = vi
+      .spyOn(endpoints, "proposeComposition")
+      .mockResolvedValue({ findings: [] });
+    render(
+      <CompositionEditor
+        content={null}
+        onChange={() => {}}
+        sourceContent="x = 1"
+        sourceLanguage="python"
+      />,
+    );
+    fireEvent.click(screen.getByLabelText("Suggest composition from source"));
+    await waitFor(() => {
+      expect(
+        screen.getByText(/No concurrency idioms detected/),
+      ).toBeInTheDocument();
+    });
+    spy.mockRestore();
+  });
+
+  it("surfaces an error message when the propose endpoint fails", async () => {
+    const spy = vi
+      .spyOn(endpoints, "proposeComposition")
+      .mockRejectedValue(new Error("network down"));
+    render(
+      <CompositionEditor
+        content={null}
+        onChange={() => {}}
+        sourceContent="..."
+        sourceLanguage="python"
+      />,
+    );
+    fireEvent.click(screen.getByLabelText("Suggest composition from source"));
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Propose-composition failed: network down/),
+      ).toBeInTheDocument();
+    });
+    spy.mockRestore();
   });
 });

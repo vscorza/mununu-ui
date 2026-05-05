@@ -11,6 +11,35 @@ import { DomainSelector } from "./DomainSelector";
 import { SidecarEditor } from "./SidecarEditor";
 import { CompositionEditor } from "./CompositionEditor";
 
+/**
+ * Map a source file name (e.g. `index.ts`, `worker.py`) to the language
+ * label the backend's `/extraction/propose-composition` endpoint
+ * accepts. Returns `undefined` for unknown extensions — the caller
+ * (CompositionEditor) hides the suggest button when the language is
+ * not resolvable.
+ */
+function inferLanguageFromFileName(fileName: string): string | undefined {
+  const ext = fileName.toLowerCase().split(".").pop();
+  switch (ext) {
+    case "ts":
+    case "tsx":
+    case "js":
+    case "jsx":
+    case "mjs":
+    case "cjs":
+      return "typescript";
+    case "py":
+    case "pyi":
+      return "python";
+    case "rs":
+      return "rust";
+    case "gd":
+      return "gdscript";
+    default:
+      return undefined;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // File upload area (shared between domain selection and load step)
 // ---------------------------------------------------------------------------
@@ -328,6 +357,8 @@ function StepContent({ step }: { step: WorkflowStep }) {
         <CompositionEditor
           content={state.compositionConfig}
           onChange={state.updateCompositionConfig}
+          sourceContent={state.sourceContent}
+          sourceLanguage={inferLanguageFromFileName(state.sourceFileName)}
         />
         <div className="flex justify-end gap-2">
           <button

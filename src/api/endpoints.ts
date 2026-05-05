@@ -249,6 +249,51 @@ export interface ExtractionExtractResponse {
   automata: { id: string; state_count: number; transition_count: number }[];
 }
 
+/**
+ * Phase B — concurrency-idiom finding produced by `proposeComposition`.
+ * Mirrors the Rust `DetectedConcurrency` struct. Each finding is
+ * suggestion-grade; the caller reviews before promoting it into a
+ * `composition.instances[]` block.
+ */
+export interface DetectedConcurrency {
+  /** Identifier of the detector (e.g., `python_asyncio_gather`). */
+  detector_id: string;
+  /** Short human-readable description of the finding. */
+  description: string;
+  /** Source line of the detected call (1-indexed). */
+  line: number;
+  /** Number of parallel branches detected, when known. */
+  branch_count: number | null;
+  /** Suggested instance names for the proposed composition. */
+  suggested_instance_names: string[];
+  /** Class name hint, when the detector could infer one. */
+  suggested_class_hint: string | null;
+}
+
+export interface ProposeCompositionRequest {
+  source: string;
+  language: string;
+}
+
+export interface ProposeCompositionResponse {
+  findings: DetectedConcurrency[];
+}
+
+/**
+ * Scan source for concurrency idioms and return per-call-site
+ * suggestions for a `composition.instances[]` block. Pre-pass for
+ * the `compose` workflow step — caller decides whether to apply.
+ */
+export const proposeComposition = async (
+  request: ProposeCompositionRequest,
+): Promise<ProposeCompositionResponse> => {
+  const response = await apiClient.post<ProposeCompositionResponse>(
+    "/extraction/propose-composition",
+    request,
+  );
+  return response.data;
+};
+
 /** Extract a model from source code using the AST-based pipeline. */
 export const extractSource =
   async (

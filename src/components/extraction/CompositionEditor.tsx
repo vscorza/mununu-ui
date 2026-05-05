@@ -17,7 +17,11 @@
  * into the extract config it sends to `POST /api/v1/extraction/extract`.
  */
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
+import {
+  proposeComposition,
+  type DetectedConcurrency,
+} from "../../api/endpoints";
 
 interface CompositionInstance {
   of: string;
@@ -38,6 +42,19 @@ interface CompositionEditorProps {
   onChange: (content: string) => void;
   /** Whether the editor is read-only. */
   readOnly?: boolean;
+  /**
+   * Source content for the Phase B 'Suggest from source' pre-pass.
+   * When omitted (or empty) the suggest button is hidden — the
+   * editor falls back to the manual / template-only flow.
+   */
+  sourceContent?: string;
+  /**
+   * Source language passed to the backend's propose-composition
+   * endpoint. Required alongside `sourceContent` for the suggest
+   * button to render. Accepts the same names the backend recognises
+   * (`typescript`, `python`, `rust`, `gdscript`).
+   */
+  sourceLanguage?: string;
 }
 
 const DEFAULT_TEMPLATE = JSON.stringify(
@@ -129,6 +146,8 @@ export function CompositionEditor({
   content,
   onChange,
   readOnly = false,
+  sourceContent,
+  sourceLanguage,
 }: CompositionEditorProps) {
   const validation = useMemo(
     () => validate(content ?? ""),
@@ -148,6 +167,48 @@ export function CompositionEditor({
 
   const showTemplate = !content || !content.trim();
 
+  const canSuggest = !readOnly && !!sourceContent?.trim() && !!sourceLanguage;
+  const [findings, setFindings] = useState<DetectedConcurrency[] | null>(null);
+  const [suggestRunning, setSuggestRunning] = useState(false);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
+
+  const handleSuggest = useCallback(async () => {
+    if (!sourceContent || !sourceLanguage) return;
+    setSuggestRunning(true);
+    setSuggestError(null);
+    try {
+      const response = await proposeComposition({
+        source: sourceContent,
+        language: sourceLanguage,
+      });
+      setFindings(response.findings);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setSuggestError(msg);
+      setFindings(null);
+    } finally {
+      setSuggestRunning(false);
+    }
+  }, [sourceContent, sourceLanguage]);
+
+  const handleApplyFinding = useCallback(
+    (finding: DetectedConcurrency) => {
+      const className = finding.suggested_class_hint ?? "Worker";
+      const instances = finding.suggested_instance_names.map((name) => ({
+        of: className,
+        as: name,
+      }));
+      const config = {
+        type: "asynchronous",
+        name: `auto_${finding.detector_id}_l${finding.line}`,
+        instances,
+        shared: [] as string[],
+      };
+      onChange(JSON.stringify(config, null, 2));
+    },
+    [onChange],
+  );
+
   return (
     <div className="space-y-3">
       <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -165,15 +226,42 @@ export function CompositionEditor({
       </div>
 
       {showTemplate && !readOnly && (
-        <button
-          type="button"
-          onClick={handleStartFromTemplate}
-          aria-label="Start from a 2-instance race-detection template"
-          style={{ backgroundColor: "#2563eb", color: "#ffffff" }}
-          className="rounded-md px-3 py-1.5 text-xs font-medium hover:bg-blue-700 dark:hover:bg-blue-600"
-        >
-          Start from template (2-instance race)
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleStartFromTemplate}
+            aria-label="Start from a 2-instance race-detection template"
+            style={{ backgroundColor: "#2563eb", color: "#ffffff" }}
+            className="rounded-md px-3 py-1.5 text-xs font-medium hover:bg-blue-700 dark:hover:bg-blue-600"
+          >
+            Start from template (2-instance race)
+          </button>
+          {canSuggest && (
+            <button
+              type="button"
+              onClick={handleSuggest}
+              disabled={suggestRunning}
+              aria-label="Suggest composition from source"
+              className="rounded-md border border-blue-600 bg-white px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-blue-500 dark:bg-gray-900 dark:text-blue-300 dark:hover:bg-gray-800"
+            >
+              {suggestRunning ? "Scanning…" : "Suggest from source (Phase B)"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {suggestError && (
+        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
+          Propose-composition failed: {suggestError}
+        </div>
+      )}
+
+      {findings !== null && (
+        <FindingsList
+          findings={findings}
+          onApply={handleApplyFinding}
+          onDismiss={() => setFindings(null)}
+        />
       )}
 
       <textarea
@@ -196,6 +284,94 @@ export function CompositionEditor({
       {validation.ok && validation.parsed && (
         <CompositionSummary shape={validation.parsed} />
       )}
+    </div>
+  );
+}
+
+function FindingsList({
+  findings,
+  onApply,
+  onDismiss,
+}: {
+  findings: DetectedConcurrency[];
+  onApply: (f: DetectedConcurrency) => void;
+  onDismiss: () => void;
+}) {
+  if (findings.length === 0) {
+    return (
+      <div className="rounded-md bg-yellow-50 p-3 text-sm text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300">
+        No concurrency idioms detected in the loaded source. Phase B is a
+        suggestion-only pre-pass — falling back to the manual / template flow.
+        <div className="mt-2">
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="text-xs underline hover:no-underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm dark:border-blue-800 dark:bg-blue-900/20">
+      <div className="flex items-center justify-between">
+        <div className="font-medium text-blue-800 dark:text-blue-300">
+          {findings.length} concurrency idiom(s) detected
+        </div>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="text-xs text-blue-700 underline hover:no-underline dark:text-blue-300"
+        >
+          Dismiss
+        </button>
+      </div>
+      <ul className="mt-2 space-y-2">
+        {findings.map((f, i) => (
+          <li
+            key={`${f.detector_id}-${f.line}-${i}`}
+            className="rounded-md bg-white p-2 dark:bg-gray-900"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="truncate font-mono text-xs text-gray-600 dark:text-gray-400">
+                  {f.detector_id} @ line {f.line}
+                </div>
+                <div className="text-sm text-gray-800 dark:text-gray-100">
+                  {f.description}
+                </div>
+                {f.suggested_instance_names.length > 0 && (
+                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Suggests: {f.suggested_instance_names.join(", ")}
+                    {f.suggested_class_hint
+                      ? ` (of ${f.suggested_class_hint})`
+                      : ""}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => onApply(f)}
+                aria-label={`Apply finding ${f.detector_id} at line ${f.line}`}
+                style={{ backgroundColor: "#2563eb", color: "#ffffff" }}
+                className="shrink-0 rounded-md px-3 py-1 text-xs font-medium hover:bg-blue-700 dark:hover:bg-blue-600"
+              >
+                Apply
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 text-xs text-blue-700 dark:text-blue-400">
+        Suggestions are starting points. Review the resulting JSON, set
+        <span className="font-mono"> shared</span> labels for the resource(s)
+        the instances contend over, and rename instances to reflect your
+        domain (e.g.,
+        <span className="font-mono"> worker_a</span>,
+        <span className="font-mono"> worker_b</span>).
+      </div>
     </div>
   );
 }
