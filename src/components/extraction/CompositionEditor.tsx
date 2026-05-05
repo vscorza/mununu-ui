@@ -183,8 +183,20 @@ export function CompositionEditor({
       });
       setFindings(response.findings);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setSuggestError(msg);
+      const raw = e instanceof Error ? e.message : String(e);
+      // axios surfaces aborted timeouts as the bare error code; that's
+      // useless to a user. Translate to something they can act on.
+      const isTimeout =
+        raw.includes("ECONNABORTED") ||
+        raw.toLowerCase().includes("timeout") ||
+        (typeof (e as { code?: string }).code === "string" &&
+          (e as { code?: string }).code === "ECONNABORTED");
+      const friendly = isTimeout
+        ? "Backend timed out (>30s). Check that the mununu server is built " +
+          "in --release mode (debug-mode tree-sitter is much slower) and " +
+          "that the source file isn't unusually large."
+        : raw;
+      setSuggestError(friendly);
       setFindings(null);
     } finally {
       setSuggestRunning(false);

@@ -228,4 +228,28 @@ describe("CompositionEditor", () => {
     });
     spy.mockRestore();
   });
+
+  it("translates an ECONNABORTED timeout into actionable guidance", async () => {
+    // axios fires ECONNABORTED on its client-side timeout. The raw
+    // message is useless to a user; the editor should render
+    // something they can act on (release-mode hint).
+    const err = Object.assign(new Error("timeout of 30000ms exceeded"), {
+      code: "ECONNABORTED",
+    });
+    const spy = vi.spyOn(endpoints, "proposeComposition").mockRejectedValue(err);
+    render(
+      <CompositionEditor
+        content={null}
+        onChange={() => {}}
+        sourceContent="..."
+        sourceLanguage="python"
+      />,
+    );
+    fireEvent.click(screen.getByLabelText("Suggest composition from source"));
+    await waitFor(() => {
+      expect(screen.getByText(/Backend timed out/)).toBeInTheDocument();
+      expect(screen.getByText(/--release mode/)).toBeInTheDocument();
+    });
+    spy.mockRestore();
+  });
 });

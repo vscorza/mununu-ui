@@ -283,6 +283,14 @@ export interface ProposeCompositionResponse {
  * Scan source for concurrency idioms and return per-call-site
  * suggestions for a `composition.instances[]` block. Pre-pass for
  * the `compose` workflow step — caller decides whether to apply.
+ *
+ * Uses a 30s per-request timeout (override of apiClient's 10s
+ * default). The detector is fast in release builds, but tree-sitter
+ * parsing on larger sources (or dev/debug backends) can exceed 10s
+ * — surfacing as ECONNABORTED on the client. 30s covers both cases
+ * without falling all the way back to aiApiClient's 120s, which is
+ * reserved for genuinely heavy operations (synthesis,
+ * counterstrategy).
  */
 export const proposeComposition = async (
   request: ProposeCompositionRequest,
@@ -290,6 +298,7 @@ export const proposeComposition = async (
   const response = await apiClient.post<ProposeCompositionResponse>(
     "/extraction/propose-composition",
     request,
+    { timeout: 30000 },
   );
   return response.data;
 };
