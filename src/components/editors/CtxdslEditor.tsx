@@ -1,6 +1,6 @@
 import Editor, { BeforeMount, OnMount } from "@monaco-editor/react";
 import { useCtxdslEditor } from "../../hooks/useCtxdslEditor";
-import { EditorToolbar } from "./EditorToolbar";
+import { EditorToolbar, SvFrontend } from "./EditorToolbar";
 import { registerCtxdslLanguage } from "../../monaco/ctxdsl-language";
 import { registerCtxdslTheme } from "../../monaco/ctxdsl-theme";
 import { useAppStore } from "../../store/appStore";
@@ -36,9 +36,9 @@ export const CtxdslEditor = () => {
     setContent(value || "");
   };
 
-  const handleLoadFile = async (file: File) => {
+  const handleLoadFile = async (file: File, svFrontend?: SvFrontend) => {
     const text = await file.text();
-    loadFile(text, file.name);
+    loadFile(text, file.name, svFrontend);
   };
 
   const tabs = [

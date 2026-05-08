@@ -4,7 +4,7 @@ import { useCtxdslEditor } from "../../hooks/useCtxdslEditor";
 import { useSummary } from "../../hooks/useSummary";
 import { useGraphVisualization } from "../../hooks/useGraphVisualization";
 import { useVerification } from "../../hooks/useVerification";
-import { EditorToolbar } from "./EditorToolbar";
+import { EditorToolbar, SvFrontend } from "./EditorToolbar";
 import { registerCtxdslLanguage } from "../../monaco/ctxdsl-language";
 import { registerCtxdslTheme } from "../../monaco/ctxdsl-theme";
 import { useAppStore } from "../../store/appStore";
@@ -287,9 +287,9 @@ export const UnifiedEditor = () => {
     setContent(value || "");
   };
 
-  const handleLoadFile = async (file: File) => {
+  const handleLoadFile = async (file: File, svFrontend?: SvFrontend) => {
     const text = await file.text();
-    loadFile(text, file.name);
+    loadFile(text, file.name, svFrontend);
   };
 
   // Get current editor content

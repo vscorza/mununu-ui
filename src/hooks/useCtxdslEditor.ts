@@ -81,15 +81,24 @@ export const useCtxdslEditor = () => {
   }, []);
 
   const loadFile = useCallback(
-    async (content: string, fileName: string) => {
+    async (
+      content: string,
+      fileName: string,
+      svFrontend: "hand" | "yosys" = "hand",
+    ) => {
       const ext = fileName.split(".").pop()?.toLowerCase() || "";
 
-      // If the file is an adapter format, translate it via the import endpoint
+      // If the file is an adapter format, translate it via the import endpoint.
+      // For SystemVerilog (.sv/.v), respect the user's frontend choice — Phase 1
+      // adds a Yosys-driven path alongside the original hand-written adapter.
       if (ADAPTER_EXTENSIONS.includes(ext) && ext !== "txt") {
+        const isSvFile = ext === "sv" || ext === "v";
+        const format =
+          isSvFile && svFrontend === "yosys" ? "sv-yosys" : "auto";
         try {
           const response = await importContext({
             content,
-            format: "auto",
+            format,
             filename: fileName,
           });
 

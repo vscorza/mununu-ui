@@ -113,7 +113,7 @@ export const verifyContext = async (
 // Import types (matches mununu backend /api/v1/context/import)
 export interface ContextImportRequest {
   content: string;
-  format?: string; // "auto", "tlsf", "aiger", "promela", "xstate", "systemverilog", "extraction"
+  format?: string; // "auto", "tlsf", "aiger", "btor2", "promela", "xstate", "systemverilog" (hand-written), "sv-yosys" (Yosys-driven), "extraction"
   filename?: string;
   /** Optional sidecar content (.mununu.json for SV, .espec.json for extraction). */
   sidecar?: string;
@@ -151,10 +151,29 @@ export const ADAPTER_EXTENSIONS = [
   "tlsf",
   "aag",
   "aig",
+  "btor",
+  "btor2",
   "pml",
   "promela",
   "espec.json",
 ];
+
+/**
+ * Adapter format identifiers accepted by the /context/import endpoint.
+ * Keep in sync with mununu-core's `auto_translate` and CLI dispatch.
+ */
+export const ADAPTER_FORMATS = [
+  "auto",
+  "tlsf",
+  "aiger",
+  "btor2",
+  "promela",
+  "xstate",
+  "systemverilog",
+  "sv-yosys",
+  "extraction",
+] as const;
+export type AdapterFormat = (typeof ADAPTER_FORMATS)[number];
 
 /**
  * Download content as a file in the browser.
