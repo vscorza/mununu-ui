@@ -6,12 +6,38 @@ import type cytoscape from "cytoscape";
 
 type StylesheetStyle = cytoscape.StylesheetStyle;
 
+/**
+ * Build the multi-line label for a state node: the state name on the first
+ * line, with structured valuations (or, for unrolled graphs, `vars` strings)
+ * formatted as `{key1=val1, key2=val2}` underneath. Used by both the standard
+ * graph view and the counterstrategy view.
+ */
+const stateNodeLabel = (ele: cytoscape.NodeSingular): string => {
+  const base = (ele.data("label") as string | undefined) ?? "";
+  const valuations = ele.data("valuations") as
+    | Record<string, string>
+    | undefined
+    | null;
+  if (valuations && typeof valuations === "object") {
+    const keys = Object.keys(valuations);
+    if (keys.length > 0) {
+      const pairs = keys.map((k) => `${k}=${valuations[k]}`).join(", ");
+      return `${base}\n{${pairs}}`;
+    }
+  }
+  const vars = ele.data("vars") as string[] | undefined;
+  if (Array.isArray(vars) && vars.length > 0) {
+    return `${base}\n{${vars.join(", ")}}`;
+  }
+  return base;
+};
+
 /** Base node style shared across all graph views. */
 export const baseNodeStyle: StylesheetStyle = {
   selector: "node",
   style: {
     "background-color": "#ffffff",
-    label: "data(label)",
+    label: stateNodeLabel,
     width: 40,
     height: 40,
     "font-size": 12,
@@ -21,6 +47,8 @@ export const baseNodeStyle: StylesheetStyle = {
     "border-width": 2,
     "border-color": "#9ca3af",
     "text-margin-y": 4,
+    "text-wrap": "wrap",
+    "text-max-width": "180px",
   },
 };
 
@@ -156,8 +184,10 @@ const counterstrategyNodeStyle: StylesheetStyle = {
     "font-size": 11,
     "text-valign": "center",
     "text-halign": "center",
-    label: "data(label)",
+    label: stateNodeLabel,
     color: "#000000",
+    "text-wrap": "wrap",
+    "text-max-width": "180px",
   },
 };
 
