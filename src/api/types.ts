@@ -1035,6 +1035,9 @@ export interface components {
           /** @enum {string} */
           type: "node";
           vars?: string[];
+          /** Structured per-state valuations (e.g. `{is_red: "0", phase: "green"}`).
+           *  Sourced from `Clts::state_valuation()` on the realized CLTS. */
+          valuations?: Record<string, string> | null;
         }
       | {
           action?: string | null;
