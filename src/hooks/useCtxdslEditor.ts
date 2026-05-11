@@ -4,6 +4,7 @@ import {
   summarizeContext,
   importContext,
   ADAPTER_EXTENSIONS,
+  type TransitionObservation,
 } from "../api/endpoints";
 import { useToast } from "./useToast";
 import { useErrorHandler } from "./useErrorHandler";
@@ -17,6 +18,21 @@ export interface ImportSource {
   signalCount: number;
   stateCount: number;
   propertyCount: number;
+  /**
+   * Per-state structured valuations from the adapter (Moore output
+   * values, register cells). Used by the trace renderer to enrich
+   * counterexample / counterstrategy steps with concrete signal values.
+   */
+  stateValuations?: Record<
+    string,
+    Record<string, Record<string, string>>
+  >;
+  /**
+   * Per-transition Mealy observations from the adapter. The trace
+   * renderer matches each (source, target) hop to display
+   * input-dependent output values per cycle.
+   */
+  transitionObservations?: Record<string, TransitionObservation[]>;
 }
 
 export interface CtxdslEditorState {
@@ -126,6 +142,8 @@ export const useCtxdslEditor = () => {
               signalCount: response.signal_count,
               stateCount: response.state_count,
               propertyCount: response.property_count,
+              stateValuations: response.state_valuations,
+              transitionObservations: response.transition_observations,
             },
           });
           editorRef.current?.setValue(response.ctxdsl);

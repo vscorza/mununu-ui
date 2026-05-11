@@ -1,4 +1,5 @@
 import { Button } from "../common/Button";
+import type { TransitionObservation } from "../../api/endpoints";
 import "./TraceViewer.css";
 
 interface TraceViewerProps {
@@ -8,7 +9,26 @@ interface TraceViewerProps {
   selectedStep: number;
   onTraceSelect: (index: number) => void;
   onStepSelect: (step: number) => void;
+  /**
+   * Optional per-state structured valuations for the automaton this
+   * trace covers. Map keys are state names; each value is a
+   * `{ variable: value }` map (Moore output ports + register cells).
+   * Rendered inline alongside each step name.
+   */
+  stateValuations?: Record<string, Record<string, string>>;
+  /**
+   * Optional per-transition Mealy observations for the automaton.
+   * Each row is matched to a trace hop by `(source, target)`; when
+   * a match exists the row's `observations` map is rendered between
+   * the step and its successor.
+   */
+  transitionObservations?: TransitionObservation[];
 }
+
+const formatPairs = (pairs: Record<string, string>): string =>
+  Object.entries(pairs)
+    .map(([k, v]) => `${k}=${v}`)
+    .join(", ");
 
 export const TraceViewer = ({
   traces,
@@ -17,6 +37,8 @@ export const TraceViewer = ({
   selectedStep,
   onTraceSelect,
   onStepSelect,
+  stateValuations,
+  transitionObservations,
 }: TraceViewerProps) => {
   if (!traces || traces.length === 0) {
     return (
@@ -53,16 +75,38 @@ export const TraceViewer = ({
 
       <div className="trace-viewer-content">
         <div className="trace-viewer-steps">
-          {currentTrace.map((step, index) => (
-            <div
-              key={index}
-              className={`trace-viewer-step ${selectedStep === index ? "trace-viewer-step-selected" : ""}`}
-              onClick={() => onStepSelect(index)}
-            >
-              <div className="trace-viewer-step-number">{index + 1}</div>
-              <div className="trace-viewer-step-content">{step}</div>
-            </div>
-          ))}
+          {currentTrace.map((step, index) => {
+            const valuation = stateValuations?.[step];
+            const next = currentTrace[index + 1];
+            const observation = next
+              ? transitionObservations?.find(
+                  (row) => row.source === step && row.target === next,
+                )
+              : undefined;
+            return (
+              <div
+                key={index}
+                className={`trace-viewer-step ${selectedStep === index ? "trace-viewer-step-selected" : ""}`}
+                onClick={() => onStepSelect(index)}
+              >
+                <div className="trace-viewer-step-number">{index + 1}</div>
+                <div className="trace-viewer-step-content">
+                  <div className="trace-viewer-step-name">{step}</div>
+                  {valuation && Object.keys(valuation).length > 0 && (
+                    <div className="trace-viewer-step-valuations">
+                      {`{${formatPairs(valuation)}}`}
+                    </div>
+                  )}
+                  {observation &&
+                    Object.keys(observation.observations).length > 0 && (
+                      <div className="trace-viewer-step-observations">
+                        {`↳ observed: ${formatPairs(observation.observations)}`}
+                      </div>
+                    )}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <div className="trace-viewer-navigation">

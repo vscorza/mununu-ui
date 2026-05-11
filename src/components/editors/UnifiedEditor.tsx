@@ -1105,6 +1105,12 @@ export const UnifiedEditor = () => {
                                             return next;
                                           })
                                         }
+                                        stateValuations={
+                                          editorState.importSource?.stateValuations?.[r.automaton]
+                                        }
+                                        transitionObservations={
+                                          editorState.importSource?.transitionObservations?.[r.automaton]
+                                        }
                                       />
                                     ) : null}
                                   </div>
