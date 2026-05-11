@@ -521,3 +521,74 @@ export const getContextPredicates = async (
   return response.data;
 };
 
+// ============================================================================
+// Contract Validate Endpoint (Document A §3.x discharge check)
+// ============================================================================
+
+export type ContractClauseKind = "assumption" | "guarantee" | "invariant";
+
+export type ContractClauseProvenance =
+  | "user_authored"
+  | { corpus: { id: string } }
+  | "source_comment"
+  | "mununu_proposed"
+  | "vendor_contract"
+  | "unknown";
+
+export interface ContractClause {
+  id: string;
+  kind: ContractClauseKind;
+  owner: string;
+  description?: string | null;
+  provenance?: ContractClauseProvenance;
+}
+
+export interface DischargeEdge {
+  discharger: string;
+  dischargee: string;
+}
+
+export interface ContractSet {
+  clauses: ContractClause[];
+  discharges: DischargeEdge[];
+  environment_assumptions: string[];
+}
+
+export type DischargeVerdict =
+  | {
+      kind: "acyclic";
+      topological: string[];
+      unmet_environment: string[];
+    }
+  | {
+      kind: "circular";
+      cycles: string[][];
+      acyclic_remainder: string[];
+    }
+  | {
+      kind: "potentially_circular";
+      unresolved: string[];
+      partial: DischargeVerdict;
+    }
+  | {
+      kind: "unmet";
+      missing_dischargers: string[];
+      partial: DischargeVerdict;
+    };
+
+/**
+ * Validate a contract set's discharge graph (Document A §3.x).
+ *
+ * Returns the SCC verdict (acyclic / circular / potentially-circular / unmet).
+ * Cheap mechanical check; uses the standard `apiClient` (10s timeout).
+ */
+export const validateContract = async (
+  set: ContractSet,
+): Promise<DischargeVerdict> => {
+  const response = await apiClient.post<DischargeVerdict>(
+    "/contract/validate",
+    set,
+  );
+  return response.data;
+};
+

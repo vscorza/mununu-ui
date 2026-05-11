@@ -24,13 +24,19 @@ import { CounterstrategyView } from "../visualization/CounterstrategyView";
 import { TraceViewer } from "../visualization/TraceViewer";
 import { LassoTraceViewer } from "../visualization/LassoTraceViewer";
 import { ExtractionPanel } from "../extraction/ExtractionPanel";
+import { ContractPanel } from "../contract/ContractPanel";
 import { TemplatePicker } from "../templates/TemplatePicker";
 import { useExtractionStore } from "../../store/extractionStore";
 import type { TemplateRef } from "../../types/templates";
 import type { SortField } from "../../hooks/useSummary";
 import "./UnifiedEditor.css";
 
-type RightTab = "summary" | "graphs" | "verification" | "extraction";
+type RightTab =
+  | "summary"
+  | "graphs"
+  | "verification"
+  | "extraction"
+  | "contract";
 
 export const UnifiedEditor = () => {
   const { theme } = useAppStore();
@@ -367,6 +373,7 @@ export const UnifiedEditor = () => {
     { id: "graphs", label: "Graphs" },
     { id: "verification", label: "Verification" },
     { id: "extraction", label: "Extraction" },
+    { id: "contract", label: "Contract" },
   ];
 
   const filteredAutomata = summary.getFilteredAndSortedAutomata();
@@ -1130,6 +1137,12 @@ export const UnifiedEditor = () => {
           {activeTab === "extraction" && (
             <div className="unified-editor__section">
               <ExtractionPanel />
+            </div>
+          )}
+
+          {activeTab === "contract" && (
+            <div className="unified-editor__section">
+              <ContractPanel />
             </div>
           )}
         </div>
