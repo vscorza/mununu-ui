@@ -158,6 +158,27 @@
   color: var(--text-primary, #fff);
 }
 
+.trace-viewer-step-name {
+  font-weight: 600;
+}
+
+.trace-viewer-step-valuations {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #555);
+}
+
+.dark .trace-viewer-step-valuations {
+  color: var(--text-secondary, #aaa);
+}
+
+.trace-viewer-step-observations {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--accent-color, #646cff);
+  font-style: italic;
+}
+
 .trace-viewer-navigation {
   display: flex;
   justify-content: space-between;

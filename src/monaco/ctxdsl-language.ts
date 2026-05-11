@@ -5,9 +5,13 @@ export const ctxdslLanguageId = "ctxdsl";
 export const ctxdslLanguageDefinition: monaco.languages.IMonarchLanguage = {
   tokenizer: {
     root: [
-      // Keywords
+      // Keywords. The list is kept aligned with `Keyword::from_ident` in
+      // `crates/mununu-core/src/context_dsl/token.rs`. Added in May 2026:
+      // `valuations` (state-valuation block), `predicates`, `predicate`,
+      // `meta`, `id`, `comment`, `all`, `bool`, `i64`, `counterexample`,
+      // `deadlock_traces`, `max_counter_traces`, `proof_obligations`.
       [
-        /(context|alphabet|automata|automaton|states|state|transitions|transition|formulas|formula|controllers|controller|label|initial|accepting|on|with|guard|effects|effect|action|vars|actions|variables|var|constants|const|ranges|range|enums|enum|composition|synchronous|asynchronous|superset|members|parameters|param|in|state_groups|group|wildcard|controllable|internal|over|body|mu_formulas|source|satisfying|export|minimize|diagnostics|ltl|mu|true|false|epsilon)/,
+        /(context|alphabet|automata|automaton|states|state|transitions|transition|formulas|formula|controllers|controller|label|initial|accepting|on|with|guard|effects|effect|action|vars|valuations|actions|variables|var|constants|const|ranges|range|enums|enum|composition|synchronous|asynchronous|superset|members|parameters|param|in|state_groups|group|predicates|predicate|wildcard|controllable|internal|over|all|body|bool|i64|mu_formulas|source|satisfying|export|minimize|diagnostics|counterexample|deadlock_traces|max_counter_traces|proof_obligations|meta|id|comment|ltl|mu|true|false|epsilon)/,
         "keyword",
       ],
       // Strings

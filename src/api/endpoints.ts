@@ -121,6 +121,20 @@ export interface ContextImportRequest {
   additional_sources?: { name: string; content: string }[];
 }
 
+/**
+ * One per-transition observation row from an adapter that exposes
+ * Mealy-style outputs. Display-only metadata: the formal evaluator
+ * never consults these, but the UI trace renderer matches a row to
+ * a CLTS transition by `(source, target)` and shows the observed
+ * signal values per cycle in counterexample / counterstrategy traces.
+ */
+export interface TransitionObservation {
+  source: string;
+  target: string;
+  labels: string[];
+  observations: Record<string, string>;
+}
+
 export interface ContextImportResponse {
   success: boolean;
   ctxdsl: string;
@@ -129,6 +143,22 @@ export interface ContextImportResponse {
   signal_count: number;
   state_count: number;
   property_count: number;
+  /**
+   * Per-state structured valuations from cross-product enumeration —
+   * keyed by `automaton_name → state_name → { variable: value }`.
+   * Populated by the SystemVerilog Kripke builder, the BTOR2 reader,
+   * and the extraction adapter.
+   */
+  state_valuations?: Record<
+    string,
+    Record<string, Record<string, string>>
+  >;
+  /**
+   * Per-transition Mealy observations — keyed by `automaton_name →
+   * list of `TransitionObservation`. Populated by the BTOR2 reader
+   * for designs whose outputs depend on `(state, input)`.
+   */
+  transition_observations?: Record<string, TransitionObservation[]>;
 }
 
 // Import endpoint — translate adapter formats to CTXDSL
