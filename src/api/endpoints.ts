@@ -521,3 +521,165 @@ export const getContextPredicates = async (
   return response.data;
 };
 
+// ============================================================================
+// Contract Validate Endpoint (Document A §3.x discharge check)
+// ============================================================================
+
+export type ContractClauseKind = "assumption" | "guarantee" | "invariant";
+
+export type ContractClauseProvenance =
+  | "user_authored"
+  | { corpus: { id: string } }
+  | "source_comment"
+  | "mununu_proposed"
+  | "vendor_contract"
+  | "unknown";
+
+export interface ContractClause {
+  id: string;
+  kind: ContractClauseKind;
+  owner: string;
+  description?: string | null;
+  provenance?: ContractClauseProvenance;
+  /** Optional mu-calculus rank used by the lightweight McMillan check. */
+  mu_rank?: number | null;
+}
+
+export interface DischargeEdge {
+  discharger: string;
+  dischargee: string;
+}
+
+export interface ContractSet {
+  clauses: ContractClause[];
+  discharges: DischargeEdge[];
+  environment_assumptions: string[];
+}
+
+export interface RankWitnessedCycle {
+  cycle: string[];
+  base_edge: [string, string];
+}
+
+export type DischargeVerdict =
+  | {
+      kind: "acyclic";
+      topological: string[];
+      unmet_environment: string[];
+    }
+  | {
+      kind: "circular_with_rank_witness";
+      cycles: RankWitnessedCycle[];
+      acyclic_remainder: string[];
+    }
+  | {
+      kind: "circular";
+      cycles: string[][];
+      acyclic_remainder: string[];
+    }
+  | {
+      kind: "potentially_circular";
+      unresolved: string[];
+      partial: DischargeVerdict;
+    }
+  | {
+      kind: "unmet";
+      missing_dischargers: string[];
+      partial: DischargeVerdict;
+    };
+
+// ============================================================================
+// Contract Discover Endpoint (Document A §A5 phase 1)
+// ============================================================================
+
+export type BoundaryDirection = "Input" | "Output" | "Inout" | "Internal";
+
+export interface PortDescriptor {
+  name: string;
+  direction: BoundaryDirection;
+  description?: string | null;
+}
+
+export interface BlackBoxInterface {
+  name: string;
+  ports: PortDescriptor[];
+  source_file?: string | null;
+  source_line?: number | null;
+}
+
+export interface InterfaceLabel {
+  name: string;
+  controllability: "Controllable" | "Internal" | "Uncontrollable";
+  direction: BoundaryDirection;
+  description: string | null;
+}
+
+export type GapKind =
+  | "output_sequencing"
+  | "latency_bound"
+  | "input_assumption"
+  | "state_predicate"
+  | "fairness"
+  | "other";
+
+export interface SourceLocation {
+  file: string;
+  line: number;
+}
+
+export interface GapMarker {
+  module: string;
+  kind: GapKind;
+  labels: string[];
+  description?: string | null;
+  source_location?: SourceLocation | null;
+}
+
+export interface GapMarkerReport {
+  markers: GapMarker[];
+}
+
+export interface Phase1Output {
+  module: string;
+  labels: InterfaceLabel[];
+  gaps: GapMarkerReport;
+}
+
+export interface ContractDiscoverRequest {
+  interface: BlackBoxInterface;
+  force_controllable?: string[];
+  force_uncontrollable?: string[];
+  emit_fairness_gap?: boolean;
+}
+
+/**
+ * Run phase-1 contract discovery (Document A task A5) on a black-box
+ * interface description. Returns labels with controllability + gap
+ * markers.
+ */
+export const discoverContract = async (
+  request: ContractDiscoverRequest,
+): Promise<Phase1Output> => {
+  const response = await apiClient.post<Phase1Output>(
+    "/contract/discover",
+    request,
+  );
+  return response.data;
+};
+
+/**
+ * Validate a contract set's discharge graph (Document A §3.x).
+ *
+ * Returns the SCC verdict (acyclic / circular / potentially-circular / unmet).
+ * Cheap mechanical check; uses the standard `apiClient` (10s timeout).
+ */
+export const validateContract = async (
+  set: ContractSet,
+): Promise<DischargeVerdict> => {
+  const response = await apiClient.post<DischargeVerdict>(
+    "/contract/validate",
+    set,
+  );
+  return response.data;
+};
+
