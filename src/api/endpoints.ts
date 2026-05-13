@@ -866,3 +866,106 @@ export const validateContract = async (
   );
   return response.data;
 };
+
+// ============================================================================
+// Codesign Verify Endpoint (Document C task C4) — HW/SW codesign
+// ============================================================================
+
+/** Direction of a register relative to firmware. */
+export type RegisterDirection = "RW" | "RO" | "WO";
+
+/** Standard concurrency-semantics classes (Doc C §C.2). */
+export type VisibilityClass =
+  | "control"
+  | "status"
+  | "data"
+  | "interrupt_flag"
+  | "clear_on_read"
+  | "other";
+
+/** How firmware reaches the register (Doc C §C.2). */
+export type AccessPath = "mmio_direct" | "mmio_bridge" | "dma";
+
+/** A single bit-field inside a register. */
+export interface RegisterField {
+  name: string;
+  bits: [number, number];
+  sv_signal?: string | null;
+  c_accessor?: string | null;
+  description?: string | null;
+}
+
+/** A single memory-mapped register. */
+export interface Register {
+  name: string;
+  offset: number;
+  width_bits: number;
+  direction: RegisterDirection;
+  visibility_class?: VisibilityClass;
+  access_path?: AccessPath;
+  fields?: RegisterField[];
+  description?: string | null;
+}
+
+/** Top-level register-map sidecar (Document C task C1 schema). */
+export interface RegisterMap {
+  peripheral: string;
+  base_address: string;
+  registers: Register[];
+  description?: string | null;
+  contract_uri?: string | null;
+}
+
+/** Composition shape report from `POST /api/v1/codesign/verify`. */
+export interface CodesignCompositionInfo {
+  peripheral_automaton: string;
+  composition_name: string;
+  firmware_members: string[];
+  automaton: string;
+}
+
+export interface CodesignVerifyRequest {
+  /** Parsed register-map sidecar. */
+  register_map: RegisterMap;
+  /** Firmware CTXDSL document text. */
+  firmware_ctxdsl: string;
+  /** Formula name to evaluate (declared in `firmware_ctxdsl`). */
+  formula: string;
+  /** Composition or automaton to evaluate over (default:
+   *  `<PERIPHERAL>System`). */
+  automaton?: string;
+  /** Override the peripheral automaton name. */
+  peripheral_automaton?: string;
+  /** Override the composition name. */
+  composition_name?: string;
+}
+
+export interface CodesignVerifyResponse {
+  /** Whether every initial state satisfies the formula. */
+  satisfied: boolean;
+  total_states: number;
+  satisfying_states: number;
+  initial_states: string[];
+  initial_satisfying: string[];
+  composition: CodesignCompositionInfo;
+  /** The full composed CTXDSL — useful for the UI to render
+   *  alongside the verdict. */
+  composed_ctxdsl: string;
+}
+
+/**
+ * HW/SW codesign verification entry point (Document C task C4).
+ *
+ * Splices the register-map sidecar into a hand-authored firmware
+ * CTXDSL, realises the composed context, and evaluates the named
+ * formula. Returns the verdict + composition shape + composed CTXDSL.
+ */
+export const verifyCodesign = async (
+  request: CodesignVerifyRequest,
+): Promise<CodesignVerifyResponse> => {
+  const response = await apiClient.post<CodesignVerifyResponse>(
+    "/codesign/verify",
+    request,
+  );
+  return response.data;
+};

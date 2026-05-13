@@ -25,6 +25,7 @@ import { TraceViewer } from "../visualization/TraceViewer";
 import { LassoTraceViewer } from "../visualization/LassoTraceViewer";
 import { ExtractionPanel } from "../extraction/ExtractionPanel";
 import { ContractPanel } from "../contract/ContractPanel";
+import { CodesignPanel } from "../codesign/CodesignPanel";
 import { TemplatePicker } from "../templates/TemplatePicker";
 import { useExtractionStore } from "../../store/extractionStore";
 import type { TemplateRef } from "../../types/templates";
@@ -36,7 +37,8 @@ type RightTab =
   | "graphs"
   | "verification"
   | "extraction"
-  | "contract";
+  | "contract"
+  | "codesign";
 
 export const UnifiedEditor = () => {
   const { theme } = useAppStore();
@@ -212,10 +214,10 @@ export const UnifiedEditor = () => {
             context: { name: editorState.fileName, content },
             formula,
             automaton: source,
-            options: { minimize: true, controller_mode: controllerMode } as Record<
-              string,
-              unknown
-            >,
+            options: {
+              minimize: true,
+              controller_mode: controllerMode,
+            } as Record<string, unknown>,
           });
           if (response.controller) {
             downloadAsFile(
@@ -249,10 +251,7 @@ export const UnifiedEditor = () => {
         if (native) {
           downloadAsFile(native.content, native.name);
         } else if (response.controller) {
-          downloadAsFile(
-            response.controller.content,
-            response.controller.name,
-          );
+          downloadAsFile(response.controller.content, response.controller.name);
         }
       } finally {
         setExportingController(null);
@@ -374,6 +373,7 @@ export const UnifiedEditor = () => {
     { id: "verification", label: "Verification" },
     { id: "extraction", label: "Extraction" },
     { id: "contract", label: "Contract" },
+    { id: "codesign", label: "Codesign" },
   ];
 
   const filteredAutomata = summary.getFilteredAndSortedAutomata();
@@ -399,7 +399,9 @@ export const UnifiedEditor = () => {
             onUndo={undo}
             onRedo={redo}
             onLoadFile={handleLoadFile}
-            onLoadExample={(content: string, fileName: string) => loadFile(content, fileName)}
+            onLoadExample={(content: string, fileName: string) =>
+              loadFile(content, fileName)
+            }
           />
           {editorState.importSource && (
             <div
@@ -688,105 +690,107 @@ export const UnifiedEditor = () => {
                                 ? preview.transitionsCount
                                 : c.transitions_count;
                               return (
-                              <tr key={i}>
-                                <td>{c.name}</td>
-                                <td>{c.source}</td>
-                                <td>{c.formula}</td>
-                                <td>
-                                  <span
-                                    className={
-                                      realizable
-                                        ? "unified-editor__verify-badge--pass"
-                                        : "unified-editor__verify-badge--fail"
-                                    }
-                                    style={{
-                                      padding: "2px 6px",
-                                      borderRadius: "4px",
-                                    }}
-                                  >
-                                    {realizable ? "Yes" : "No"}
-                                  </span>
-                                </td>
-                                <td
-                                  title={
-                                    preview
-                                      ? `Synthesized under '${preview.mode}'`
-                                      : "Run Preview to compute the count under the selected mode"
-                                  }
-                                >
-                                  {preview ? states : "—"}
-                                </td>
-                                <td
-                                  title={
-                                    preview
-                                      ? `Synthesized under '${preview.mode}'`
-                                      : "Run Preview to compute the count under the selected mode"
-                                  }
-                                >
-                                  {preview ? transitions : "—"}
-                                </td>
-                                <td>
-                                  <button
-                                    type="button"
-                                    disabled={previewingController === c.name}
-                                    onClick={() =>
-                                      handlePreviewSynthesis(
-                                        c.name,
-                                        c.source,
-                                        c.formula,
-                                      )
-                                    }
-                                    style={{
-                                      fontSize: "0.75rem",
-                                      padding: "2px 6px",
-                                      marginRight: "0.25rem",
-                                    }}
-                                    title={`Run synthesis under '${controllerMode}' and update this row's state and transition counts`}
-                                  >
-                                    {previewingController === c.name
-                                      ? "..."
-                                      : "Preview"}
-                                  </button>
-                                  {realizable && (
-                                    <select
-                                      disabled={exportingController === c.name}
-                                      onChange={(e) => {
-                                        const fmt = e.target
-                                          .value as ControllerExportFormat;
-                                        if (fmt) {
-                                          handleExportController(
-                                            c.name,
-                                            c.source,
-                                            c.formula,
-                                            fmt,
-                                          );
-                                          e.target.value = "";
-                                        }
-                                      }}
+                                <tr key={i}>
+                                  <td>{c.name}</td>
+                                  <td>{c.source}</td>
+                                  <td>{c.formula}</td>
+                                  <td>
+                                    <span
+                                      className={
+                                        realizable
+                                          ? "unified-editor__verify-badge--pass"
+                                          : "unified-editor__verify-badge--fail"
+                                      }
                                       style={{
-                                        fontSize: "0.75rem",
-                                        padding: "2px 4px",
+                                        padding: "2px 6px",
+                                        borderRadius: "4px",
                                       }}
                                     >
-                                      <option value="">
-                                        {exportingController === c.name
-                                          ? "..."
-                                          : "Download"}
-                                      </option>
-                                      <option value="ctxdsl">CTXDSL</option>
-                                      <option value="xstate">
-                                        XState JSON
-                                      </option>
-                                      <option value="systemverilog">
-                                        SystemVerilog
-                                      </option>
-                                      <option value="gdscript">
-                                        GDScript (.gd)
-                                      </option>
-                                    </select>
-                                  )}
-                                </td>
-                              </tr>
+                                      {realizable ? "Yes" : "No"}
+                                    </span>
+                                  </td>
+                                  <td
+                                    title={
+                                      preview
+                                        ? `Synthesized under '${preview.mode}'`
+                                        : "Run Preview to compute the count under the selected mode"
+                                    }
+                                  >
+                                    {preview ? states : "—"}
+                                  </td>
+                                  <td
+                                    title={
+                                      preview
+                                        ? `Synthesized under '${preview.mode}'`
+                                        : "Run Preview to compute the count under the selected mode"
+                                    }
+                                  >
+                                    {preview ? transitions : "—"}
+                                  </td>
+                                  <td>
+                                    <button
+                                      type="button"
+                                      disabled={previewingController === c.name}
+                                      onClick={() =>
+                                        handlePreviewSynthesis(
+                                          c.name,
+                                          c.source,
+                                          c.formula,
+                                        )
+                                      }
+                                      style={{
+                                        fontSize: "0.75rem",
+                                        padding: "2px 6px",
+                                        marginRight: "0.25rem",
+                                      }}
+                                      title={`Run synthesis under '${controllerMode}' and update this row's state and transition counts`}
+                                    >
+                                      {previewingController === c.name
+                                        ? "..."
+                                        : "Preview"}
+                                    </button>
+                                    {realizable && (
+                                      <select
+                                        disabled={
+                                          exportingController === c.name
+                                        }
+                                        onChange={(e) => {
+                                          const fmt = e.target
+                                            .value as ControllerExportFormat;
+                                          if (fmt) {
+                                            handleExportController(
+                                              c.name,
+                                              c.source,
+                                              c.formula,
+                                              fmt,
+                                            );
+                                            e.target.value = "";
+                                          }
+                                        }}
+                                        style={{
+                                          fontSize: "0.75rem",
+                                          padding: "2px 4px",
+                                        }}
+                                      >
+                                        <option value="">
+                                          {exportingController === c.name
+                                            ? "..."
+                                            : "Download"}
+                                        </option>
+                                        <option value="ctxdsl">CTXDSL</option>
+                                        <option value="xstate">
+                                          XState JSON
+                                        </option>
+                                        <option value="systemverilog">
+                                          SystemVerilog
+                                        </option>
+                                        <option value="gdscript">
+                                          GDScript (.gd)
+                                        </option>
+                                      </select>
+                                    )}
+                                  </td>
+                                </tr>
                               );
                             })}
                           </tbody>
@@ -902,7 +906,10 @@ export const UnifiedEditor = () => {
                   />
                 )}
                 {useTemplate && activeTemplateRef && (
-                  <span className="unified-editor__template-active" title={templateFormulaPreview}>
+                  <span
+                    className="unified-editor__template-active"
+                    title={templateFormulaPreview}
+                  >
                     {activeTemplateRef.template}
                     {Object.keys(activeTemplateRef.args).length > 0 &&
                       `(${Object.values(activeTemplateRef.args).join(", ")})`}
@@ -918,7 +925,10 @@ export const UnifiedEditor = () => {
                   variant="primary"
                   size="sm"
                   onClick={handleVerify}
-                  disabled={verification.state.isLoading || (useTemplate && !activeTemplateRef)}
+                  disabled={
+                    verification.state.isLoading ||
+                    (useTemplate && !activeTemplateRef)
+                  }
                 >
                   {verification.state.isLoading ? (
                     <>
@@ -979,13 +989,24 @@ export const UnifiedEditor = () => {
                       {verification.state.result.results.map((r, i) => {
                         const rowKey = `${r.formula_name}:${r.automaton}`;
                         const expanded = expandedRows.get(rowKey);
-                        const csResult = verification.getCounterstrategy(r.formula_name, r.automaton);
-                        const ctResult = verification.getCountertraces(r.formula_name, r.automaton);
-                        const traceState = traceSelection.get(rowKey) ?? { traceIndex: 0, step: 0 };
+                        const csResult = verification.getCounterstrategy(
+                          r.formula_name,
+                          r.automaton,
+                        );
+                        const ctResult = verification.getCountertraces(
+                          r.formula_name,
+                          r.automaton,
+                        );
+                        const traceState = traceSelection.get(rowKey) ?? {
+                          traceIndex: 0,
+                          step: 0,
+                        };
 
                         // Countertraces: show lasso traces if available, else deadlock traces
-                        const hasLassoTraces = ctResult && ctResult.lasso_traces.length > 0;
-                        const hasDeadlockTraces = ctResult && ctResult.deadlock_traces.length > 0;
+                        const hasLassoTraces =
+                          ctResult && ctResult.lasso_traces.length > 0;
+                        const hasDeadlockTraces =
+                          ctResult && ctResult.deadlock_traces.length > 0;
                         const hasTraces = hasLassoTraces || hasDeadlockTraces;
 
                         return (
@@ -999,7 +1020,9 @@ export const UnifiedEditor = () => {
                             >
                               <td>{r.formula_name}</td>
                               <td>{r.automaton}</td>
-                              <td>{r.satisfied ? "Satisfied" : "Not Satisfied"}</td>
+                              <td>
+                                {r.satisfied ? "Satisfied" : "Not Satisfied"}
+                              </td>
                               <td>
                                 {r.satisfying_states}/{r.total_states}
                               </td>
@@ -1009,11 +1032,20 @@ export const UnifiedEditor = () => {
                               </td>
                               <td>
                                 {!r.satisfied && (
-                                  <div style={{ display: "flex", gap: "4px", flexWrap: "nowrap" }}>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      gap: "4px",
+                                      flexWrap: "nowrap",
+                                    }}
+                                  >
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      disabled={verification.isFetchingCounterstrategy(r.formula_name, r.automaton)}
+                                      disabled={verification.isFetchingCounterstrategy(
+                                        r.formula_name,
+                                        r.automaton,
+                                      )}
                                       onClick={() => {
                                         if (!csResult?.counterstrategy) {
                                           verification.fetchCounterstrategy(
@@ -1022,10 +1054,16 @@ export const UnifiedEditor = () => {
                                             r.automaton,
                                           );
                                         }
-                                        toggleExpanded(rowKey, "counterstrategy");
+                                        toggleExpanded(
+                                          rowKey,
+                                          "counterstrategy",
+                                        );
                                       }}
                                     >
-                                      {verification.isFetchingCounterstrategy(r.formula_name, r.automaton)
+                                      {verification.isFetchingCounterstrategy(
+                                        r.formula_name,
+                                        r.automaton,
+                                      )
                                         ? "Computing..."
                                         : expanded?.has("counterstrategy")
                                           ? "Hide Strategy"
@@ -1036,7 +1074,10 @@ export const UnifiedEditor = () => {
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        disabled={verification.isFetchingCountertraces(r.formula_name, r.automaton)}
+                                        disabled={verification.isFetchingCountertraces(
+                                          r.formula_name,
+                                          r.automaton,
+                                        )}
                                         onClick={() => {
                                           if (!ctResult) {
                                             verification.fetchCountertraces(
@@ -1045,10 +1086,16 @@ export const UnifiedEditor = () => {
                                               r.automaton,
                                             );
                                           }
-                                          toggleExpanded(rowKey, "countertraces");
+                                          toggleExpanded(
+                                            rowKey,
+                                            "countertraces",
+                                          );
                                         }}
                                       >
-                                        {verification.isFetchingCountertraces(r.formula_name, r.automaton)
+                                        {verification.isFetchingCountertraces(
+                                          r.formula_name,
+                                          r.automaton,
+                                        )
                                           ? "Computing..."
                                           : expanded?.has("countertraces")
                                             ? "Hide Traces"
@@ -1061,69 +1108,89 @@ export const UnifiedEditor = () => {
                             </tr>
 
                             {/* Expanded: Counterstrategy graph */}
-                            {expanded?.has("counterstrategy") && csResult?.counterstrategy && (
-                              <tr>
-                                <td colSpan={6}>
-                                  <div className="unified-editor__verify-detail">
-                                    <CounterstrategyView
-                                      result={csResult.counterstrategy}
-                                      formulaName={r.formula_name}
-                                      automatonName={r.automaton}
-                                    />
-                                  </div>
-                                </td>
-                              </tr>
-                            )}
+                            {expanded?.has("counterstrategy") &&
+                              csResult?.counterstrategy && (
+                                <tr>
+                                  <td colSpan={6}>
+                                    <div className="unified-editor__verify-detail">
+                                      <CounterstrategyView
+                                        result={csResult.counterstrategy}
+                                        formulaName={r.formula_name}
+                                        automatonName={r.automaton}
+                                      />
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
 
                             {/* Expanded: Countertraces — lasso traces if available, else deadlock traces */}
-                            {expanded?.has("countertraces") && ctResult && hasTraces && (
-                              <tr>
-                                <td colSpan={6}>
-                                  <div className="unified-editor__verify-detail">
-                                    {ctResult.violating_initials.length > 0 && (
-                                      <div style={{ marginBottom: "8px" }}>
-                                        <strong>Violating Initial States: </strong>
-                                        {ctResult.violating_initials.join(", ")}
-                                      </div>
-                                    )}
+                            {expanded?.has("countertraces") &&
+                              ctResult &&
+                              hasTraces && (
+                                <tr>
+                                  <td colSpan={6}>
+                                    <div className="unified-editor__verify-detail">
+                                      {ctResult.violating_initials.length >
+                                        0 && (
+                                        <div style={{ marginBottom: "8px" }}>
+                                          <strong>
+                                            Violating Initial States:{" "}
+                                          </strong>
+                                          {ctResult.violating_initials.join(
+                                            ", ",
+                                          )}
+                                        </div>
+                                      )}
 
-                                    {hasLassoTraces ? (
-                                      <LassoTraceViewer
-                                        traces={ctResult.lasso_traces}
-                                        title="Lasso Traces"
-                                      />
-                                    ) : hasDeadlockTraces ? (
-                                      <TraceViewer
-                                        traces={ctResult.deadlock_traces}
-                                        title="Deadlock Traces"
-                                        selectedTraceIndex={traceState.traceIndex}
-                                        selectedStep={traceState.step}
-                                        onTraceSelect={(index) =>
-                                          setTraceSelection((prev) => {
-                                            const next = new Map(prev);
-                                            next.set(rowKey, { traceIndex: index, step: 0 });
-                                            return next;
-                                          })
-                                        }
-                                        onStepSelect={(step) =>
-                                          setTraceSelection((prev) => {
-                                            const next = new Map(prev);
-                                            next.set(rowKey, { ...traceState, step });
-                                            return next;
-                                          })
-                                        }
-                                        stateValuations={
-                                          editorState.importSource?.stateValuations?.[r.automaton]
-                                        }
-                                        transitionObservations={
-                                          editorState.importSource?.transitionObservations?.[r.automaton]
-                                        }
-                                      />
-                                    ) : null}
-                                  </div>
-                                </td>
-                              </tr>
-                            )}
+                                      {hasLassoTraces ? (
+                                        <LassoTraceViewer
+                                          traces={ctResult.lasso_traces}
+                                          title="Lasso Traces"
+                                        />
+                                      ) : hasDeadlockTraces ? (
+                                        <TraceViewer
+                                          traces={ctResult.deadlock_traces}
+                                          title="Deadlock Traces"
+                                          selectedTraceIndex={
+                                            traceState.traceIndex
+                                          }
+                                          selectedStep={traceState.step}
+                                          onTraceSelect={(index) =>
+                                            setTraceSelection((prev) => {
+                                              const next = new Map(prev);
+                                              next.set(rowKey, {
+                                                traceIndex: index,
+                                                step: 0,
+                                              });
+                                              return next;
+                                            })
+                                          }
+                                          onStepSelect={(step) =>
+                                            setTraceSelection((prev) => {
+                                              const next = new Map(prev);
+                                              next.set(rowKey, {
+                                                ...traceState,
+                                                step,
+                                              });
+                                              return next;
+                                            })
+                                          }
+                                          stateValuations={
+                                            editorState.importSource
+                                              ?.stateValuations?.[r.automaton]
+                                          }
+                                          transitionObservations={
+                                            editorState.importSource
+                                              ?.transitionObservations?.[
+                                              r.automaton
+                                            ]
+                                          }
+                                        />
+                                      ) : null}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
                           </React.Fragment>
                         );
                       })}
@@ -1143,6 +1210,12 @@ export const UnifiedEditor = () => {
           {activeTab === "contract" && (
             <div className="unified-editor__section">
               <ContractPanel />
+            </div>
+          )}
+
+          {activeTab === "codesign" && (
+            <div className="unified-editor__section">
+              <CodesignPanel />
             </div>
           )}
         </div>
