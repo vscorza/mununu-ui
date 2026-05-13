@@ -149,10 +149,7 @@ export interface ContextImportResponse {
    * Populated by the SystemVerilog Kripke builder, the BTOR2 reader,
    * and the extraction adapter.
    */
-  state_valuations?: Record<
-    string,
-    Record<string, Record<string, string>>
-  >;
+  state_valuations?: Record<string, Record<string, Record<string, string>>>;
   /**
    * Per-transition Mealy observations — keyed by `automaton_name →
    * list of `TransitionObservation`. Populated by the BTOR2 reader
@@ -233,12 +230,13 @@ export type ControllerExportFormat =
   | "systemverilog"
   | "gdscript";
 
-export const EXPORT_FORMAT_EXTENSIONS: Record<ControllerExportFormat, string> = {
-  ctxdsl: ".ctxdsl",
-  xstate: ".json",
-  systemverilog: ".sv",
-  gdscript: ".gd",
-};
+export const EXPORT_FORMAT_EXTENSIONS: Record<ControllerExportFormat, string> =
+  {
+    ctxdsl: ".ctxdsl",
+    xstate: ".json",
+    systemverilog: ".sv",
+    gdscript: ".gd",
+  };
 
 // Synthesis types (matches mununu backend /api/v1/context/synthesize)
 type SynthesizeRequest =
@@ -353,16 +351,15 @@ export const proposeComposition = async (
 };
 
 /** Extract a model from source code using the AST-based pipeline. */
-export const extractSource =
-  async (
-    request: ExtractionExtractRequest,
-  ): Promise<ExtractionExtractResponse> => {
-    const response = await apiClient.post<ExtractionExtractResponse>(
-      "/extraction/extract",
-      request,
-    );
-    return response.data;
-  };
+export const extractSource = async (
+  request: ExtractionExtractRequest,
+): Promise<ExtractionExtractResponse> => {
+  const response = await apiClient.post<ExtractionExtractResponse>(
+    "/extraction/extract",
+    request,
+  );
+  return response.data;
+};
 
 export const synthesizeContext = async (
   request: SynthesizeRequest,
@@ -600,11 +597,33 @@ export interface PortDescriptor {
   description?: string | null;
 }
 
+/**
+ * Recognised `@mununu_*` tag from the §D.5 source-comment annotation
+ * grammar. Sent back from the server as part of `BlackBoxInterface`
+ * so the UI can show vendor-declared assumptions / guarantees /
+ * interface URIs without round-tripping through CTXDSL.
+ */
+export type MununuTag =
+  | "blackbox"
+  | "assume"
+  | "guarantee"
+  | "interface"
+  | "controllable"
+  | "uncontrollable";
+
+export interface MununuAnnotation {
+  tag: MununuTag;
+  value: string;
+  source_line?: number | null;
+}
+
 export interface BlackBoxInterface {
   name: string;
   ports: PortDescriptor[];
   source_file?: string | null;
   source_line?: number | null;
+  /** Source-comment annotations attached to this module (D §D.5). */
+  annotations?: MununuAnnotation[];
 }
 
 export interface InterfaceLabel {
@@ -635,6 +654,37 @@ export interface GapMarker {
   source_location?: SourceLocation | null;
 }
 
+/**
+ * Parsed shape of a `contract://<domain>/<name>[@<version>][?alt=<id>]`
+ * URI carried on an `@mununu_interface` annotation.
+ */
+export interface ContractUri {
+  domain: string;
+  name: string;
+  version?: string | null;
+  alternative?: string | null;
+  raw: string;
+}
+
+export type ResolutionStatus =
+  | "resolved"
+  | "not_found"
+  | "no_corpus"
+  | "malformed"
+  | "sidecar_reference";
+
+/**
+ * Outcome of resolving a single `@mununu_interface contract://` URI
+ * against the supplied corpus during phase-2 discovery.
+ */
+export interface CorpusResolution {
+  raw_uri: string;
+  parsed: ContractUri;
+  status: ResolutionStatus;
+  matched_ids: string[];
+  alternative_matched?: boolean | null;
+}
+
 export interface GapMarkerReport {
   markers: GapMarker[];
 }
@@ -643,6 +693,13 @@ export interface Phase1Output {
   module: string;
   labels: InterfaceLabel[];
   gaps: GapMarkerReport;
+  /**
+   * Outcomes of resolving each `@mununu_interface contract://` URI on
+   * the interface against the corpus supplied via
+   * `ContractDiscoverRequest.corpus`. Empty when no URIs were present
+   * or when no corpus was supplied.
+   */
+  corpus_resolutions?: CorpusResolution[];
 }
 
 export interface ContractDiscoverRequest {
@@ -650,7 +707,72 @@ export interface ContractDiscoverRequest {
   force_controllable?: string[];
   force_uncontrollable?: string[];
   emit_fairness_gap?: boolean;
+  /**
+   * Filesystem path of the contract corpus root the server should load
+   * for resolving `@mununu_interface contract://` URIs. Mirrors the CLI
+   * `--corpus <DIR>` flag for three-surface parity.
+   */
+  corpus?: string;
 }
+
+// ============================================================================
+// Contract Query Endpoint (Document D §D.2 — corpus lookup)
+// ============================================================================
+
+/** Origin of a corpus entry — drives the ranker's trust tier. */
+export type CorpusProvenance =
+  | { tier: "mununu_verified"; verified_against?: string | null }
+  | { tier: "vendor"; name: string; license?: string | null }
+  | { tier: "community"; contributors?: string[] };
+
+/** A named alternative within a contract entry. */
+export interface ContractAlternative {
+  id: string;
+  label: string;
+  description?: string | null;
+}
+
+/** One ranked candidate from a corpus query. */
+export interface ContractEntry {
+  id: string;
+  version: string;
+  domain: string;
+  name: string;
+  description?: string | null;
+  parameters?: Record<string, unknown>;
+  contract?: unknown;
+  alternatives?: ContractAlternative[];
+  provenance: CorpusProvenance;
+  soundness_flag?: string | null;
+}
+
+export interface ContractQueryRequest {
+  /** `<domain>/<name>` identifier, e.g. `"rtl_protocol/axi4_slave"`. */
+  id: string;
+  /** Filesystem path of the corpus root the server should load. */
+  corpus: string;
+  /** Parameters to match against entries. */
+  parameters?: Record<string, unknown>;
+}
+
+export interface ContractQueryResponse {
+  candidates: ContractEntry[];
+}
+
+/**
+ * Look up matching entries in the contract corpus (Document D §D.2).
+ * Returns the ranked candidate list (full parameter-match first, then
+ * provenance trust tier, then version descending).
+ */
+export const queryCorpus = async (
+  request: ContractQueryRequest,
+): Promise<ContractQueryResponse> => {
+  const response = await apiClient.post<ContractQueryResponse>(
+    "/contract/query",
+    request,
+  );
+  return response.data;
+};
 
 /**
  * Run phase-1 contract discovery (Document A task A5) on a black-box
@@ -682,4 +804,3 @@ export const validateContract = async (
   );
   return response.data;
 };
-
