@@ -12,6 +12,7 @@ vi.mock("../../../api/endpoints", async () => {
     validateContract: vi.fn(),
     discoverContract: vi.fn(),
     queryCorpus: vi.fn(),
+    reviewContract: vi.fn(),
   };
 });
 
@@ -20,7 +21,7 @@ describe("ContractPanel", () => {
     vi.clearAllMocks();
   });
 
-  it("renders all three sub-tabs", () => {
+  it("renders all four sub-tabs", () => {
     render(<ContractPanel />);
     expect(
       screen.getByRole("button", { name: "Validate" }),
@@ -29,6 +30,7 @@ describe("ContractPanel", () => {
       screen.getByRole("button", { name: "Discover" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Corpus" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Review" })).toBeInTheDocument();
   });
 
   it("renders Discover sub-panel with corpus input when selected", async () => {
@@ -166,6 +168,155 @@ describe("ContractPanel", () => {
       expect(
         screen.getByText(/No matching entries in the corpus/i),
       ).toBeInTheDocument();
+    });
+  });
+});
+
+describe("ContractPanel — Review sub-tab", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const packageWithMixedSources = {
+    module: "AES_CTR_v1",
+    phase1: {
+      module: "AES_CTR_v1",
+      labels: [],
+      gaps: { markers: [] },
+      corpus_resolutions: [],
+    },
+    proposed_clauses: [
+      {
+        id: "AES_CTR_v1__sc_guarantee__1",
+        kind: "guarantee",
+        owner: "AES_CTR_v1",
+        description: "G(start -> eventually done)",
+        provenance: {
+          source: "source_comment" as const,
+          tag: "guarantee",
+          source_line: 8,
+        },
+        soundness_note: "Module guarantee — vendor-supplied.",
+      },
+      {
+        id: "AES_CTR_v1__corpus_0",
+        kind: "reference",
+        owner: "AES_CTR_v1",
+        description:
+          "Corpus reference: rtl_crypto/aes_ctr@1.0.0 (alt: strict_iv).",
+        provenance: {
+          source: "corpus" as const,
+          entry_id: "rtl_crypto/aes_ctr@1.0.0",
+          alternative: "strict_iv",
+        },
+        soundness_note: "Corpus entry's soundness flag applies.",
+      },
+    ],
+  };
+
+  it("renders Review sub-panel description and example payload", () => {
+    render(<ContractPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Review" }));
+    expect(screen.getByText(/HITL stage-4 review/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Run stage-4 review/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("calls reviewContract with the interface and optional corpus", async () => {
+    const mocked = vi.mocked(endpoints.reviewContract);
+    mocked.mockResolvedValue(packageWithMixedSources);
+    render(<ContractPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Review" }));
+    const corpusInput = screen.getAllByPlaceholderText(
+      "/path/to/mununu/corpus",
+    )[0];
+    fireEvent.change(corpusInput, { target: { value: "/my/corpus" } });
+    fireEvent.click(
+      screen.getByRole("button", { name: /Run stage-4 review/i }),
+    );
+    await waitFor(() => {
+      expect(mocked).toHaveBeenCalled();
+    });
+    const arg = mocked.mock.calls[0]?.[0];
+    expect(arg?.corpus).toBe("/my/corpus");
+    expect(arg?.interface.name).toBe("AES_CTR_v1");
+  });
+
+  it("omits corpus when input is empty", async () => {
+    const mocked = vi.mocked(endpoints.reviewContract);
+    mocked.mockResolvedValue({
+      module: "AES_CTR_v1",
+      phase1: { module: "AES_CTR_v1", labels: [], gaps: { markers: [] } },
+      proposed_clauses: [],
+    });
+    render(<ContractPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Review" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Run stage-4 review/i }),
+    );
+    await waitFor(() => {
+      expect(mocked).toHaveBeenCalled();
+    });
+    const arg = mocked.mock.calls[0]?.[0];
+    expect(arg && "corpus" in arg).toBe(false);
+  });
+
+  it("renders one proposal card per clause with accept/reject controls", async () => {
+    vi.mocked(endpoints.reviewContract).mockResolvedValue(
+      packageWithMixedSources,
+    );
+    render(<ContractPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Review" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Run stage-4 review/i }),
+    );
+    await waitFor(() => {
+      expect(
+        screen.getByText("AES_CTR_v1__sc_guarantee__1"),
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByText("AES_CTR_v1__corpus_0")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Accept" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Reject" })).toHaveLength(2);
+  });
+
+  it("toggles a proposal's decision when Accept is clicked", async () => {
+    vi.mocked(endpoints.reviewContract).mockResolvedValue(
+      packageWithMixedSources,
+    );
+    render(<ContractPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Review" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Run stage-4 review/i }),
+    );
+    await waitFor(() => {
+      expect(screen.getAllByText(/pending/i).length).toBeGreaterThan(0);
+    });
+    const acceptButtons = screen.getAllByRole("button", { name: "Accept" });
+    fireEvent.click(acceptButtons[0]);
+    // After accepting one of two, the summary shows 1 accepted · 1 pending.
+    expect(screen.getByText(/1 accepted/)).toBeInTheDocument();
+    expect(screen.getByText(/1 pending/)).toBeInTheDocument();
+  });
+
+  it("shows the empty-proposals helper when none are returned", async () => {
+    vi.mocked(endpoints.reviewContract).mockResolvedValue({
+      module: "DDR_CTRL_V1",
+      phase1: {
+        module: "DDR_CTRL_V1",
+        labels: [],
+        gaps: { markers: [] },
+      },
+      proposed_clauses: [],
+    });
+    render(<ContractPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Review" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Run stage-4 review/i }),
+    );
+    await waitFor(() => {
+      expect(screen.getByText(/No proposals/i)).toBeInTheDocument();
     });
   });
 });

@@ -16,6 +16,7 @@ import {
   validateContract,
   discoverContract,
   queryCorpus,
+  reviewContract,
   type ContractSet,
   type DischargeVerdict,
   type BlackBoxInterface,
@@ -23,6 +24,9 @@ import {
   type CorpusResolution,
   type ContractEntry,
   type ContractQueryResponse,
+  type ReviewPackage,
+  type ProposedClause,
+  type ProposalProvenance,
 } from "../../api/endpoints";
 
 const EXAMPLE_ACYCLIC: ContractSet = {
@@ -104,7 +108,7 @@ const EXAMPLE_INTERFACE_WITH_ANNOTATIONS: BlackBoxInterface = {
   ],
 };
 
-type SubTab = "validate" | "discover" | "query";
+type SubTab = "validate" | "discover" | "query" | "review";
 
 export const ContractPanel = () => {
   const [subTab, setSubTab] = useState<SubTab>("validate");
@@ -169,11 +173,27 @@ export const ContractPanel = () => {
         >
           Corpus
         </button>
+        <button
+          type="button"
+          onClick={() => setSubTab("review")}
+          style={{
+            padding: "6px 14px",
+            background: subTab === "review" ? "#fff" : "transparent",
+            border: "1px solid #ccc",
+            borderBottom: subTab === "review" ? "1px solid #fff" : "none",
+            borderRadius: "4px 4px 0 0",
+            cursor: "pointer",
+            fontWeight: subTab === "review" ? 600 : 400,
+          }}
+        >
+          Review
+        </button>
       </div>
       <div style={{ flex: 1, overflow: "auto" }}>
         {subTab === "validate" && <ValidateSubPanel />}
         {subTab === "discover" && <DiscoverSubPanel />}
         {subTab === "query" && <QuerySubPanel />}
+        {subTab === "review" && <ReviewSubPanel />}
       </div>
     </div>
   );
@@ -1111,4 +1131,404 @@ const CorpusEntryView = ({ entry }: { entry: ContractEntry }) => {
       )}
     </>
   );
+};
+
+// ============================================================================
+// Review sub-panel — HITL stage 4 (Document A §A7 / Document D §D.8)
+// ============================================================================
+
+const EXAMPLE_REVIEW_INTERFACE: BlackBoxInterface = {
+  name: "AES_CTR_v1",
+  ports: [
+    { name: "clk", direction: "Input" },
+    { name: "start", direction: "Input" },
+    { name: "done", direction: "Output" },
+    { name: "cipher_out", direction: "Output" },
+  ],
+  source_file: "rtl/vendor/aes_ctr_v1.sv",
+  source_line: 8,
+  annotations: [
+    { tag: "blackbox", value: "" },
+    {
+      tag: "interface",
+      value: "contract://rtl_crypto/aes_ctr@1.0.0?alt=strict_iv",
+    },
+    { tag: "guarantee", value: "G(start -> eventually done)" },
+    { tag: "assume", value: "G(start -> !reset)" },
+  ],
+};
+
+const ReviewSubPanel = () => {
+  const [text, setText] = useState<string>(
+    JSON.stringify(EXAMPLE_REVIEW_INTERFACE, null, 2),
+  );
+  const [corpusPath, setCorpusPath] = useState<string>("");
+  const [pkg, setPkg] = useState<ReviewPackage | null>(null);
+  const [decisions, setDecisions] = useState<
+    Record<string, "pending" | "accepted" | "rejected">
+  >({});
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const onReview = async () => {
+    setError(null);
+    setPkg(null);
+    setDecisions({});
+    setPending(true);
+    try {
+      const iface = JSON.parse(text) as BlackBoxInterface;
+      const trimmed = corpusPath.trim();
+      const result = await reviewContract({
+        interface: iface,
+        ...(trimmed ? { corpus: trimmed } : {}),
+      });
+      setPkg(result);
+      const initial: Record<string, "pending" | "accepted" | "rejected"> = {};
+      for (const c of result.proposed_clauses) {
+        initial[c.id] = "pending";
+      }
+      setDecisions(initial);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const setDecision = (
+    id: string,
+    decision: "pending" | "accepted" | "rejected",
+  ) => {
+    setDecisions((prev) => ({ ...prev, [id]: decision }));
+  };
+
+  const counts = pkg
+    ? pkg.proposed_clauses.reduce(
+        (acc, c) => {
+          acc[decisions[c.id] ?? "pending"]++;
+          return acc;
+        },
+        { pending: 0, accepted: 0, rejected: 0 },
+      )
+    : { pending: 0, accepted: 0, rejected: 0 };
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        padding: "16px",
+        height: "100%",
+        overflow: "auto",
+      }}
+    >
+      <div>
+        <h3 style={{ margin: 0, marginBottom: "4px" }}>
+          HITL stage-4 review (A §A7 / D §D.8)
+        </h3>
+        <p style={{ margin: 0, fontSize: "13px", opacity: 0.8 }}>
+          Walks a black-box interface through the proposal pipeline: phase-2
+          discovery + one proposed clause per <code>@mununu_assume</code> /{" "}
+          <code>@mununu_guarantee</code> and one corpus-reference proposal per
+          resolved <code>@mununu_interface contract://</code>. Mark each
+          proposal <em>Accept</em> or <em>Reject</em>; the decisions are
+          surface-side state — accepted clauses are the inputs to the discharge
+          check, not auto-applied by mununu.
+        </p>
+      </div>
+
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        spellCheck={false}
+        style={{
+          width: "100%",
+          minHeight: "200px",
+          fontFamily:
+            "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+          fontSize: "12px",
+          padding: "8px",
+          resize: "vertical",
+        }}
+      />
+
+      <label
+        style={{
+          fontSize: "13px",
+          display: "flex",
+          gap: "6px",
+          flexDirection: "column",
+        }}
+      >
+        <span>
+          Corpus root (optional) — resolves{" "}
+          <code>@mununu_interface contract://</code> URIs into reference
+          proposals:
+        </span>
+        <input
+          type="text"
+          value={corpusPath}
+          onChange={(e) => setCorpusPath(e.target.value)}
+          placeholder="/path/to/mununu/corpus"
+          style={{
+            padding: "4px 8px",
+            fontSize: "12px",
+            fontFamily: "ui-monospace, monospace",
+          }}
+        />
+      </label>
+
+      <div>
+        <button
+          type="button"
+          onClick={onReview}
+          disabled={pending}
+          style={{
+            padding: "6px 14px",
+            fontSize: "13px",
+            fontWeight: 600,
+          }}
+        >
+          {pending ? "Building review…" : "Run stage-4 review"}
+        </button>
+      </div>
+
+      {error && (
+        <div
+          role="alert"
+          style={{
+            padding: "8px 12px",
+            background: "#fde2e2",
+            color: "#8a1f1f",
+            borderRadius: "4px",
+            fontSize: "13px",
+          }}
+        >
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+
+      {pkg && (
+        <ReviewPackageView
+          pkg={pkg}
+          decisions={decisions}
+          onDecision={setDecision}
+          counts={counts}
+        />
+      )}
+    </div>
+  );
+};
+
+const ReviewPackageView = ({
+  pkg,
+  decisions,
+  onDecision,
+  counts,
+}: {
+  pkg: ReviewPackage;
+  decisions: Record<string, "pending" | "accepted" | "rejected">;
+  onDecision: (
+    id: string,
+    decision: "pending" | "accepted" | "rejected",
+  ) => void;
+  counts: { pending: number; accepted: number; rejected: number };
+}) => {
+  return (
+    <div
+      style={{
+        padding: "12px",
+        background: "#f7f7f7",
+        borderLeft: "4px solid #4a8acb",
+        borderRadius: "2px",
+        fontSize: "13px",
+      }}
+    >
+      <strong style={{ fontSize: "14px" }}>
+        Review package for `{pkg.module}` — {pkg.proposed_clauses.length}{" "}
+        proposal(s)
+      </strong>
+      <div style={{ marginTop: "4px", fontSize: "12px", opacity: 0.85 }}>
+        alphabet: {pkg.phase1.labels.length} label(s),{" "}
+        {pkg.phase1.gaps.markers.length} gap marker(s).{" "}
+        <strong>Decisions:</strong> {counts.accepted} accepted ·{" "}
+        {counts.rejected} rejected · {counts.pending} pending.
+      </div>
+
+      {pkg.proposed_clauses.length === 0 ? (
+        <div style={{ marginTop: "10px", fontSize: "13px", opacity: 0.8 }}>
+          No proposals — the interface has no <code>@mununu_assume</code> /{" "}
+          <code>@mununu_guarantee</code> clauses and no resolved corpus
+          references. Try the annotated example above or supply a corpus root.
+        </div>
+      ) : (
+        <ul style={{ margin: "10px 0 0 0", paddingLeft: "20px" }}>
+          {pkg.proposed_clauses.map((c) => (
+            <li key={c.id} style={{ marginBottom: "10px" }}>
+              <ProposalCard
+                clause={c}
+                decision={decisions[c.id] ?? "pending"}
+                onDecision={(d) => onDecision(c.id, d)}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+const ProposalCard = ({
+  clause,
+  decision,
+  onDecision,
+}: {
+  clause: ProposedClause;
+  decision: "pending" | "accepted" | "rejected";
+  onDecision: (d: "pending" | "accepted" | "rejected") => void;
+}) => {
+  const decisionStyle = {
+    pending: { bg: "#e9ecef", fg: "#444", label: "pending" },
+    accepted: { bg: "#dff0d8", fg: "#1f5a1f", label: "accepted" },
+    rejected: { bg: "#f8d7da", fg: "#8a1f1f", label: "rejected" },
+  }[decision];
+  return (
+    <div
+      style={{
+        padding: "8px 10px",
+        background: "#fff",
+        border: "1px solid #ddd",
+        borderRadius: "3px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <strong
+          style={{ fontFamily: "ui-monospace, monospace", fontSize: "12px" }}
+        >
+          {clause.id}
+        </strong>
+        <span
+          style={{
+            padding: "1px 6px",
+            borderRadius: "3px",
+            background: kindColour(clause.kind).bg,
+            color: kindColour(clause.kind).fg,
+            fontSize: "11px",
+            fontWeight: 600,
+          }}
+        >
+          {clause.kind}
+        </span>
+        <span
+          style={{
+            marginLeft: "auto",
+            padding: "1px 6px",
+            borderRadius: "3px",
+            background: decisionStyle.bg,
+            color: decisionStyle.fg,
+            fontSize: "11px",
+            fontWeight: 600,
+            textTransform: "uppercase",
+          }}
+        >
+          {decisionStyle.label}
+        </span>
+      </div>
+      {clause.description && (
+        <div
+          style={{
+            marginTop: "6px",
+            fontSize: "12px",
+            fontFamily: "ui-monospace, monospace",
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {clause.description}
+        </div>
+      )}
+      <div
+        style={{
+          marginTop: "4px",
+          fontSize: "11px",
+          opacity: 0.7,
+        }}
+      >
+        source: {renderProposalProvenance(clause.provenance)}
+      </div>
+      {clause.soundness_note && (
+        <div
+          style={{
+            marginTop: "4px",
+            fontSize: "11px",
+            opacity: 0.8,
+            fontStyle: "italic",
+          }}
+        >
+          {clause.soundness_note}
+        </div>
+      )}
+      <div style={{ marginTop: "8px", display: "flex", gap: "6px" }}>
+        <button
+          type="button"
+          onClick={() => onDecision("accepted")}
+          disabled={decision === "accepted"}
+          style={{
+            padding: "3px 10px",
+            fontSize: "12px",
+            background: decision === "accepted" ? "#dff0d8" : undefined,
+          }}
+        >
+          Accept
+        </button>
+        <button
+          type="button"
+          onClick={() => onDecision("rejected")}
+          disabled={decision === "rejected"}
+          style={{
+            padding: "3px 10px",
+            fontSize: "12px",
+            background: decision === "rejected" ? "#f8d7da" : undefined,
+          }}
+        >
+          Reject
+        </button>
+        {decision !== "pending" && (
+          <button
+            type="button"
+            onClick={() => onDecision("pending")}
+            style={{ padding: "3px 10px", fontSize: "12px" }}
+          >
+            Reset
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const kindColour = (kind: string): { bg: string; fg: string } => {
+  switch (kind) {
+    case "assumption":
+      return { bg: "#fdebd0", fg: "#7a3d00" };
+    case "guarantee":
+      return { bg: "#dff0d8", fg: "#1f5a1f" };
+    case "invariant":
+      return { bg: "#e7e6f7", fg: "#3a3a8a" };
+    case "reference":
+      return { bg: "#d9edf7", fg: "#1f4a7a" };
+    default:
+      return { bg: "#e9ecef", fg: "#333" };
+  }
+};
+
+const renderProposalProvenance = (p: ProposalProvenance): string => {
+  if (p.source === "source_comment") {
+    return p.source_line !== undefined && p.source_line !== null
+      ? `@mununu_${p.tag} (line ${p.source_line})`
+      : `@mununu_${p.tag}`;
+  }
+  return p.alternative
+    ? `corpus:${p.entry_id} alt=${p.alternative}`
+    : `corpus:${p.entry_id}`;
 };
