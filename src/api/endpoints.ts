@@ -759,6 +759,68 @@ export interface ContractQueryResponse {
   candidates: ContractEntry[];
 }
 
+// ============================================================================
+// Contract Review Endpoint (Document A §A7 / Document D §D.8) — HITL stage 4
+// ============================================================================
+
+/**
+ * Where a proposed clause came from. `SourceComment` carries the
+ * canonical tag (e.g. `"guarantee"`) and optional 1-based source line;
+ * `Corpus` carries the resolved entry id + optional alternative.
+ */
+export type ProposalProvenance =
+  | { source: "source_comment"; tag: string; source_line?: number | null }
+  | {
+      source: "corpus";
+      entry_id: string;
+      alternative?: string | null;
+    };
+
+/**
+ * One proposed clause surfaced for HITL review. Kinds today:
+ * `"assumption" | "guarantee" | "invariant" | "reference"`. `reference`
+ * is the special-case used for a `Resolved` corpus entry whose body
+ * has not yet been unpacked into concrete clauses.
+ */
+export interface ProposedClause {
+  id: string;
+  kind: string;
+  owner: string;
+  description?: string | null;
+  provenance: ProposalProvenance;
+  soundness_note?: string | null;
+}
+
+export interface ReviewPackage {
+  module: string;
+  phase1: Phase1Output;
+  proposed_clauses: ProposedClause[];
+}
+
+export interface ContractReviewRequest {
+  interface: BlackBoxInterface;
+  force_controllable?: string[];
+  force_uncontrollable?: string[];
+  emit_fairness_gap?: boolean;
+  /** Optional corpus root used to resolve `@mununu_interface` URIs. */
+  corpus?: string;
+}
+
+/**
+ * Build a HITL stage-4 review package — phase-2 discovery output plus
+ * the flat list of proposed clauses extracted from annotations and
+ * resolved corpus references.
+ */
+export const reviewContract = async (
+  request: ContractReviewRequest,
+): Promise<ReviewPackage> => {
+  const response = await apiClient.post<ReviewPackage>(
+    "/contract/review",
+    request,
+  );
+  return response.data;
+};
+
 /**
  * Look up matching entries in the contract corpus (Document D §D.2).
  * Returns the ranked candidate list (full parameter-match first, then
