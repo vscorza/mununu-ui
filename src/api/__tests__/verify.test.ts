@@ -67,6 +67,11 @@ describe("verifyProject (POST /verify)", () => {
       },
       base_dir: "/tmp/work",
     };
+    const tomlReq: VerifyProjectRequest = {
+      config_toml: '[project]\nname = "Demo"\n',
+      base_dir: "/tmp/work",
+    };
+    expect(tomlReq.config_toml).toBeDefined();
     const report = await verifyProject(req);
 
     expect(postSpy).toHaveBeenCalledTimes(1);

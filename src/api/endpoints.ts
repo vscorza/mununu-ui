@@ -1021,10 +1021,18 @@ export interface VerifyConfig {
   properties?: VerifyProperty[];
 }
 
-/** Request body for `POST /api/v1/verify`. */
+/**
+ * Request body for `POST /api/v1/verify`.
+ *
+ * Supply exactly one of `config` (pre-parsed) or `config_toml` (raw
+ * verify.toml text the backend parses for you). The latter avoids a
+ * client-side TOML parser dependency.
+ */
 export interface VerifyProjectRequest {
-  /** Parsed verify.toml payload. */
-  config: VerifyConfig;
+  /** Pre-parsed verify.toml payload. Mutually exclusive with `config_toml`. */
+  config?: VerifyConfig;
+  /** Raw verify.toml text. Mutually exclusive with `config`. */
+  config_toml?: string;
   /** Directory the source paths in the config resolve against. */
   base_dir: string;
 }

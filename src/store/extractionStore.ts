@@ -7,6 +7,7 @@
 
 import { create } from "zustand";
 import type { WorkflowDefinition } from "../types/workflow";
+import type { VerifyReport } from "../api/endpoints";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -72,9 +73,27 @@ export interface ExtractionState {
    * `compositionConfig` when present.
    */
   extractConfig: string | null;
+  /**
+   * For the `verify-project` workflow only — the base directory the
+   * server resolves source paths against. The user enters this in the
+   * verify step's form before running `/verify`. Mirrors the
+   * `base_dir` field in `VerifyProjectRequest`.
+   */
+  verifyBaseDir: string;
+  /**
+   * Latest verify-framework report from `POST /api/v1/verify`. Set when
+   * the `verify-project` workflow's verify step completes; null
+   * otherwise. The verify-project step UI renders it via
+   * `<VerdictTable />`.
+   */
+  verifyReport: VerifyReport | null;
 
   // Actions
-  startWorkflow: (workflow: WorkflowDefinition, source: string, fileName: string) => void;
+  startWorkflow: (
+    workflow: WorkflowDefinition,
+    source: string,
+    fileName: string,
+  ) => void;
   replaceSource: (content: string, fileName: string) => void;
   addSource: (name: string, content: string) => void;
   removeSource: (name: string) => void;
@@ -87,6 +106,10 @@ export interface ExtractionState {
   updateCompositionConfig: (content: string) => void;
   /** Update the full extract config sent to the backend (raw JSON string). */
   updateExtractConfig: (content: string) => void;
+  /** Update the verify-project base directory (server-side absolute path). */
+  setVerifyBaseDir: (base_dir: string) => void;
+  /** Cache a fresh `/verify` report on the store. */
+  setVerifyReport: (report: VerifyReport | null) => void;
   resetWorkflow: () => void;
 }
 
@@ -107,6 +130,8 @@ const initialState = {
   ctxdslContent: null as string | null,
   compositionConfig: null as string | null,
   extractConfig: null as string | null,
+  verifyBaseDir: "",
+  verifyReport: null as VerifyReport | null,
 };
 
 // ---------------------------------------------------------------------------
@@ -131,6 +156,8 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
       ctxdslContent: null,
       compositionConfig: null,
       extractConfig: null,
+      verifyBaseDir: "",
+      verifyReport: null,
     });
   },
 
@@ -193,23 +220,21 @@ export const useExtractionStore = create<ExtractionState>((set) => ({
       return { skippedSteps: skipped };
     }),
 
-  goToStep: (stepId) =>
-    set({ currentStep: stepId }),
+  goToStep: (stepId) => set({ currentStep: stepId }),
 
-  updateSidecar: (content) =>
-    set({ sidecarContent: content }),
+  updateSidecar: (content) => set({ sidecarContent: content }),
 
-  updateCtxdsl: (content) =>
-    set({ ctxdslContent: content }),
+  updateCtxdsl: (content) => set({ ctxdslContent: content }),
 
-  updateCompositionConfig: (content) =>
-    set({ compositionConfig: content }),
+  updateCompositionConfig: (content) => set({ compositionConfig: content }),
 
-  updateExtractConfig: (content) =>
-    set({ extractConfig: content }),
+  updateExtractConfig: (content) => set({ extractConfig: content }),
 
-  resetWorkflow: () =>
-    set({ ...initialState }),
+  setVerifyBaseDir: (base_dir) => set({ verifyBaseDir: base_dir }),
+
+  setVerifyReport: (report) => set({ verifyReport: report }),
+
+  resetWorkflow: () => set({ ...initialState }),
 }));
 
 // ---------------------------------------------------------------------------

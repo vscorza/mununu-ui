@@ -12,6 +12,7 @@ import { SidecarEditor } from "./SidecarEditor";
 import { CompositionEditor } from "./CompositionEditor";
 import { ExtractConfigEditor } from "./ExtractConfigEditor";
 import { resolveAdapterFormat } from "./adapterFormat";
+import { VerdictTable } from "./VerdictTable";
 
 /**
  * Map a source file name (e.g. `index.ts`, `worker.py`) to the language
@@ -517,8 +518,74 @@ function StepContent({ step }: { step: WorkflowStep }) {
     );
   }
 
-  // Verify step — prompt to switch tabs
+  // Verify step — two flavours:
+  //   1. `verify-project` workflow runs the orchestrator inline against
+  //      the loaded `verify.toml` and renders the report.
+  //   2. Every other workflow's verify step is a hand-off ("switch to
+  //      the Verification tab").
   if (step.id === "verify") {
+    if (state.activeWorkflow?.domain === "verify-project") {
+      return (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {step.description}
+          </p>
+          <div>
+            <label
+              htmlFor="verify-base-dir"
+              className="block text-xs font-medium text-gray-700 dark:text-gray-300"
+            >
+              Base directory (server-side absolute path)
+            </label>
+            <input
+              id="verify-base-dir"
+              type="text"
+              value={state.verifyBaseDir}
+              onChange={(e) => state.setVerifyBaseDir(e.target.value)}
+              placeholder="/abs/path/to/project"
+              className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-mono text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Source paths inside the verify.toml resolve against this
+              directory. Files must exist on the mununu server's filesystem.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <StepRunButton
+              step={step}
+              disabled={!available || running || !state.verifyBaseDir.trim()}
+              onClick={runStep}
+            />
+            {running && (
+              <span className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">
+                Running...
+              </span>
+            )}
+          </div>
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
+              {error}
+            </div>
+          )}
+          {result && (
+            <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-300">
+              {result}
+            </div>
+          )}
+
+          {state.verifyReport && (
+            <div className="mt-4 rounded-md border border-gray-200 dark:border-gray-700">
+              <div className="p-4">
+                <VerdictTable report={state.verifyReport} />
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    // Default: hand-off to the Verification tab.
     return (
       <div className="space-y-3">
         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -774,6 +841,35 @@ async function executeStep(
       });
       updateCtxdsl(response.ctxdsl);
       return `Translated to CTXDSL (${response.source_format}): ${response.state_count} states, ${response.property_count} properties`;
+    }
+
+    case "verify": {
+      // The `verify` step only has a backend handler for the
+      // `verify-project` workflow — every other workflow's verify
+      // step is "switch to the Verification tab" and is handled by
+      // the StepContent UI, not by executeStep.
+      if (state.activeWorkflow?.domain !== "verify-project") {
+        throw new Error(
+          "verify step has no executor for this workflow — switch to the Verification tab instead",
+        );
+      }
+      const { verifyProject } = await import("../../api/endpoints");
+      const baseDir = state.verifyBaseDir.trim();
+      if (!baseDir) {
+        throw new Error(
+          "Enter the base directory (server-side absolute path) before running verify.",
+        );
+      }
+      const report = await verifyProject({
+        config_toml: sourceContent,
+        base_dir: baseDir,
+      });
+      state.setVerifyReport(report);
+      const satisfied = report.property_verdicts.filter(
+        (v) => v.satisfied,
+      ).length;
+      const total = report.property_verdicts.length;
+      return `Verified ${report.project}: ${satisfied} / ${total} properties satisfied (${report.sources.length} source(s))`;
     }
 
     default:
