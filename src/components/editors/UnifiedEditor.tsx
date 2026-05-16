@@ -784,9 +784,6 @@ export const UnifiedEditor = () => {
                                         <option value="systemverilog">
                                           SystemVerilog
                                         </option>
-                                        <option value="gdscript">
-                                          GDScript (.gd)
-                                        </option>
                                       </select>
                                     )}
                                   </td>

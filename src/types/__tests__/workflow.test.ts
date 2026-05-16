@@ -46,6 +46,11 @@ describe("workflow registry", () => {
     expect(getWorkflow("nonexistent")).toBeUndefined();
   });
 
+  it("no longer registers the deprecated gameengine (Godot) workflow", () => {
+    expect(availableDomains()).not.toContain("gameengine");
+    expect(getWorkflow("gameengine")).toBeUndefined();
+  });
+
   it("every workflow's step ids are unique within the workflow", () => {
     for (const [domain, wf] of Object.entries(WORKFLOW_REGISTRY)) {
       const ids = wf.steps.map((s) => s.id);

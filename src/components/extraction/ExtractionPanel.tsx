@@ -36,8 +36,6 @@ function inferLanguageFromFileName(fileName: string): string | undefined {
       return "python";
     case "rs":
       return "rust";
-    case "gd":
-      return "gdscript";
     default:
       return undefined;
   }

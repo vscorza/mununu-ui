@@ -230,18 +230,13 @@ export const downloadAsFile = (
 /**
  * Export controller output format options.
  */
-export type ControllerExportFormat =
-  | "ctxdsl"
-  | "xstate"
-  | "systemverilog"
-  | "gdscript";
+export type ControllerExportFormat = "ctxdsl" | "xstate" | "systemverilog";
 
 export const EXPORT_FORMAT_EXTENSIONS: Record<ControllerExportFormat, string> =
   {
     ctxdsl: ".ctxdsl",
     xstate: ".json",
     systemverilog: ".sv",
-    gdscript: ".gd",
   };
 
 // Synthesis types (matches mununu backend /api/v1/context/synthesize)

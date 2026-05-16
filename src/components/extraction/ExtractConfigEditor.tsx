@@ -4,7 +4,7 @@
  *
  * The extract config carries:
  *   - `source`: pointer to the source file (filename + optional repo / commit)
- *   - `language`: source language (typescript / python / rust / gdscript)
+ *   - `language`: source language (typescript / python / rust)
  *   - `targets[]`: classes to scan + per-class abstraction overrides
  *   - `composition` (optional): instances + shared labels + resources
  *   - `properties[]` (optional): mu-calculus formulas to verify
@@ -61,7 +61,11 @@ function validate(json: string): ValidationResult {
     return { ok: false, parsed: null, error: `JSON parse error: ${msg}` };
   }
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    return { ok: false, parsed: null, error: "Top-level must be a JSON object" };
+    return {
+      ok: false,
+      parsed: null,
+      error: "Top-level must be a JSON object",
+    };
   }
   const obj = parsed as Record<string, unknown>;
   if (
@@ -109,8 +113,6 @@ function inferLanguage(fileName: string | undefined): string {
       return "python";
     case "rs":
       return "rust";
-    case "gd":
-      return "gdscript";
     case "ts":
     case "tsx":
     case "js":
@@ -176,7 +178,9 @@ export function ExtractConfigEditor({
   );
 
   const handleStartFromTemplate = useCallback(() => {
-    onChange(buildDefaultConfig(sourceFileName ?? "", compositionConfig ?? null));
+    onChange(
+      buildDefaultConfig(sourceFileName ?? "", compositionConfig ?? null),
+    );
   }, [onChange, sourceFileName, compositionConfig]);
 
   const handleSyncComposition = useCallback(() => {
@@ -203,8 +207,14 @@ export function ExtractConfigEditor({
     } else {
       try {
         const parsed = JSON.parse(content);
-        if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-          setSyncFlash("Current extract config is not a JSON object — fix it first.");
+        if (
+          typeof parsed !== "object" ||
+          parsed === null ||
+          Array.isArray(parsed)
+        ) {
+          setSyncFlash(
+            "Current extract config is not a JSON object — fix it first.",
+          );
           return;
         }
         current = parsed as Record<string, unknown>;

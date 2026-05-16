@@ -17,7 +17,7 @@
  * - `software` -> `extraction`
  * - `crewai` -> `crewai`
  * - `langgraph` -> `langgraph`
- * - anything else (`xstate`, `gameengine`, …) -> `auto` (content-sniff)
+ * - anything else (`xstate`, `verify-project`, …) -> `auto` (content-sniff)
  */
 export function resolveAdapterFormat(
   domain: string | undefined,

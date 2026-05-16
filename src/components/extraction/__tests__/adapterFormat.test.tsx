@@ -8,7 +8,6 @@ describe("resolveAdapterFormat", () => {
     ["crewai", "crewai"],
     ["langgraph", "langgraph"],
     ["xstate", "auto"],
-    ["gameengine", "auto"],
     ["verify-project", "auto"],
     [undefined, "auto"],
     ["nonsense", "auto"],

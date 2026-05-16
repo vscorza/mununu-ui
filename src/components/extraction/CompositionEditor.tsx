@@ -52,7 +52,7 @@ interface CompositionEditorProps {
    * Source language passed to the backend's propose-composition
    * endpoint. Required alongside `sourceContent` for the suggest
    * button to render. Accepts the same names the backend recognises
-   * (`typescript`, `python`, `rust`, `gdscript`).
+   * (`typescript`, `python`, `rust`).
    */
   sourceLanguage?: string;
 }
@@ -92,7 +92,11 @@ function validate(json: string): ValidationResult {
     return { ok: false, parsed: null, error: "Top-level must be an object" };
   }
   const obj = parsed as Record<string, unknown>;
-  if (obj.type !== undefined && obj.type !== "asynchronous" && obj.type !== "synchronous") {
+  if (
+    obj.type !== undefined &&
+    obj.type !== "asynchronous" &&
+    obj.type !== "synchronous"
+  ) {
     return {
       ok: false,
       parsed: null,
@@ -131,7 +135,8 @@ function validate(json: string): ValidationResult {
   }
   if (
     obj.shared !== undefined &&
-    (!Array.isArray(obj.shared) || obj.shared.some((s) => typeof s !== "string"))
+    (!Array.isArray(obj.shared) ||
+      obj.shared.some((s) => typeof s !== "string"))
   ) {
     return {
       ok: false,
@@ -149,10 +154,7 @@ export function CompositionEditor({
   sourceContent,
   sourceLanguage,
 }: CompositionEditorProps) {
-  const validation = useMemo(
-    () => validate(content ?? ""),
-    [content],
-  );
+  const validation = useMemo(() => validate(content ?? ""), [content]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -224,8 +226,7 @@ export function CompositionEditor({
   return (
     <div className="space-y-3">
       <div className="text-xs text-gray-500 dark:text-gray-400">
-        Declare instances + shared labels for compositional verification.
-        See{" "}
+        Declare instances + shared labels for compositional verification. See{" "}
         <a
           href="https://github.com/vscorza/mununu/wiki/Compositional-Extraction"
           target="_blank"
@@ -379,8 +380,8 @@ function FindingsList({
       <div className="mt-2 text-xs text-blue-700 dark:text-blue-400">
         Suggestions are starting points. Review the resulting JSON, set
         <span className="font-mono"> shared</span> labels for the resource(s)
-        the instances contend over, and rename instances to reflect your
-        domain (e.g.,
+        the instances contend over, and rename instances to reflect your domain
+        (e.g.,
         <span className="font-mono"> worker_a</span>,
         <span className="font-mono"> worker_b</span>).
       </div>
@@ -410,7 +411,9 @@ function CompositionSummary({ shape }: { shape: CompositionShape }) {
         </div>
         <div className="mt-1">
           <span className="font-medium">Shared labels ({shared.length}):</span>{" "}
-          {shared.length > 0 ? shared.join(", ") : "— (full async, no synchronization)"}
+          {shared.length > 0
+            ? shared.join(", ")
+            : "— (full async, no synchronization)"}
         </div>
       </div>
     </div>
