@@ -184,7 +184,8 @@ const softwareWorkflow: WorkflowDefinition = {
     {
       id: "edit_sidecar",
       label: "Edit Spec",
-      description: "Refine the .espec.json: adjust transitions, properties, mode filtering",
+      description:
+        "Refine the .espec.json: adjust transitions, properties, mode filtering",
       endpoint: null,
       optional: true,
       repeatable: true,
@@ -322,6 +323,128 @@ const gameEngineWorkflow: WorkflowDefinition = {
   ],
 };
 
+const crewaiWorkflow: WorkflowDefinition = {
+  domain: "crewai",
+  displayName: "CrewAI Agentic",
+  description:
+    "Verify CrewAI agentic JSON crews. Per-agent automata (Idle -> Executing -> Done) plus a sequential supervisor composed asynchronously, dispatched via the native CrewaiAdapter.",
+  sourceExtensions: [".crewai.json", ".crewai"],
+  sidecarSchema: null,
+  sidecarExtension: "",
+  steps: [
+    {
+      id: "load",
+      label: "Load Crew",
+      description: "Load a CrewAI JSON crew definition (.crewai.json)",
+      endpoint: null,
+      optional: false,
+      repeatable: false,
+      requires: [],
+      timeout: "standard",
+    },
+    {
+      id: "translate",
+      label: "Translate",
+      description:
+        "Translate the crew into per-agent automata + sequential supervisor (asynchronous composition)",
+      endpoint: "/context/import",
+      optional: false,
+      repeatable: true,
+      requires: ["load"],
+      timeout: "standard",
+    },
+    {
+      id: "verify",
+      label: "Verify",
+      description:
+        "Evaluate agentic property templates (bounded_handoff, no_delegation_cycle, eventual_completion) over the composed crew",
+      endpoint: "/context/verify",
+      optional: false,
+      repeatable: true,
+      requires: ["translate"],
+      timeout: "extended",
+    },
+  ],
+};
+
+const langgraphWorkflow: WorkflowDefinition = {
+  domain: "langgraph",
+  displayName: "LangGraph Workflow",
+  description:
+    "Verify LangGraph StateGraph workflows. Nodes become states; edges become `node_<from>_enter` transitions (conditional edges get the condition suffix). Dispatched via the native LangGraphAdapter.",
+  sourceExtensions: [".langgraph.json", ".langgraph"],
+  sidecarSchema: null,
+  sidecarExtension: "",
+  steps: [
+    {
+      id: "load",
+      label: "Load Graph",
+      description: "Load a LangGraph StateGraph JSON export (.langgraph.json)",
+      endpoint: null,
+      optional: false,
+      repeatable: false,
+      requires: [],
+      timeout: "standard",
+    },
+    {
+      id: "translate",
+      label: "Translate",
+      description:
+        "Translate the StateGraph into a CTXDSL automaton; conditional edges fan out into per-condition transitions",
+      endpoint: "/context/import",
+      optional: false,
+      repeatable: true,
+      requires: ["load"],
+      timeout: "standard",
+    },
+    {
+      id: "verify",
+      label: "Verify",
+      description:
+        "Evaluate properties (reachability, termination, mutual exclusion) over the LangGraph automaton",
+      endpoint: "/context/verify",
+      optional: false,
+      repeatable: true,
+      requires: ["translate"],
+      timeout: "extended",
+    },
+  ],
+};
+
+const verifyProjectWorkflow: WorkflowDefinition = {
+  domain: "verify-project",
+  displayName: "Verify Project (verify.toml)",
+  description:
+    "Drive the verify framework end-to-end from a verify.toml manifest. Supports N heterogeneous sources, three alphabet-binding strategies (direct / renamings / register_map), and configurable composition + property lists.",
+  sourceExtensions: [".verify.toml", "verify.toml"],
+  sidecarSchema: null,
+  sidecarExtension: "",
+  steps: [
+    {
+      id: "load",
+      label: "Load Manifest",
+      description:
+        "Load a verify.toml manifest plus its referenced source files",
+      endpoint: null,
+      optional: false,
+      repeatable: false,
+      requires: [],
+      timeout: "standard",
+    },
+    {
+      id: "verify",
+      label: "Run Verify",
+      description:
+        "Run the orchestrator: dispatch each source, apply the alphabet binding, assemble the unified CTXDSL, evaluate every declared property",
+      endpoint: "/verify",
+      optional: false,
+      repeatable: true,
+      requires: ["load"],
+      timeout: "extended",
+    },
+  ],
+};
+
 // ---------------------------------------------------------------------------
 // Registry
 // ---------------------------------------------------------------------------
@@ -341,6 +464,9 @@ export const WORKFLOW_REGISTRY: Record<string, WorkflowDefinition> = {
   software: softwareWorkflow,
   xstate: xstateWorkflow,
   gameengine: gameEngineWorkflow,
+  crewai: crewaiWorkflow,
+  langgraph: langgraphWorkflow,
+  "verify-project": verifyProjectWorkflow,
 };
 
 /**
