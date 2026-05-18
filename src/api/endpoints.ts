@@ -183,6 +183,10 @@ export const ADAPTER_EXTENSIONS = [
   "pml",
   "promela",
   "espec.json",
+  "crewai.json",
+  "crewai",
+  "langgraph.json",
+  "langgraph",
 ];
 
 /**
@@ -199,6 +203,8 @@ export const ADAPTER_FORMATS = [
   "systemverilog",
   "sv-yosys",
   "extraction",
+  "crewai",
+  "langgraph",
 ] as const;
 export type AdapterFormat = (typeof ADAPTER_FORMATS)[number];
 
@@ -224,18 +230,13 @@ export const downloadAsFile = (
 /**
  * Export controller output format options.
  */
-export type ControllerExportFormat =
-  | "ctxdsl"
-  | "xstate"
-  | "systemverilog"
-  | "gdscript";
+export type ControllerExportFormat = "ctxdsl" | "xstate" | "systemverilog";
 
 export const EXPORT_FORMAT_EXTENSIONS: Record<ControllerExportFormat, string> =
   {
     ctxdsl: ".ctxdsl",
     xstate: ".json",
     systemverilog: ".sv",
-    gdscript: ".gd",
   };
 
 // Synthesis types (matches mununu backend /api/v1/context/synthesize)
@@ -967,5 +968,122 @@ export const verifyCodesign = async (
     "/codesign/verify",
     request,
   );
+  return response.data;
+};
+
+// ---------------------------------------------------------------------------
+// Verify framework (general N-source) — POST /api/v1/verify
+// ---------------------------------------------------------------------------
+
+/** One `[[sources]]` entry inside a parsed verify.toml. */
+export interface VerifySource {
+  id: string;
+  adapter: string;
+  files: string[];
+  options?: Record<string, unknown>;
+}
+
+/** `[alphabet]` block. Optional fields apply per strategy. */
+export interface VerifyAlphabet {
+  strategy: "direct" | "renamings" | "register_map";
+  renamings?: Array<{ from: string; to: string }>;
+  register_map?: string;
+  allow_peripheral_superset?: boolean;
+}
+
+/** `[composition]` block. */
+export interface VerifyComposition {
+  semantics: "synchronous" | "asynchronous" | "superset";
+  members: string[];
+  name?: string;
+}
+
+/** One `[[properties]]` entry. */
+export interface VerifyProperty {
+  name: string;
+  template?: string;
+  formula?: string;
+  args?: Record<string, string>;
+  over?: string;
+}
+
+/** Parsed verify.toml payload. Mirrors `verify::config::VerifyConfig`. */
+export interface VerifyConfig {
+  project: { name: string; description?: string };
+  sources: VerifySource[];
+  alphabet?: VerifyAlphabet;
+  composition: VerifyComposition;
+  properties?: VerifyProperty[];
+}
+
+/**
+ * Request body for `POST /api/v1/verify`.
+ *
+ * Supply exactly one of `config` (pre-parsed) or `config_toml` (raw
+ * verify.toml text the backend parses for you). The latter avoids a
+ * client-side TOML parser dependency.
+ */
+export interface VerifyProjectRequest {
+  /** Pre-parsed verify.toml payload. Mutually exclusive with `config_toml`. */
+  config?: VerifyConfig;
+  /** Raw verify.toml text. Mutually exclusive with `config`. */
+  config_toml?: string;
+  /** Directory the source paths in the config resolve against. */
+  base_dir: string;
+}
+
+/** Per-source diagnostic in the verify report. */
+export interface VerifySourceSummary {
+  id: string;
+  adapter: string;
+  automaton: string | null;
+}
+
+/** Composition shape used for evaluation. */
+export interface VerifyCompositionInfo {
+  semantics: string;
+  name: string;
+  members: string[];
+}
+
+/** How a property's formula was sourced. */
+export type VerifyPropertyFormulaSource =
+  | { kind: "inline" }
+  | { kind: "template"; id: string; args: Record<string, string> };
+
+/** Per-property verdict. */
+export interface VerifyPropertyVerdict {
+  name: string;
+  formula_source: VerifyPropertyFormulaSource;
+  formula: string;
+  over: string;
+  satisfied: boolean;
+  total_states: number;
+  satisfying_states: number;
+  initial_states: string[];
+  initial_satisfying: string[];
+}
+
+/** Top-level report from `POST /api/v1/verify`. */
+export interface VerifyReport {
+  project: string;
+  sources: VerifySourceSummary[];
+  composition: VerifyCompositionInfo;
+  property_verdicts: VerifyPropertyVerdict[];
+}
+
+/**
+ * General N-source verification entry point. Mirrors `mununu verify` (CLI).
+ *
+ * Dispatches each source through its adapter, applies the alphabet
+ * binding, assembles a unified CTXDSL document, and evaluates every
+ * declared property. Returns the structured `VerifyReport`. Uses the
+ * 120-second client because the orchestrator can run multiple
+ * adapters + LLVM extraction + property evaluation in a single call.
+ */
+export const verifyProject = async (
+  request: VerifyProjectRequest,
+): Promise<VerifyReport> => {
+  const response = await aiApiClient.post<VerifyReport>("/verify", request);
   return response.data;
 };

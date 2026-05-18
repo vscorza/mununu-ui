@@ -11,6 +11,8 @@ import { DomainSelector } from "./DomainSelector";
 import { SidecarEditor } from "./SidecarEditor";
 import { CompositionEditor } from "./CompositionEditor";
 import { ExtractConfigEditor } from "./ExtractConfigEditor";
+import { resolveAdapterFormat } from "./adapterFormat";
+import { VerdictTable } from "./VerdictTable";
 
 /**
  * Map a source file name (e.g. `index.ts`, `worker.py`) to the language
@@ -34,8 +36,6 @@ function inferLanguageFromFileName(fileName: string): string | undefined {
       return "python";
     case "rs":
       return "rust";
-    case "gd":
-      return "gdscript";
     default:
       return undefined;
   }
@@ -45,7 +45,11 @@ function inferLanguageFromFileName(fileName: string): string | undefined {
 // File upload area (shared between domain selection and load step)
 // ---------------------------------------------------------------------------
 
-function FileUploadArea({ onFileLoad }: { onFileLoad: (content: string, name: string) => void }) {
+function FileUploadArea({
+  onFileLoad,
+}: {
+  onFileLoad: (content: string, name: string) => void;
+}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -105,7 +109,10 @@ function FileUploadArea({ onFileLoad }: { onFileLoad: (content: string, name: st
         />
       </svg>
       <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-        Drop a source file here, or <span className="font-medium text-blue-600 dark:text-blue-400">browse</span>
+        Drop a source file here, or{" "}
+        <span className="font-medium text-blue-600 dark:text-blue-400">
+          browse
+        </span>
       </p>
       <input
         ref={fileInputRef}
@@ -138,7 +145,9 @@ function StepRunButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      style={disabled ? undefined : { backgroundColor: "#2563eb", color: "#ffffff" }}
+      style={
+        disabled ? undefined : { backgroundColor: "#2563eb", color: "#ffffff" }
+      }
       className={`
         rounded-md px-4 py-2 text-sm font-medium transition-colors
         ${
@@ -153,9 +162,20 @@ function StepRunButton({
   );
 }
 
-function LoadStepContent({ onFileLoad }: { onFileLoad: (content: string, name: string) => void }) {
-  const { sourceContent, sourceFileName, additionalSources, addSource, removeSource, replaceSource, completeStep } =
-    useExtractionStore();
+function LoadStepContent({
+  onFileLoad,
+}: {
+  onFileLoad: (content: string, name: string) => void;
+}) {
+  const {
+    sourceContent,
+    sourceFileName,
+    additionalSources,
+    addSource,
+    removeSource,
+    replaceSource,
+    completeStep,
+  } = useExtractionStore();
   const additionalInputRef = useRef<HTMLInputElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
 
@@ -199,11 +219,24 @@ function LoadStepContent({ onFileLoad }: { onFileLoad: (content: string, name: s
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span>
-              Primary: <span className="font-medium text-gray-900 dark:text-gray-100">{sourceFileName}</span>
+              Primary:{" "}
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                {sourceFileName}
+              </span>
             </span>
           </div>
           <button
@@ -231,7 +264,8 @@ function LoadStepContent({ onFileLoad }: { onFileLoad: (content: string, name: s
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Additional Source Files
               <span className="ml-1 text-gray-400">
-                ({additionalSources.length} file{additionalSources.length !== 1 ? "s" : ""})
+                ({additionalSources.length} file
+                {additionalSources.length !== 1 ? "s" : ""})
               </span>
             </span>
             <button
@@ -327,14 +361,22 @@ function StepContent({ step }: { step: WorkflowStep }) {
     setResult(null);
     try {
       const stepResult = await executeStep(step.id, state);
-      state.completeStep(step.id, { success: true, data: stepResult, timestamp: Date.now() });
+      state.completeStep(step.id, {
+        success: true,
+        data: stepResult,
+        timestamp: Date.now(),
+      });
       if (typeof stepResult === "string") {
         setResult(stepResult);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
-      state.completeStep(step.id, { success: false, error: msg, timestamp: Date.now() });
+      state.completeStep(step.id, {
+        success: false,
+        error: msg,
+        timestamp: Date.now(),
+      });
     } finally {
       setRunning(false);
     }
@@ -350,7 +392,9 @@ function StepContent({ step }: { step: WorkflowStep }) {
   if (step.id === "extract" && state.activeWorkflow?.domain === "software") {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {step.description}
+        </p>
         <ExtractConfigEditor
           content={state.extractConfig}
           onChange={state.updateExtractConfig}
@@ -358,7 +402,11 @@ function StepContent({ step }: { step: WorkflowStep }) {
           compositionConfig={state.compositionConfig}
         />
         <div className="flex items-center gap-3">
-          <StepRunButton step={step} disabled={!available || running} onClick={runStep} />
+          <StepRunButton
+            step={step}
+            disabled={!available || running}
+            onClick={runStep}
+          />
           {running && (
             <span className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">
               Running...
@@ -393,7 +441,9 @@ function StepContent({ step }: { step: WorkflowStep }) {
     };
     return (
       <div className="space-y-3">
-        <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {step.description}
+        </p>
         <CompositionEditor
           content={state.compositionConfig}
           onChange={state.updateCompositionConfig}
@@ -434,7 +484,9 @@ function StepContent({ step }: { step: WorkflowStep }) {
     };
     return (
       <div className="space-y-3">
-        <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {step.description}
+        </p>
         {state.sidecarContent ? (
           <>
             <div className="h-80 rounded-md border border-gray-200 dark:border-gray-700">
@@ -464,11 +516,79 @@ function StepContent({ step }: { step: WorkflowStep }) {
     );
   }
 
-  // Verify step — prompt to switch tabs
+  // Verify step — two flavours:
+  //   1. `verify-project` workflow runs the orchestrator inline against
+  //      the loaded `verify.toml` and renders the report.
+  //   2. Every other workflow's verify step is a hand-off ("switch to
+  //      the Verification tab").
   if (step.id === "verify") {
+    if (state.activeWorkflow?.domain === "verify-project") {
+      return (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {step.description}
+          </p>
+          <div>
+            <label
+              htmlFor="verify-base-dir"
+              className="block text-xs font-medium text-gray-700 dark:text-gray-300"
+            >
+              Base directory (server-side absolute path)
+            </label>
+            <input
+              id="verify-base-dir"
+              type="text"
+              value={state.verifyBaseDir}
+              onChange={(e) => state.setVerifyBaseDir(e.target.value)}
+              placeholder="/abs/path/to/project"
+              className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-mono text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Source paths inside the verify.toml resolve against this
+              directory. Files must exist on the mununu server's filesystem.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <StepRunButton
+              step={step}
+              disabled={!available || running || !state.verifyBaseDir.trim()}
+              onClick={runStep}
+            />
+            {running && (
+              <span className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">
+                Running...
+              </span>
+            )}
+          </div>
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
+              {error}
+            </div>
+          )}
+          {result && (
+            <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-300">
+              {result}
+            </div>
+          )}
+
+          {state.verifyReport && (
+            <div className="mt-4 rounded-md border border-gray-200 dark:border-gray-700">
+              <div className="p-4">
+                <VerdictTable report={state.verifyReport} />
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    // Default: hand-off to the Verification tab.
     return (
       <div className="space-y-3">
-        <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {step.description}
+        </p>
         <div className="rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
           <p className="text-sm text-blue-700 dark:text-blue-300">
             {state.ctxdslContent
@@ -483,10 +603,16 @@ function StepContent({ step }: { step: WorkflowStep }) {
   // Steps with API endpoints
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-500 dark:text-gray-400">{step.description}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        {step.description}
+      </p>
 
       <div className="flex items-center gap-3">
-        <StepRunButton step={step} disabled={!available || running} onClick={runStep} />
+        <StepRunButton
+          step={step}
+          disabled={!available || running}
+          onClick={runStep}
+        />
         {running && (
           <span className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">
             Running...
@@ -547,7 +673,8 @@ async function executeStep(
 
       const parsed = JSON.parse(sidecarContent);
       const isMultiModule =
-        parsed.$schema === "mununu_sv_multi_v1" || Array.isArray(parsed.modules);
+        parsed.$schema === "mununu_sv_multi_v1" ||
+        Array.isArray(parsed.modules);
 
       if (!isMultiModule) {
         // Single-module: send as-is
@@ -559,7 +686,10 @@ async function executeStep(
           throw new Error(response.warnings.join("; ") || "SMT not available");
         }
         updateSidecar(response.sidecar);
-        const totalFound = response.discoveries.reduce((s, d) => s + d.values_found, 0);
+        const totalFound = response.discoveries.reduce(
+          (s, d) => s + d.values_found,
+          0,
+        );
         return `Discovered ${totalFound} value(s) across ${response.discoveries.length} signal(s)`;
       }
 
@@ -577,7 +707,9 @@ async function executeStep(
           (s) => s.name === mod.source || s.name.endsWith(`/${mod.source}`),
         );
         if (!modSource) {
-          warnings.push(`Skipped ${mod.name}: source file "${mod.source}" not loaded`);
+          warnings.push(
+            `Skipped ${mod.name}: source file "${mod.source}" not loaded`,
+          );
           continue;
         }
 
@@ -606,18 +738,26 @@ async function executeStep(
 
         // Merge discovered values back into the module entry
         const updatedSingle = JSON.parse(response.sidecar);
-        if (updatedSingle.discovered_values && Object.keys(updatedSingle.discovered_values).length > 0) {
+        if (
+          updatedSingle.discovered_values &&
+          Object.keys(updatedSingle.discovered_values).length > 0
+        ) {
           mod.discovered_values = updatedSingle.discovered_values;
         }
 
-        const modFound = response.discoveries.reduce((s: number, d: { values_found: number }) => s + d.values_found, 0);
+        const modFound = response.discoveries.reduce(
+          (s: number, d: { values_found: number }) => s + d.values_found,
+          0,
+        );
         totalFound += modFound;
         totalSignals += response.discoveries.length;
       }
 
       updateSidecar(JSON.stringify(parsed, null, 2));
       const msg = `Discovered ${totalFound} value(s) across ${totalSignals} signal(s) in ${parsed.modules.length} module(s)`;
-      return warnings.length > 0 ? `${msg}. Warnings: ${warnings.join("; ")}` : msg;
+      return warnings.length > 0
+        ? `${msg}. Warnings: ${warnings.join("; ")}`
+        : msg;
     }
 
     case "extract": {
@@ -632,7 +772,11 @@ async function executeStep(
       // than the backend's "missing field source" message.
       try {
         const parsed = JSON.parse(cfg);
-        if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+        if (
+          typeof parsed !== "object" ||
+          parsed === null ||
+          Array.isArray(parsed)
+        ) {
           throw new Error("Extract config must be a JSON object.");
         }
         const obj = parsed as Record<string, unknown>;
@@ -640,7 +784,9 @@ async function executeStep(
           throw new Error("Extract config is missing the `source` block.");
         }
         if (!Array.isArray(obj.targets) || obj.targets.length === 0) {
-          throw new Error("Extract config is missing `targets[]` (at least one entry).");
+          throw new Error(
+            "Extract config is missing `targets[]` (at least one entry).",
+          );
         }
       } catch (e) {
         if (e instanceof SyntaxError) {
@@ -670,21 +816,58 @@ async function executeStep(
 
     case "translate": {
       const { importContext } = await import("../../api/endpoints");
-      const domain = state.activeWorkflow?.domain;
-      const format = domain === "rtl" ? "systemverilog" : domain === "software" ? "extraction" : "auto";
-      const content = format === "extraction" && sidecarContent ? sidecarContent : sourceContent;
+      const format = resolveAdapterFormat(state.activeWorkflow?.domain);
+      const content =
+        format === "extraction" && sidecarContent
+          ? sidecarContent
+          : sourceContent;
       const response = await importContext({
         content,
         format,
         filename: sourceFileName,
-        sidecar: format === "systemverilog" ? sidecarContent ?? undefined : undefined,
+        sidecar:
+          format === "systemverilog"
+            ? (sidecarContent ?? undefined)
+            : undefined,
         additional_sources:
           format === "systemverilog"
-            ? additionalSources.map((s) => ({ name: s.name, content: s.content }))
+            ? additionalSources.map((s) => ({
+                name: s.name,
+                content: s.content,
+              }))
             : [],
       });
       updateCtxdsl(response.ctxdsl);
       return `Translated to CTXDSL (${response.source_format}): ${response.state_count} states, ${response.property_count} properties`;
+    }
+
+    case "verify": {
+      // The `verify` step only has a backend handler for the
+      // `verify-project` workflow — every other workflow's verify
+      // step is "switch to the Verification tab" and is handled by
+      // the StepContent UI, not by executeStep.
+      if (state.activeWorkflow?.domain !== "verify-project") {
+        throw new Error(
+          "verify step has no executor for this workflow — switch to the Verification tab instead",
+        );
+      }
+      const { verifyProject } = await import("../../api/endpoints");
+      const baseDir = state.verifyBaseDir.trim();
+      if (!baseDir) {
+        throw new Error(
+          "Enter the base directory (server-side absolute path) before running verify.",
+        );
+      }
+      const report = await verifyProject({
+        config_toml: sourceContent,
+        base_dir: baseDir,
+      });
+      state.setVerifyReport(report);
+      const satisfied = report.property_verdicts.filter(
+        (v) => v.satisfied,
+      ).length;
+      const total = report.property_verdicts.length;
+      return `Verified ${report.project}: ${satisfied} / ${total} properties satisfied (${report.sources.length} source(s))`;
     }
 
     default:
@@ -700,7 +883,10 @@ export const ExtractionPanel = () => {
   const state = useExtractionStore();
   const { activeWorkflow, currentStep, startWorkflow, resetWorkflow } = state;
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
-  const [pendingFile, setPendingFile] = useState<{ content: string; name: string } | null>(null);
+  const [pendingFile, setPendingFile] = useState<{
+    content: string;
+    name: string;
+  } | null>(null);
 
   const handleSelectDomain = useCallback(
     (domain: string) => {
@@ -743,14 +929,21 @@ export const ExtractionPanel = () => {
           </p>
         </div>
 
-        <DomainSelector onSelectDomain={handleSelectDomain} selectedDomain={selectedDomain} />
+        <DomainSelector
+          onSelectDomain={handleSelectDomain}
+          selectedDomain={selectedDomain}
+        />
 
         <div>
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Source File</h3>
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Source File
+          </h3>
           <FileUploadArea onFileLoad={handleFileLoad} />
           {pendingFile && (
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              File ready: <span className="font-medium">{pendingFile.name}</span> — select a domain to start.
+              File ready:{" "}
+              <span className="font-medium">{pendingFile.name}</span> — select a
+              domain to start.
             </p>
           )}
         </div>
@@ -760,7 +953,9 @@ export const ExtractionPanel = () => {
 
   // ---- Workflow active: stepper + step content ----
   const currentStepDef = activeWorkflow.steps.find((s) => s.id === currentStep);
-  const status = currentStepDef ? getStepStatus(state, currentStepDef.id) : "pending";
+  const status = currentStepDef
+    ? getStepStatus(state, currentStepDef.id)
+    : "pending";
 
   return (
     <div className="space-y-6 p-4">
@@ -818,7 +1013,9 @@ export const ExtractionPanel = () => {
         ) : currentStepDef ? (
           <StepContent step={currentStepDef} />
         ) : (
-          <p className="text-sm text-gray-400 dark:text-gray-500">No step selected.</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">
+            No step selected.
+          </p>
         )}
       </div>
     </div>
