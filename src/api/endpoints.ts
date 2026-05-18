@@ -1087,3 +1087,85 @@ export const verifyProject = async (
   const response = await aiApiClient.post<VerifyReport>("/verify", request);
   return response.data;
 };
+
+// ---------------------------------------------------------------------------
+// Memory-check (B2b) — POST /api/v1/verify/memory-check
+// ---------------------------------------------------------------------------
+
+/** Per-source posture summary from the memory-check report. */
+export interface MemoryPostureSummary {
+  source_id: string;
+  kind: string;
+  tracked: string[];
+  value_symbol_set: string[];
+  fence_semantics?: string | null;
+  notes?: string | null;
+}
+
+/**
+ * Memory-check warning. The `kind` discriminator matches the
+ * server's `serde(rename_all = "snake_case")` tag.
+ */
+export type MemoryCheckWarning =
+  | {
+      kind: "chaotic_posture_referenced";
+      property_name: string;
+      source_id: string;
+      reference: string;
+    }
+  | {
+      kind: "value_mention_on_tracked_addresses_posture";
+      property_name: string;
+      source_id: string;
+      reference: string;
+    }
+  | {
+      kind: "untracked_address_referenced";
+      property_name: string;
+      source_id: string;
+      address: string;
+    }
+  | {
+      kind: "undeclared_value_symbol_referenced";
+      property_name: string;
+      source_id: string;
+      address: string;
+      symbol: string;
+    };
+
+/** Memory-check informational note (currently: RVWMO aspirational). */
+export type MemoryCheckInfo = {
+  kind: "rvwmo_aspirational";
+  source_id: string;
+};
+
+/** Top-level report from `POST /api/v1/verify/memory-check`. */
+export interface MemoryCheckReport {
+  postures: MemoryPostureSummary[];
+  undeclared_sources: string[];
+  warnings: MemoryCheckWarning[];
+  info: MemoryCheckInfo[];
+}
+
+/** Request body for `POST /api/v1/verify/memory-check`. */
+export interface MemoryCheckRequest {
+  /** Pre-parsed verify.toml payload. Mutually exclusive with `config_toml`. */
+  config?: VerifyConfig;
+  /** Raw verify.toml text. Mutually exclusive with `config`. */
+  config_toml?: string;
+}
+
+/**
+ * Run the memory-soundness analysis on a parsed verify.toml.
+ * Mirrors `mununu memory check` (CLI). Pure inspection — no source
+ * files read — so the 10-second client is appropriate.
+ */
+export const verifyMemoryCheck = async (
+  request: MemoryCheckRequest,
+): Promise<MemoryCheckReport> => {
+  const response = await apiClient.post<MemoryCheckReport>(
+    "/verify/memory-check",
+    request,
+  );
+  return response.data;
+};
