@@ -11,6 +11,7 @@
 
 import { useState } from "react";
 import type { VerifyReport, VerifyPropertyVerdict } from "../../api/endpoints";
+import { CounterexampleTrace } from "./CounterexampleTrace";
 
 interface VerdictTableProps {
   report: VerifyReport;
@@ -156,6 +157,11 @@ function VerdictRow({ verdict }: { verdict: VerifyPropertyVerdict }) {
                     </span>
                   </div>
                 )}
+              {verdict.counterexample && (
+                <div className="border-t border-gray-200 pt-2 dark:border-gray-700">
+                  <CounterexampleTrace witness={verdict.counterexample} />
+                </div>
+              )}
             </div>
           </td>
         </tr>

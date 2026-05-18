@@ -88,4 +88,40 @@ describe("VerdictTable", () => {
     expect(screen.queryByText("SATISFIED")).not.toBeInTheDocument();
     expect(screen.queryByText("VIOLATED")).not.toBeInTheDocument();
   });
+
+  it("surfaces the counterexample trace inside the expanded row when present", async () => {
+    const user = userEvent.setup();
+    const withCe: VerifyReport = {
+      ...baseReport,
+      property_verdicts: baseReport.property_verdicts.map((v) =>
+        v.name === "deadlock_free"
+          ? {
+              ...v,
+              counterexample: {
+                initial_state: "classify",
+                steps: [
+                  { label: "ticket_in", successor_state: "triaging" },
+                  { label: "noop", successor_state: "classify" },
+                ],
+                termination: { kind: "cycle", return_to_step: 0 },
+              },
+            }
+          : v,
+      ),
+    };
+    render(<VerdictTable report={withCe} />);
+    // Counterexample only shows when row is expanded.
+    expect(screen.queryByText(/Counterexample \(from/)).not.toBeInTheDocument();
+    await user.click(screen.getByText("deadlock_free"));
+    expect(screen.getByText(/Counterexample \(from/)).toBeInTheDocument();
+    expect(screen.getByText("ticket_in")).toBeInTheDocument();
+    expect(screen.getByText(/cycle: re-enters step 1/)).toBeInTheDocument();
+  });
+
+  it("does not render a counterexample section when satisfied", async () => {
+    const user = userEvent.setup();
+    render(<VerdictTable report={baseReport} />);
+    await user.click(screen.getByText("done_reachable"));
+    expect(screen.queryByText(/Counterexample \(from/)).not.toBeInTheDocument();
+  });
 });
