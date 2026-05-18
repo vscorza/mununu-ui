@@ -13,12 +13,14 @@
  */
 
 import type { VerifyTraceWitness } from "../../api/endpoints";
+import { useI18n } from "../../hooks/useI18n";
 
 interface CounterexampleTraceProps {
   witness: VerifyTraceWitness;
 }
 
 export function CounterexampleTrace({ witness }: CounterexampleTraceProps) {
+  const { t } = useI18n();
   const cycleAt =
     witness.termination.kind === "cycle"
       ? witness.termination.return_to_step
@@ -26,15 +28,15 @@ export function CounterexampleTrace({ witness }: CounterexampleTraceProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
-        <span className="font-medium">Counterexample (from</span>
+        <span className="font-medium">{t("extraction.counterexample.heading")}</span>
         <span className="font-mono text-gray-900 dark:text-gray-100">
           {witness.initial_state}
         </span>
-        <span className="font-medium">):</span>
+        <span className="font-medium">{t("extraction.counterexample.headingTail")}</span>
       </div>
       {witness.steps.length === 0 ? (
         <div className="text-xs text-gray-500 dark:text-gray-400">
-          (no outgoing transitions — initial state itself violates the formula)
+          {t("extraction.counterexample.noOutgoing")}
         </div>
       ) : (
         <ol className="space-y-1">
@@ -71,22 +73,27 @@ export function CounterexampleTrace({ witness }: CounterexampleTraceProps) {
       )}
       {witness.steps.length > 0 && (
         <div className="text-xs italic text-gray-600 dark:text-gray-400">
-          {formatTermination(witness)}
+          {formatTermination(witness, t)}
         </div>
       )}
     </div>
   );
 }
 
-function formatTermination(w: VerifyTraceWitness): string {
+function formatTermination(
+  w: VerifyTraceWitness,
+  t: (path: string, vars?: Record<string, string | number>) => string,
+): string {
   switch (w.termination.kind) {
     case "sink":
-      return "terminated at a sink (no outgoing transitions)";
-    case "cycle":
-      return `cycle: re-enters step ${w.termination.return_to_step + 1}${
-        w.termination.return_to_step === 0 ? " (initial state)" : ""
-      }`;
+      return t("extraction.counterexample.terminatorSink");
+    case "cycle": {
+      const step = w.termination.return_to_step + 1;
+      return w.termination.return_to_step === 0
+        ? t("extraction.counterexample.terminatorCycleInitial", { step })
+        : t("extraction.counterexample.terminatorCycle", { step });
+    }
     case "length_limit":
-      return "trace truncated at the 20-step length cap";
+      return t("extraction.counterexample.terminatorLengthLimit");
   }
 }

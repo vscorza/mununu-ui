@@ -473,4 +473,38 @@ export const pt: typeof en = {
     save: "Salvar Modelo",
     cancel: "Cancelar",
   },
+
+  // Extraction wizard — superfícies do fluxo de verificação
+  extraction: {
+    workflowSteps: "Etapas do fluxo de trabalho",
+    verdictTable: {
+      propertiesSatisfied: "propriedades satisfeitas",
+      compositionLabel: "composição:",
+      membersLabel: "membros:",
+      columnProperty: "Propriedade",
+      columnVerdict: "Veredicto",
+      columnOver: "Sobre",
+      columnSource: "Origem",
+      columnStates: "Estados",
+      verdictSatisfied: "SATISFEITA",
+      verdictViolated: "VIOLADA",
+      sourceInline: "em linha",
+      sourceTemplatePrefix: "modelo:",
+      formulaLabel: "Fórmula:",
+      initialStatesLabel: "Estados iniciais:",
+      satisfyingOfTotal: "{satisfying} satisfazendo / {total} no total",
+      templateArgsLabel: "Argumentos do modelo:",
+    },
+    counterexample: {
+      heading: "Contraexemplo (de",
+      headingTail: "):",
+      noOutgoing:
+        "(sem transições de saída — o próprio estado inicial viola a fórmula)",
+      terminatorSink: "terminou em um sumidouro (sem transições de saída)",
+      terminatorCycle: "ciclo: retorna ao passo {step}",
+      terminatorCycleInitial:
+        "ciclo: retorna ao passo {step} (estado inicial)",
+      terminatorLengthLimit: "rastro truncado no limite de 20 passos",
+    },
+  },
 };
