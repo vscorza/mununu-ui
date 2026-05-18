@@ -473,4 +473,38 @@ export const es: typeof en = {
     save: "Guardar Plantilla",
     cancel: "Cancelar",
   },
+
+  // Extraction wizard — verify-flow surfaces
+  extraction: {
+    workflowSteps: "Pasos del flujo de trabajo",
+    verdictTable: {
+      propertiesSatisfied: "propiedades satisfechas",
+      compositionLabel: "composición:",
+      membersLabel: "miembros:",
+      columnProperty: "Propiedad",
+      columnVerdict: "Veredicto",
+      columnOver: "Sobre",
+      columnSource: "Fuente",
+      columnStates: "Estados",
+      verdictSatisfied: "SATISFECHA",
+      verdictViolated: "VIOLADA",
+      sourceInline: "en línea",
+      sourceTemplatePrefix: "plantilla:",
+      formulaLabel: "Fórmula:",
+      initialStatesLabel: "Estados iniciales:",
+      satisfyingOfTotal: "{satisfying} satisfechos / {total} en total",
+      templateArgsLabel: "Argumentos de plantilla:",
+    },
+    counterexample: {
+      heading: "Contraejemplo (desde",
+      headingTail: "):",
+      noOutgoing:
+        "(sin transiciones salientes — el propio estado inicial viola la fórmula)",
+      terminatorSink: "terminado en un sumidero (sin transiciones salientes)",
+      terminatorCycle: "ciclo: vuelve a entrar en el paso {step}",
+      terminatorCycleInitial:
+        "ciclo: vuelve a entrar en el paso {step} (estado inicial)",
+      terminatorLengthLimit: "traza truncada al límite de 20 pasos",
+    },
+  },
 };

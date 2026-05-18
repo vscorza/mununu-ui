@@ -465,4 +465,38 @@ export const en = {
     save: "Save Template",
     cancel: "Cancel",
   },
+
+  // Extraction wizard — verify-flow surfaces (VerdictTable +
+  // CounterexampleTrace + WorkflowStepper).
+  extraction: {
+    workflowSteps: "Workflow steps",
+    verdictTable: {
+      propertiesSatisfied: "properties satisfied",
+      compositionLabel: "composition:",
+      membersLabel: "members:",
+      columnProperty: "Property",
+      columnVerdict: "Verdict",
+      columnOver: "Over",
+      columnSource: "Source",
+      columnStates: "States",
+      verdictSatisfied: "SATISFIED",
+      verdictViolated: "VIOLATED",
+      sourceInline: "inline",
+      sourceTemplatePrefix: "template:",
+      formulaLabel: "Formula:",
+      initialStatesLabel: "Initial states:",
+      satisfyingOfTotal: "{satisfying} satisfying / {total} total",
+      templateArgsLabel: "Template args:",
+    },
+    counterexample: {
+      heading: "Counterexample (from",
+      headingTail: "):",
+      noOutgoing:
+        "(no outgoing transitions — initial state itself violates the formula)",
+      terminatorSink: "terminated at a sink (no outgoing transitions)",
+      terminatorCycle: "cycle: re-enters step {step}",
+      terminatorCycleInitial: "cycle: re-enters step {step} (initial state)",
+      terminatorLengthLimit: "trace truncated at the 20-step length cap",
+    },
+  },
 };

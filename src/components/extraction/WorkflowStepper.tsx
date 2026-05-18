@@ -4,6 +4,7 @@ import {
   getStepStatus,
 } from "../../store/extractionStore";
 import type { StepStatus } from "../../store/extractionStore";
+import { useI18n } from "../../hooks/useI18n";
 
 const statusColors: Record<StepStatus, { circle: string; label: string; line: string }> = {
   pending: {
@@ -42,13 +43,14 @@ function CheckIcon() {
 export const WorkflowStepper = () => {
   const state = useExtractionStore();
   const { activeWorkflow, goToStep } = state;
+  const { t } = useI18n();
 
   if (!activeWorkflow) return null;
 
   const steps = activeWorkflow.steps;
 
   return (
-    <nav aria-label="Workflow steps" className="w-full py-4">
+    <nav aria-label={t("extraction.workflowSteps")} className="w-full py-4">
       <ol className="flex items-center justify-between">
         {steps.map((step, idx) => {
           const status = getStepStatus(state, step.id);

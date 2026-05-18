@@ -12,12 +12,14 @@
 import { useState } from "react";
 import type { VerifyReport, VerifyPropertyVerdict } from "../../api/endpoints";
 import { CounterexampleTrace } from "./CounterexampleTrace";
+import { useI18n } from "../../hooks/useI18n";
 
 interface VerdictTableProps {
   report: VerifyReport;
 }
 
 export function VerdictTable({ report }: VerdictTableProps) {
+  const { t } = useI18n();
   return (
     <div className="space-y-4">
       <Header report={report} />
@@ -25,19 +27,19 @@ export function VerdictTable({ report }: VerdictTableProps) {
         <thead className="bg-gray-50 dark:bg-gray-800/50">
           <tr>
             <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-              Property
+              {t("extraction.verdictTable.columnProperty")}
             </th>
             <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-              Verdict
+              {t("extraction.verdictTable.columnVerdict")}
             </th>
             <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-              Over
+              {t("extraction.verdictTable.columnOver")}
             </th>
             <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-              Source
+              {t("extraction.verdictTable.columnSource")}
             </th>
             <th className="px-3 py-2 text-right text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-              States
+              {t("extraction.verdictTable.columnStates")}
             </th>
           </tr>
         </thead>
@@ -52,6 +54,7 @@ export function VerdictTable({ report }: VerdictTableProps) {
 }
 
 function Header({ report }: { report: VerifyReport }) {
+  const { t } = useI18n();
   const satisfied = report.property_verdicts.filter((v) => v.satisfied).length;
   const total = report.property_verdicts.length;
   return (
@@ -62,17 +65,18 @@ function Header({ report }: { report: VerifyReport }) {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
         <span>
           <span className="font-medium">{satisfied}</span> /{" "}
-          <span className="font-medium">{total}</span> properties satisfied
+          <span className="font-medium">{total}</span>{" "}
+          {t("extraction.verdictTable.propertiesSatisfied")}
         </span>
         <span>·</span>
         <span>
-          composition:{" "}
+          {t("extraction.verdictTable.compositionLabel")}{" "}
           <span className="font-mono">{report.composition.semantics}</span>{" "}
           <span className="font-mono">{report.composition.name}</span>
         </span>
         <span>·</span>
         <span>
-          members:{" "}
+          {t("extraction.verdictTable.membersLabel")}{" "}
           <span className="font-mono">
             {report.composition.members.join(", ")}
           </span>
@@ -83,14 +87,15 @@ function Header({ report }: { report: VerifyReport }) {
 }
 
 function VerdictRow({ verdict }: { verdict: VerifyPropertyVerdict }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const verdictClass = verdict.satisfied
     ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
     : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
   const sourceLabel =
     verdict.formula_source.kind === "template"
-      ? `template:${verdict.formula_source.id}`
-      : "inline";
+      ? `${t("extraction.verdictTable.sourceTemplatePrefix")}${verdict.formula_source.id}`
+      : t("extraction.verdictTable.sourceInline");
 
   return (
     <>
@@ -105,7 +110,9 @@ function VerdictRow({ verdict }: { verdict: VerifyPropertyVerdict }) {
           <span
             className={`inline-block rounded-full px-2 py-0.5 font-medium ${verdictClass}`}
           >
-            {verdict.satisfied ? "SATISFIED" : "VIOLATED"}
+            {verdict.satisfied
+              ? t("extraction.verdictTable.verdictSatisfied")
+              : t("extraction.verdictTable.verdictViolated")}
           </span>
         </td>
         <td className="px-3 py-2 text-xs font-mono text-gray-600 dark:text-gray-400">
@@ -124,7 +131,7 @@ function VerdictRow({ verdict }: { verdict: VerifyPropertyVerdict }) {
             <div className="space-y-2">
               <div>
                 <span className="font-medium text-gray-700 dark:text-gray-300">
-                  Formula:
+                  {t("extraction.verdictTable.formulaLabel")}
                 </span>
                 <pre className="mt-1 whitespace-pre-wrap break-words font-mono text-gray-600 dark:text-gray-400">
                   {verdict.formula}
@@ -132,11 +139,13 @@ function VerdictRow({ verdict }: { verdict: VerifyPropertyVerdict }) {
               </div>
               <div className="text-gray-600 dark:text-gray-400">
                 <span className="font-medium text-gray-700 dark:text-gray-300">
-                  Initial states:
+                  {t("extraction.verdictTable.initialStatesLabel")}
                 </span>{" "}
                 <span className="font-mono">
-                  {verdict.initial_satisfying.length} satisfying /{" "}
-                  {verdict.initial_states.length} total
+                  {t("extraction.verdictTable.satisfyingOfTotal", {
+                    satisfying: verdict.initial_satisfying.length,
+                    total: verdict.initial_states.length,
+                  })}
                 </span>
                 {verdict.initial_states.length > 0 && (
                   <span className="ml-2 font-mono">
@@ -148,7 +157,7 @@ function VerdictRow({ verdict }: { verdict: VerifyPropertyVerdict }) {
                 Object.keys(verdict.formula_source.args).length > 0 && (
                   <div className="text-gray-600 dark:text-gray-400">
                     <span className="font-medium text-gray-700 dark:text-gray-300">
-                      Template args:
+                      {t("extraction.verdictTable.templateArgsLabel")}
                     </span>{" "}
                     <span className="font-mono">
                       {Object.entries(verdict.formula_source.args)
