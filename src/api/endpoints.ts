@@ -1051,6 +1051,31 @@ export type VerifyPropertyFormulaSource =
   | { kind: "inline" }
   | { kind: "template"; id: string; args: Record<string, string> };
 
+/** One step inside a `VerifyTraceWitness`. */
+export interface VerifyTraceStep {
+  /** Label payload of the fired transition (comma-joined when multi-label). */
+  label: string;
+  /** Composed-state name entered after firing this transition. */
+  successor_state: string;
+}
+
+/** Reason a `VerifyTraceWitness` stopped at a particular step. */
+export type VerifyTraceTermination =
+  | { kind: "sink" }
+  | { kind: "cycle"; return_to_step: number }
+  | { kind: "length_limit" };
+
+/**
+ * Forward-walk witness from a violating initial state, attached to a
+ * `VerifyPropertyVerdict` when the verdict is unsatisfied. Mirrors
+ * `mununu_core::verify::report::TraceWitness`.
+ */
+export interface VerifyTraceWitness {
+  initial_state: string;
+  steps: VerifyTraceStep[];
+  termination: VerifyTraceTermination;
+}
+
 /** Per-property verdict. */
 export interface VerifyPropertyVerdict {
   name: string;
@@ -1062,6 +1087,8 @@ export interface VerifyPropertyVerdict {
   satisfying_states: number;
   initial_states: string[];
   initial_satisfying: string[];
+  /** Present only when `satisfied === false` and a witness was constructible. */
+  counterexample?: VerifyTraceWitness;
 }
 
 /** Top-level report from `POST /api/v1/verify`. */
