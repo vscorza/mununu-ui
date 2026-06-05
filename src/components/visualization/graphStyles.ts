@@ -148,6 +148,37 @@ export const startArrowEdgeStyle: StylesheetStyle = {
   },
 };
 
+/**
+ * R.5 Item K sub-item K.4 (2026-06-05) — KMTS may-only edge style.
+ * MayOnly transitions are over-approximations (in the abstract model
+ * but not guaranteed in every concrete instance). Rendered with a
+ * dotted line so reviewers can distinguish them from Sharp transitions
+ * at a glance. Override colour is intentionally muted to keep the
+ * Sharp/controllable/uncontrollable colour vocabulary load-bearing.
+ */
+export const mayOnlyEdgeStyle: StylesheetStyle = {
+  selector: 'edge[modality="may_only"]',
+  style: {
+    "line-style": "dotted",
+    width: 1.5,
+  },
+};
+
+/**
+ * R.5 Item K sub-item K.4 (2026-06-05) — KMTS must-hyper-only edge
+ * style. MustHyperOnly transitions are under-approximation witnesses
+ * (guaranteed in every concrete instance). Rendered with a thicker
+ * line. K.1b will widen this to support multi-target hyper-must
+ * visualisation; today every must-hyper carries a singleton target so
+ * the single-edge rendering is faithful.
+ */
+export const mustHyperOnlyEdgeStyle: StylesheetStyle = {
+  selector: 'edge[modality="must_hyper_only"]',
+  style: {
+    width: 3,
+  },
+};
+
 /** Selected edge highlight. */
 export const selectedEdgeStyle: StylesheetStyle = {
   selector: "edge:selected",
@@ -169,6 +200,12 @@ export const graphViewStyles: StylesheetStyle[] = [
   controllableEdgeStyle,
   uncontrollableEdgeStyle,
   startArrowEdgeStyle,
+  // KMTS modality overlays — keep AFTER the controllable/uncontrollable
+  // base styles so the modality attribute selectors win where they
+  // overlap (cytoscape applies later styles on top of earlier ones for
+  // properties the later selectors set).
+  mayOnlyEdgeStyle,
+  mustHyperOnlyEdgeStyle,
   selectedEdgeStyle,
 ];
 
