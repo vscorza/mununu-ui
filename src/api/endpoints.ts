@@ -119,6 +119,14 @@ export interface ContextImportRequest {
   sidecar?: string;
   /** Additional source files (for multi-module SV compositions). */
   additional_sources?: { name: string; content: string }[];
+  /**
+   * When `format === "sv-yosys"`, opt in to the sv2v preprocessor pass
+   * before Yosys elaboration. Required for modern open-source SV
+   * dialects (SV2009/2012 module-header `import pkg::*;`) that Yosys's
+   * built-in parser does not accept. Mirrors the CLI's
+   * `--preprocessor sv2v` flag. Ignored by all other formats.
+   */
+  use_sv2v?: boolean;
 }
 
 /**

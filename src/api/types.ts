@@ -1046,6 +1046,14 @@ export interface components {
           guard?: string | null;
           id: string;
           label?: string | null;
+          /** R.5 Item K sub-item K.4 (2026-06-05) — CTXDSL KMTS
+           *  modality on the transition: `"may_only"` /
+           *  `"must_hyper_only"`. Absent (or `null`) when the
+           *  transition is Sharp (the dominant case; pre-K.4
+           *  behaviour byte-for-byte) or when the edge isn't sourced
+           *  from a CLTS transition (start-arrows, controller
+           *  bridges). */
+          modality?: string | null;
           source: string;
           target: string;
           /** @enum {string} */
