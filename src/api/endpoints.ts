@@ -127,6 +127,42 @@ export interface ContextImportRequest {
    * `--preprocessor sv2v` flag. Ignored by all other formats.
    */
   use_sv2v?: boolean;
+  /**
+   * R.6.7 / V.6 (2026-06-09) — predicate set for the
+   * controllability-aware predicate-cube lift. Each entry is a
+   * {name, register, value} triple identifying a register-value
+   * equality predicate. When non-empty AND `controllable_inputs` is
+   * non-empty AND `format === "btor2"`, the backend's
+   * `predicate_cube_lift` is invoked + the resulting KMTS is
+   * returned. Mirrors the CLI's `--predicate NAME:REG=VALUE` flag
+   * on `mununu btor2 cegar`.
+   *
+   * SV-yosys routing (run sv2v + Yosys + lift in one call) is a
+   * follow-up; today the user runs `mununu sv emit-btor2-per-module`
+   * first to produce BTOR2 from SV, then sends the BTOR2 to this
+   * endpoint with the controllability-aware fields.
+   */
+  predicates?: PredicateSpecRequest[];
+  /**
+   * R.6.7 / V.6 (2026-06-09) — names of BTOR2 input symbols the
+   * controller drives. Mirrors the CLI's `--controllable-input`
+   * flag. When non-empty AND `predicates` is non-empty, opts the
+   * import path into the R.6.6 controllability-aware lift.
+   */
+  controllable_inputs?: string[];
+}
+
+/**
+ * R.6.7 / V.6 (2026-06-09) — predicate-spec request shape mirroring
+ * the backend `crate::api::models::PredicateSpecRequest`. The
+ * `name` is human-readable (e.g. `"burst_zero"`); the `register` is
+ * the BTOR2 symbol name; the `value` is the integer constant the
+ * predicate witnesses (`register == value`).
+ */
+export interface PredicateSpecRequest {
+  name: string;
+  register: string;
+  value: number;
 }
 
 /**

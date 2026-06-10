@@ -3,6 +3,7 @@ import { Toaster } from "react-hot-toast";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MainLayout } from "./components/layout/MainLayout";
 import { UnifiedEditor } from "./components/editors/UnifiedEditor";
+import { V6ControllabilityAwareLiftPanel } from "./components/v6/V6ControllabilityAwareLiftPanel";
 import { AnalyticsViewer } from "./components/common/AnalyticsViewer";
 import { OfflineIndicator } from "./components/common/OfflineIndicator";
 import { useAppStore } from "./store/appStore";
@@ -35,6 +36,7 @@ function App() {
         <KeyboardShortcutsProvider>
           <MainLayout>
             <Routes>
+              <Route path="/v6" element={<V6ControllabilityAwareLiftPanel />} />
               <Route path="*" element={<UnifiedEditor />} />
             </Routes>
           </MainLayout>
