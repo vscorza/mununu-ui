@@ -73,47 +73,25 @@ const rtlWorkflow: WorkflowDefinition = {
       timeout: "standard",
     },
     {
-      id: "init",
-      label: "Initialize Sidecar",
-      description:
-        "Auto-detect signals, inputs, and generate a .mununu.json sidecar with sensible defaults",
-      endpoint: "/sv/init",
-      optional: false,
-      repeatable: true,
-      requires: ["load"],
-      timeout: "standard",
-    },
-    {
-      id: "discover",
-      label: "SMT Discovery",
-      description:
-        "Find significant register values via Z3 SMT solver. Updates the sidecar with discovered values.",
-      endpoint: "/sv/discover",
-      optional: true,
-      repeatable: true,
-      requires: ["init"],
-      timeout: "extended",
-    },
-    {
       id: "edit_sidecar",
       label: "Edit Sidecar",
       description:
-        "Refine signal abstractions, properties, and controllability in the .mununu.json sidecar",
+        "Author / refine the .mununu.json sidecar (signal abstractions, properties, controllability). Auto-scaffolding and SMT value discovery moved to the `mununu btor2 discover` CLI when the native SV parser frontend was retired (S.2b).",
       endpoint: null,
       optional: true,
       repeatable: true,
-      requires: ["init"],
+      requires: ["load"],
       timeout: "standard",
     },
     {
       id: "translate",
       label: "Translate",
       description:
-        "Generate CTXDSL from SystemVerilog + sidecar. Builds the Kripke structure.",
+        "Generate CTXDSL from SystemVerilog + sidecar via the sv-yosys pipeline (sv2v → Yosys → BTOR2 → bit-blast). Builds the Kripke structure.",
       endpoint: "/context/import",
       optional: false,
       repeatable: true,
-      requires: ["init"],
+      requires: ["load"],
       timeout: "standard",
     },
     {
