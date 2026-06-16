@@ -4,6 +4,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MainLayout } from "./components/layout/MainLayout";
 import { UnifiedEditor } from "./components/editors/UnifiedEditor";
 import { V6ControllabilityAwareLiftPanel } from "./components/v6/V6ControllabilityAwareLiftPanel";
+import { RefinementTracePanel } from "./components/v6/RefinementTracePanel";
 import { AnalyticsViewer } from "./components/common/AnalyticsViewer";
 import { OfflineIndicator } from "./components/common/OfflineIndicator";
 import { useAppStore } from "./store/appStore";
@@ -37,6 +38,7 @@ function App() {
           <MainLayout>
             <Routes>
               <Route path="/v6" element={<V6ControllabilityAwareLiftPanel />} />
+              <Route path="/cegar" element={<RefinementTracePanel />} />
               <Route path="*" element={<UnifiedEditor />} />
             </Routes>
           </MainLayout>
