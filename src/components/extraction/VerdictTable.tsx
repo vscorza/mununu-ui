@@ -10,7 +10,11 @@
  */
 
 import { useState } from "react";
-import type { VerifyReport, VerifyPropertyVerdict } from "../../api/endpoints";
+import type {
+  VerifyReport,
+  VerifyPropertyVerdict,
+  VerifySourceSummary,
+} from "../../api/endpoints";
 import { CounterexampleTrace } from "./CounterexampleTrace";
 import { useI18n } from "../../hooks/useI18n";
 
@@ -23,6 +27,7 @@ export function VerdictTable({ report }: VerdictTableProps) {
   return (
     <div className="space-y-4">
       <Header report={report} />
+      <ClusterCoiSummary sources={report.sources} />
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-800/50">
           <tr>
@@ -82,6 +87,60 @@ function Header({ report }: { report: VerifyReport }) {
           </span>
         </span>
       </div>
+    </div>
+  );
+}
+
+/**
+ * R4W-3 (R.4 clustered-COI) — per-source joint-vs-clustered cone
+ * comparison. Rendered only for sources whose backend partition summary
+ * carries a `cluster_coi` report (the BTOR2 / `sv-yosys` route with
+ * declared properties); other sources contribute nothing, so the whole
+ * block is hidden when none apply.
+ */
+function ClusterCoiSummary({ sources }: { sources: VerifySourceSummary[] }) {
+  const { t } = useI18n();
+  const withClusterCoi = sources.filter((s) => s.partition_summary?.cluster_coi);
+  if (withClusterCoi.length === 0) {
+    return null;
+  }
+  return (
+    <div className="space-y-1 rounded border border-gray-200 bg-gray-50 p-3 text-xs dark:border-gray-700 dark:bg-gray-800/30">
+      <div className="font-medium text-gray-700 dark:text-gray-300">
+        {t("extraction.verdictTable.clusterCoiTitle")}
+      </div>
+      {withClusterCoi.map((s) => {
+        const cc = s.partition_summary!.cluster_coi!;
+        const reduced = cc.max_cluster_cone_size < cc.joint_cone_size;
+        return (
+          <div
+            key={s.id}
+            className="flex flex-wrap items-center gap-x-2 text-gray-600 dark:text-gray-400"
+          >
+            <span className="font-mono">{s.id}</span>
+            <span>
+              {t("extraction.verdictTable.clusterCoiSummary", {
+                joint: cc.joint_cone_size,
+                clusters: cc.clusters.length,
+                max: cc.max_cluster_cone_size,
+              })}
+            </span>
+            <span
+              className={
+                reduced
+                  ? "rounded-full bg-green-100 px-2 py-0.5 font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                  : "rounded-full bg-gray-200 px-2 py-0.5 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+              }
+            >
+              {reduced
+                ? t("extraction.verdictTable.clusterCoiReduction", {
+                    delta: cc.joint_cone_size - cc.max_cluster_cone_size,
+                  })
+                : t("extraction.verdictTable.clusterCoiNoReduction")}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

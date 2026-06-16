@@ -124,4 +124,76 @@ describe("VerdictTable", () => {
     await user.click(screen.getByText("done_reachable"));
     expect(screen.queryByText(/Counterexample \(from/)).not.toBeInTheDocument();
   });
+
+  it("does not render the clustered-COI block when no source carries one", () => {
+    render(<VerdictTable report={baseReport} />);
+    expect(
+      screen.queryByText(/Clustered cone-of-influence/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders the clustered-COI comparison + reduction badge when present", () => {
+    const withClusterCoi: VerifyReport = {
+      ...baseReport,
+      sources: [
+        {
+          id: "rtl",
+          adapter: "sv-yosys",
+          automaton: "Circuit",
+          partition_summary: {
+            total_signals: 6,
+            kept: 6,
+            dropped_coi: 0,
+            datapath_uf: 0,
+            state_bits_before: 6,
+            state_bits_after: 6,
+            cluster_coi: {
+              joint_cone_size: 4,
+              clusters: [
+                { members: ["propA"], cone_size: 2 },
+                { members: ["propB"], cone_size: 2 },
+              ],
+              max_cluster_cone_size: 2,
+            },
+          },
+        },
+      ],
+    };
+    render(<VerdictTable report={withClusterCoi} />);
+    expect(screen.getByText(/Clustered cone-of-influence/)).toBeInTheDocument();
+    // joint cone 4 · 2 cluster(s) · max cluster cone 2
+    expect(
+      screen.getByText(/joint cone 4 · 2 cluster\(s\) · max cluster cone 2/),
+    ).toBeInTheDocument();
+    // reduction badge: −2 signals vs joint COI
+    expect(screen.getByText(/−2 signals vs joint COI/)).toBeInTheDocument();
+  });
+
+  it("shows the no-reduction badge when clusters don't shrink the cone", () => {
+    const noReduction: VerifyReport = {
+      ...baseReport,
+      sources: [
+        {
+          id: "rtl",
+          adapter: "sv-yosys",
+          automaton: "Circuit",
+          partition_summary: {
+            total_signals: 4,
+            kept: 4,
+            dropped_coi: 0,
+            datapath_uf: 0,
+            state_bits_before: 4,
+            state_bits_after: 4,
+            cluster_coi: {
+              joint_cone_size: 4,
+              clusters: [{ members: ["propA", "propB"], cone_size: 4 }],
+              max_cluster_cone_size: 4,
+            },
+          },
+        },
+      ],
+    };
+    render(<VerdictTable report={noReduction} />);
+    expect(screen.getByText(/no reduction/)).toBeInTheDocument();
+  });
 });
