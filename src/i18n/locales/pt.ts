@@ -494,6 +494,12 @@ export const pt: typeof en = {
       initialStatesLabel: "Estados iniciais:",
       satisfyingOfTotal: "{satisfying} satisfazendo / {total} no total",
       templateArgsLabel: "Argumentos do modelo:",
+      clusterCoiTitle: "Cone de influência agrupado",
+      clusterCoiSummary:
+        "cone conjunto {joint} · {clusters} grupo(s) · cone máx. de grupo {max}",
+      clusterCoiReduction: "−{delta} sinais vs COI conjunto",
+      clusterCoiNoReduction:
+        "sem redução (os cones se sobrepõem ou há um único grupo)",
     },
     counterexample: {
       heading: "Contraexemplo (de",

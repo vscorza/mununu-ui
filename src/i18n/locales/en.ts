@@ -487,6 +487,11 @@ export const en = {
       initialStatesLabel: "Initial states:",
       satisfyingOfTotal: "{satisfying} satisfying / {total} total",
       templateArgsLabel: "Template args:",
+      clusterCoiTitle: "Clustered cone-of-influence",
+      clusterCoiSummary:
+        "joint cone {joint} · {clusters} cluster(s) · max cluster cone {max}",
+      clusterCoiReduction: "−{delta} signals vs joint COI",
+      clusterCoiNoReduction: "no reduction (cones overlap or single cluster)",
     },
     counterexample: {
       heading: "Counterexample (from",

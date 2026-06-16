@@ -1115,6 +1115,55 @@ export interface VerifyProjectRequest {
   config_toml?: string;
   /** Directory the source paths in the config resolve against. */
   base_dir: string;
+  /**
+   * R4W-3 (R.4 clustered-COI) — Jaccard similarity floor for the
+   * clustered cone-of-influence comparison the BTOR2 (`sv-yosys`) route
+   * reports per source. Overrides any `cluster_similarity_floor` in the
+   * supplied config / config_toml. Omitted → the backend's recommended
+   * `0.5`. Tighter (→ 1.0) approaches per-property COI; looser (→ 0.0)
+   * collapses toward joint COI.
+   */
+  cluster_similarity_floor?: number;
+}
+
+/**
+ * R4W-3 — one cluster's entry in a {@link VerifyClusterCoiReport}.
+ * Mirrors `adapter::partition::coi::ClusterCoiEntry`.
+ */
+export interface VerifyClusterCoiEntry {
+  /** Property names merged into this cluster. */
+  members: string[];
+  /** Signal count in this cluster's cone (its members' cone union). */
+  cone_size: number;
+}
+
+/**
+ * R4W-3 — joint-vs-clustered cone comparison the BTOR2 bit-blaster
+ * reports per source. Mirrors `adapter::partition::coi::ClusterCoiReport`.
+ * Clustering helps exactly when `max_cluster_cone_size < joint_cone_size`.
+ */
+export interface VerifyClusterCoiReport {
+  /** Signals a naive joint COI over all properties would keep. */
+  joint_cone_size: number;
+  /** Per-cluster entries (deterministic input order). */
+  clusters: VerifyClusterCoiEntry[];
+  /** Largest per-cluster cone — bounds independent per-cluster analysis. */
+  max_cluster_cone_size: number;
+}
+
+/**
+ * R4W-3 — per-source partition telemetry. Mirrors
+ * `adapter::partition::PartitionSummary`. `cluster_coi` is present only
+ * when the source ran the BTOR2 route with declared properties.
+ */
+export interface VerifyPartitionSummary {
+  total_signals: number;
+  kept: number;
+  dropped_coi: number;
+  datapath_uf: number;
+  state_bits_before: number | null;
+  state_bits_after: number | null;
+  cluster_coi?: VerifyClusterCoiReport;
 }
 
 /** Per-source diagnostic in the verify report. */
@@ -1122,6 +1171,8 @@ export interface VerifySourceSummary {
   id: string;
   adapter: string;
   automaton: string | null;
+  /** R4W-3 — partition / clustered-COI telemetry (BTOR2 route). */
+  partition_summary?: VerifyPartitionSummary;
 }
 
 /** Composition shape used for evaluation. */

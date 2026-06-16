@@ -88,6 +88,24 @@ describe("verifyProject (POST /verify)", () => {
     // demonstrates this; the assertion below makes the intent explicit.
     expect(aiApiClient.defaults.timeout).toBeGreaterThanOrEqual(60_000);
   });
+
+  it("forwards cluster_similarity_floor (R4W-3) in the request body", async () => {
+    const postSpy = vi.spyOn(aiApiClient, "post").mockResolvedValue({
+      data: mockReport,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as unknown,
+    });
+    const req: VerifyProjectRequest = {
+      config_toml: '[project]\nname = "Demo"\n',
+      base_dir: "/tmp/work",
+      cluster_similarity_floor: 0.7,
+    };
+    await verifyProject(req);
+    const [, payload] = postSpy.mock.calls[0];
+    expect((payload as VerifyProjectRequest).cluster_similarity_floor).toBe(0.7);
+  });
 });
 
 describe("adapter format / extension registries", () => {

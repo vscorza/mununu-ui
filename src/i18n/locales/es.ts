@@ -494,6 +494,12 @@ export const es: typeof en = {
       initialStatesLabel: "Estados iniciales:",
       satisfyingOfTotal: "{satisfying} satisfechos / {total} en total",
       templateArgsLabel: "Argumentos de plantilla:",
+      clusterCoiTitle: "Cono de influencia agrupado",
+      clusterCoiSummary:
+        "cono conjunto {joint} · {clusters} grupo(s) · cono máx. de grupo {max}",
+      clusterCoiReduction: "−{delta} señales frente al COI conjunto",
+      clusterCoiNoReduction:
+        "sin reducción (los conos se solapan o hay un solo grupo)",
     },
     counterexample: {
       heading: "Contraejemplo (desde",
