@@ -213,6 +213,115 @@ export const importContext = async (
   return response.data;
 };
 
+// CEGAR refinement-trace types (matches mununu backend /api/v1/btor2/cegar)
+
+/**
+ * U.0 (slot 6) — request for the CEGAR refinement endpoint
+ * (`POST /api/v1/btor2/cegar`). Mirrors the CLI `mununu btor2 cegar`:
+ * runs the predicate-abstraction-refinement loop over a BTOR2 design
+ * and returns the per-iteration refinement trace the viewer renders.
+ */
+export interface Btor2CegarRequest {
+  /** BTOR2 source content. */
+  content: string;
+  /** μ-calculus formula evaluated over the lifted KMTS. */
+  formula: string;
+  /**
+   * Initial predicate set (bootstraps the `2^|P|` cube space). At least
+   * one entry is required. Reuses the `{name, register, value}` shape.
+   */
+  predicates: PredicateSpecRequest[];
+  /**
+   * Optional R.6.6 controllability split — controller-driven input
+   * symbols (mirrors `--controllable-input`).
+   */
+  controllable_inputs?: string[];
+  /** Predicate-discovery source: `"wp"` (default) | `"craig"`. */
+  predicate_source?: string;
+  /** Max CEGAR iterations (default 16). */
+  max_iterations?: number;
+  /**
+   * Must-edge inference policy (kebab-case; default `"off"`):
+   * `"sampling-confluence"` | `"smt-per-target"` |
+   * `"smt-per-target-standard"` | `"smt-hyper-must"`.
+   */
+  must_edge_inference?: string;
+}
+
+/** Cell counts of a 3-valued (Kleene) verdict over the cube space. */
+export interface CegarVerdictSummary {
+  /** KleeneT (definitely-true) cells. */
+  true_cells: number;
+  /** KleeneF (definitely-false) cells. */
+  false_cells: number;
+  /** KleeneBot (unknown — needs refinement) cells. */
+  unknown_cells: number;
+}
+
+/** A predicate spec, response-shaped (`register == value`). */
+export interface PredicateView {
+  name: string;
+  register: string;
+  value: number;
+}
+
+/** One CEGAR iteration, viewer-shaped. */
+export interface CegarIterationView {
+  iteration: number;
+  /** Predicate-set size at the start of this iteration. */
+  predicate_count: number;
+  /**
+   * `true` iff this iteration's verdict carried `KleeneBot` cells
+   * (a failure subgame drove a refinement).
+   */
+  had_failure_subgame: boolean;
+  /** Predicates the source added in response to this iteration. */
+  predicates_added: PredicateView[];
+  /** Proxy counter for game-position evaluations (reuse diagnostics). */
+  game_position_evaluations: number;
+  /** Cell-count summary of this iteration's 3-valued verdict. */
+  verdict: CegarVerdictSummary;
+}
+
+/**
+ * U.0 — CEGAR refinement trace. Mirrors the backend
+ * `crate::adapter::btor2::cegar::CegarTrace`.
+ */
+export interface Btor2CegarResponse {
+  success: boolean;
+  /** Per-iteration refinement records (iteration 0 = initial evaluation). */
+  iterations: CegarIterationView[];
+  /** Predicate set at termination (initial + every added predicate). */
+  final_predicates: PredicateView[];
+  /**
+   * Why the loop stopped: `"converged"` |
+   * `"bounded-iterations-reached"` | `"predicate-source-exhausted"`.
+   */
+  terminated_with: string;
+  /** Cell-count summary of the final 3-valued verdict. */
+  verdict: CegarVerdictSummary;
+  /** `true` when the eager `predicate_cube_lift` was used (R.2.5 MVP). */
+  lazy_lift_pending: boolean;
+  /** Whether prior-iteration approximants were threaded forward. */
+  approximant_reuse_enabled: boolean;
+  /** Soundness / advisory warnings produced during the run. */
+  warnings: string[];
+}
+
+/**
+ * Run the CEGAR predicate-abstraction-refinement loop over a BTOR2
+ * design. Z3-heavy — uses the extended (`aiApiClient`, 120s) client.
+ */
+export const runBtor2Cegar = async (
+  request: Btor2CegarRequest,
+): Promise<Btor2CegarResponse> => {
+  const response = await aiApiClient.post<Btor2CegarResponse>(
+    "/btor2/cegar",
+    request,
+  );
+  return response.data;
+};
+
 // Adapter format file extensions that require translation via the import endpoint
 export const ADAPTER_EXTENSIONS = [
   "sv",
