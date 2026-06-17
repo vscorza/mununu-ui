@@ -1164,6 +1164,14 @@ export interface VerifyPartitionSummary {
   state_bits_before: number | null;
   state_bits_after: number | null;
   cluster_coi?: VerifyClusterCoiReport;
+  /**
+   * R46-4 (R.4.6) — per-cluster verification routing. Present ONLY when
+   * the joint design busted the backend state-bit cap and per-cluster
+   * verification kicked in: maps each property name to the cluster
+   * automaton (`Circuit__cl0`, …) its verdict was evaluated over. Absent
+   * on the joint path. Mirrors `PartitionSummary::cluster_routing`.
+   */
+  cluster_routing?: Record<string, string>;
 }
 
 /** Per-source diagnostic in the verify report. */

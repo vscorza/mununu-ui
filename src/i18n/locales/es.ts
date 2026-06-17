@@ -500,6 +500,8 @@ export const es: typeof en = {
       clusterCoiReduction: "−{delta} señales frente al COI conjunto",
       clusterCoiNoReduction:
         "sin reducción (los conos se solapan o hay un solo grupo)",
+      perClusterMode:
+        "por grupo: tope superado → {clusters} grupos verificados por separado",
     },
     counterexample: {
       heading: "Contraejemplo (desde",

@@ -196,4 +196,75 @@ describe("VerdictTable", () => {
     render(<VerdictTable report={noReduction} />);
     expect(screen.getByText(/no reduction/)).toBeInTheDocument();
   });
+
+  it("shows the per-cluster verification badge when cluster_routing is present", () => {
+    // R46-4 — when the joint design busts the cap, the backend verifies
+    // each cluster separately and reports cluster_routing.
+    const perCluster: VerifyReport = {
+      ...baseReport,
+      sources: [
+        {
+          id: "rtl",
+          adapter: "sv-yosys",
+          automaton: "Circuit",
+          partition_summary: {
+            total_signals: 6,
+            kept: 6,
+            dropped_coi: 0,
+            datapath_uf: 0,
+            state_bits_before: 6,
+            state_bits_after: 6,
+            cluster_coi: {
+              joint_cone_size: 4,
+              clusters: [
+                { members: ["propA"], cone_size: 2 },
+                { members: ["propB"], cone_size: 2 },
+              ],
+              max_cluster_cone_size: 2,
+            },
+            cluster_routing: {
+              propA: "Circuit__cl0",
+              propB: "Circuit__cl1",
+            },
+          },
+        },
+      ],
+    };
+    render(<VerdictTable report={perCluster} />);
+    // two distinct cluster automata → "2 clusters verified separately"
+    expect(
+      screen.getByText(/2 clusters verified separately/),
+    ).toBeInTheDocument();
+  });
+
+  it("does not show the per-cluster badge on the joint path (no cluster_routing)", () => {
+    const joint: VerifyReport = {
+      ...baseReport,
+      sources: [
+        {
+          id: "rtl",
+          adapter: "sv-yosys",
+          automaton: "Circuit",
+          partition_summary: {
+            total_signals: 4,
+            kept: 4,
+            dropped_coi: 0,
+            datapath_uf: 0,
+            state_bits_before: 4,
+            state_bits_after: 4,
+            cluster_coi: {
+              joint_cone_size: 4,
+              clusters: [
+                { members: ["propA"], cone_size: 2 },
+                { members: ["propB"], cone_size: 2 },
+              ],
+              max_cluster_cone_size: 2,
+            },
+          },
+        },
+      ],
+    };
+    render(<VerdictTable report={joint} />);
+    expect(screen.queryByText(/verified separately/)).not.toBeInTheDocument();
+  });
 });
