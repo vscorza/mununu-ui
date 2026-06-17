@@ -500,6 +500,8 @@ export const pt: typeof en = {
       clusterCoiReduction: "−{delta} sinais vs COI conjunto",
       clusterCoiNoReduction:
         "sem redução (os cones se sobrepõem ou há um único grupo)",
+      perClusterMode:
+        "por grupo: limite excedido → {clusters} grupos verificados separadamente",
     },
     counterexample: {
       heading: "Contraexemplo (de",
@@ -508,8 +510,7 @@ export const pt: typeof en = {
         "(sem transições de saída — o próprio estado inicial viola a fórmula)",
       terminatorSink: "terminou em um sumidouro (sem transições de saída)",
       terminatorCycle: "ciclo: retorna ao passo {step}",
-      terminatorCycleInitial:
-        "ciclo: retorna ao passo {step} (estado inicial)",
+      terminatorCycleInitial: "ciclo: retorna ao passo {step} (estado inicial)",
       terminatorLengthLimit: "rastro truncado no limite de 20 passos",
     },
   },

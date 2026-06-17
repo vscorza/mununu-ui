@@ -100,7 +100,9 @@ function Header({ report }: { report: VerifyReport }) {
  */
 function ClusterCoiSummary({ sources }: { sources: VerifySourceSummary[] }) {
   const { t } = useI18n();
-  const withClusterCoi = sources.filter((s) => s.partition_summary?.cluster_coi);
+  const withClusterCoi = sources.filter(
+    (s) => s.partition_summary?.cluster_coi,
+  );
   if (withClusterCoi.length === 0) {
     return null;
   }
@@ -138,6 +140,18 @@ function ClusterCoiSummary({ sources }: { sources: VerifySourceSummary[] }) {
                   })
                 : t("extraction.verdictTable.clusterCoiNoReduction")}
             </span>
+            {/* R46-4 — per-cluster verification mode: shown when the joint
+                design busted the backend state-bit cap and each cluster was
+                verified separately (cluster_routing present). */}
+            {s.partition_summary!.cluster_routing && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                {t("extraction.verdictTable.perClusterMode", {
+                  clusters: new Set(
+                    Object.values(s.partition_summary!.cluster_routing),
+                  ).size,
+                })}
+              </span>
+            )}
           </div>
         );
       })}

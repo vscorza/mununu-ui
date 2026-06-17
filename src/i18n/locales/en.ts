@@ -492,6 +492,8 @@ export const en = {
         "joint cone {joint} · {clusters} cluster(s) · max cluster cone {max}",
       clusterCoiReduction: "−{delta} signals vs joint COI",
       clusterCoiNoReduction: "no reduction (cones overlap or single cluster)",
+      perClusterMode:
+        "per-cluster: cap busted → {clusters} clusters verified separately",
     },
     counterexample: {
       heading: "Counterexample (from",
