@@ -66,6 +66,41 @@ describe("RefinementTracePanel", () => {
     expect(arg?.predicate_source).toBe("wp");
     expect(arg?.max_iterations).toBe(16);
     expect(arg?.content).toContain("state 1 r");
+    // M.6 parity defaults: may-edge off, no config-values.
+    expect(arg?.may_edge_inference).toBe("off");
+    expect(arg?.config_values).toEqual([]);
+  });
+
+  it("posts may_edge_inference and config_values when set (M.6 parity)", async () => {
+    const mocked = vi.mocked(endpoints.runBtor2Cegar);
+    mocked.mockResolvedValue({
+      success: true,
+      iterations: [],
+      final_predicates: [],
+      terminated_with: "converged",
+      verdict: { true_cells: 0, false_cells: 0, unknown_cells: 0 },
+      lazy_lift_pending: false,
+      approximant_reuse_enabled: false,
+      warnings: [],
+    });
+
+    render(<RefinementTracePanel />);
+    fireEvent.change(screen.getByLabelText("May-edge inference"), {
+      target: { value: "smt-all-pairs" },
+    });
+    fireEvent.change(screen.getByLabelText("Config values"), {
+      target: { value: "boot_fsm_ns=0,1,2,3,4,5,6,7\n" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /Run CEGAR refinement/i }),
+    );
+
+    await waitFor(() => {
+      expect(mocked).toHaveBeenCalledTimes(1);
+    });
+    const arg = mocked.mock.calls[0]?.[0];
+    expect(arg?.may_edge_inference).toBe("smt-all-pairs");
+    expect(arg?.config_values).toEqual(["boot_fsm_ns=0,1,2,3,4,5,6,7"]);
   });
 
   it("renders the iterations table and termination reason from the trace", async () => {

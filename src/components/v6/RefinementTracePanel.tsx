@@ -75,6 +75,8 @@ export const RefinementTracePanel = () => {
   const [predicateSource, setPredicateSource] = useState("wp");
   const [maxIterations, setMaxIterations] = useState("16");
   const [mustEdgeInference, setMustEdgeInference] = useState("off");
+  const [mayEdgeInference, setMayEdgeInference] = useState("off");
+  const [configValuesText, setConfigValuesText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<Btor2CegarResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -126,9 +128,11 @@ export const RefinementTracePanel = () => {
     }
     let predicates: PredicateSpecRequest[];
     let controllableInputs: string[];
+    let configValues: string[];
     try {
       predicates = parsePredicates(predicatesText);
       controllableInputs = parseLines(controllableInputsText);
+      configValues = parseLines(configValuesText);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       return;
@@ -152,6 +156,8 @@ export const RefinementTracePanel = () => {
         predicate_source: predicateSource,
         max_iterations: iterations,
         must_edge_inference: mustEdgeInference,
+        may_edge_inference: mayEdgeInference,
+        config_values: configValues,
       });
       setResult(response);
     } catch (e) {
@@ -304,12 +310,41 @@ export const RefinementTracePanel = () => {
             </select>
           </label>
           <label style={{ fontSize: "0.9rem" }}>
+            May-edge inference
+            <select
+              aria-label="May-edge inference"
+              value={mayEdgeInference}
+              onChange={(e) => setMayEdgeInference(e.target.value)}
+              style={{ width: "100%", marginTop: "0.25rem", padding: "0.3rem" }}
+            >
+              <option value="off">off</option>
+              <option value="smt-all-pairs">smt-all-pairs (sound)</option>
+            </select>
+          </label>
+          <label style={{ fontSize: "0.9rem" }}>
             Controllable inputs (one per line, optional)
             <textarea
               aria-label="Controllable inputs"
               value={controllableInputsText}
               onChange={(e) => setControllableInputsText(e.target.value)}
               placeholder="ctrl_g0"
+              style={{
+                width: "100%",
+                height: "60px",
+                marginTop: "0.25rem",
+                fontFamily: "monospace",
+                fontSize: "0.85rem",
+              }}
+            />
+          </label>
+          <label style={{ fontSize: "0.9rem" }}>
+            Config values (R-S8 symbolic init; one per line:{" "}
+            <code>REG=v1,v2,...</code>)
+            <textarea
+              aria-label="Config values"
+              value={configValuesText}
+              onChange={(e) => setConfigValuesText(e.target.value)}
+              placeholder="boot_fsm_ns=0,1,2,3,4,5,6,7"
               style={{
                 width: "100%",
                 height: "60px",
