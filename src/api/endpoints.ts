@@ -246,6 +246,19 @@ export interface Btor2CegarRequest {
    * `"smt-per-target-standard"` | `"smt-hyper-must"`.
    */
   must_edge_inference?: string;
+  /**
+   * May-edge inference policy (kebab-case; default `"off"`):
+   * `"smt-all-pairs"` for the sound all-pairs may-relation. Mirrors the
+   * CLI `--may-edge-inference`.
+   */
+  may_edge_inference?: string;
+  /**
+   * R-S8 symbolic-init config-values, one entry per register as
+   * `"REG=v1,v2,..."` (mirrors the CLI `--config-values`). Each register's
+   * admissible power-up set seeds the predicate-cube initial states. Needed
+   * for init-hazard properties (e.g. the M.4 Caliptra `boot_fsm_ns` CWE-1245).
+   */
+  config_values?: string[];
 }
 
 /** Cell counts of a 3-valued (Kleene) verdict over the cube space. */
