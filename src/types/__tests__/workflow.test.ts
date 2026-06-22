@@ -42,6 +42,17 @@ describe("workflow registry", () => {
     expect(verifyStep?.timeout).toBe("extended");
   });
 
+  it("registers the btor2 + CEGAR workflow (load -> cegar over /btor2/cegar)", () => {
+    const wf = getWorkflow("btor2");
+    expect(wf).toBeDefined();
+    expect(wf?.sourceExtensions).toContain(".btor2");
+    expect(wf?.steps.map((s) => s.id)).toEqual(["load", "cegar"]);
+    const cegarStep = wf?.steps.find((s) => s.id === "cegar");
+    expect(cegarStep?.endpoint).toBe("/btor2/cegar");
+    expect(cegarStep?.requires).toEqual(["load"]);
+    expect(cegarStep?.timeout).toBe("extended");
+  });
+
   it("getWorkflow returns undefined for unknown domains", () => {
     expect(getWorkflow("nonexistent")).toBeUndefined();
   });

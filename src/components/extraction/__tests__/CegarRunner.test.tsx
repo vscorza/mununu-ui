@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { RefinementTracePanel } from "../RefinementTracePanel";
+import { CegarRunner } from "../CegarRunner";
 import * as endpoints from "../../../api/endpoints";
 
 vi.mock("../../../api/endpoints", async () => {
@@ -13,21 +13,27 @@ vi.mock("../../../api/endpoints", async () => {
   };
 });
 
-describe("RefinementTracePanel", () => {
+describe("CegarRunner", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("renders the form with the BTOR2 template and a default formula", () => {
-    render(<RefinementTracePanel />);
-    expect(
-      screen.getByText(/CEGAR refinement-trace viewer/i),
-    ).toBeInTheDocument();
+    render(<CegarRunner />);
     expect(
       screen.getByRole("button", { name: /Run CEGAR refinement/i }),
     ).toBeInTheDocument();
     // Default formula preloaded in the formula input.
     expect(screen.getByLabelText("Formula")).toHaveValue("nu X. <true> X");
+    // Falls back to the example BTOR2 when no source is seeded.
+    const source = screen.getByLabelText("BTOR2 source") as HTMLTextAreaElement;
+    expect(source.value).toContain("state 1 r");
+  });
+
+  it("seeds the BTOR2 source from the initialBtor2 prop (extraction-tab flow)", () => {
+    const loaded = "1 sort bitvec 1\n3 state 1 my_reg\n";
+    render(<CegarRunner initialBtor2={loaded} />);
+    expect(screen.getByLabelText("BTOR2 source")).toHaveValue(loaded);
   });
 
   it("posts the BTOR2, formula, and parsed predicates to runBtor2Cegar", async () => {
@@ -52,7 +58,7 @@ describe("RefinementTracePanel", () => {
       warnings: [],
     });
 
-    render(<RefinementTracePanel />);
+    render(<CegarRunner />);
     fireEvent.click(
       screen.getByRole("button", { name: /Run CEGAR refinement/i }),
     );
@@ -88,7 +94,7 @@ describe("RefinementTracePanel", () => {
       warnings: [],
     });
 
-    render(<RefinementTracePanel />);
+    render(<CegarRunner />);
     fireEvent.change(screen.getByLabelText("May-edge inference"), {
       target: { value: "smt-all-pairs" },
     });
@@ -140,7 +146,7 @@ describe("RefinementTracePanel", () => {
       warnings: ["sample soundness warning"],
     });
 
-    render(<RefinementTracePanel />);
+    render(<CegarRunner />);
     fireEvent.click(
       screen.getByRole("button", { name: /Run CEGAR refinement/i }),
     );
@@ -171,8 +177,8 @@ describe("RefinementTracePanel", () => {
       ctxdsl: "context cegar_model {\n  automaton lifted_kmts {\n  }\n}\n",
     });
 
-    render(<RefinementTracePanel />);
-    // Opt in via the "Emit CTXDSL" checkbox (the only checkbox in the panel).
+    render(<CegarRunner />);
+    // Opt in via the "Emit CTXDSL" checkbox (the only checkbox in the form).
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(
       screen.getByRole("button", { name: /Run CEGAR refinement/i }),
@@ -195,7 +201,7 @@ describe("RefinementTracePanel", () => {
 
   it("blocks submission and shows an error when predicates are malformed", async () => {
     const mocked = vi.mocked(endpoints.runBtor2Cegar);
-    render(<RefinementTracePanel />);
+    render(<CegarRunner />);
     fireEvent.change(screen.getByLabelText("Initial predicates"), {
       target: { value: "bad row without three fields\n" },
     });

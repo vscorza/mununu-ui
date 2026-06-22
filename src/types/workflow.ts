@@ -323,6 +323,39 @@ const langgraphWorkflow: WorkflowDefinition = {
   ],
 };
 
+const btor2Workflow: WorkflowDefinition = {
+  domain: "btor2",
+  displayName: "BTOR2 + CEGAR",
+  description:
+    "Predicate-abstraction refinement (CEGAR) over a BTOR2 design. Lifts to a KMTS predicate cube and evaluates a μ-calculus formula with the 3-valued { T, F, ⊥ } verdict, refining on ⊥. (Produce BTOR2 from SV with `mununu sv emit-btor2-per-module`.)",
+  sourceExtensions: [".btor2", ".btor"],
+  sidecarSchema: null,
+  sidecarExtension: "",
+  steps: [
+    {
+      id: "load",
+      label: "Load BTOR2",
+      description: "Load a BTOR2 design file (.btor2 / .btor)",
+      endpoint: null,
+      optional: false,
+      repeatable: false,
+      requires: [],
+      timeout: "standard",
+    },
+    {
+      id: "cegar",
+      label: "Run CEGAR",
+      description:
+        "Configure the formula + initial predicate set + refinement options, then run the CEGAR loop and inspect the per-iteration refinement trace and 3-valued verdict.",
+      endpoint: "/btor2/cegar",
+      optional: false,
+      repeatable: true,
+      requires: ["load"],
+      timeout: "extended",
+    },
+  ],
+};
+
 const verifyProjectWorkflow: WorkflowDefinition = {
   domain: "verify-project",
   displayName: "Verify Project (verify.toml)",
@@ -377,6 +410,7 @@ export const WORKFLOW_REGISTRY: Record<string, WorkflowDefinition> = {
   xstate: xstateWorkflow,
   crewai: crewaiWorkflow,
   langgraph: langgraphWorkflow,
+  btor2: btor2Workflow,
   "verify-project": verifyProjectWorkflow,
 };
 
