@@ -259,6 +259,13 @@ export interface Btor2CegarRequest {
    * for init-hazard properties (e.g. the M.4 Caliptra `boot_fsm_ns` CWE-1245).
    */
   config_values?: string[];
+  /**
+   * CTXDSL Phase 2 — opt-in (default `false`): when `true`, the response
+   * carries a `ctxdsl` field with the final refined cube model + the checked
+   * formula as a self-contained CTXDSL document. Mirrors the CLI
+   * `--emit-ctxdsl`.
+   */
+  emit_ctxdsl?: boolean;
 }
 
 /** Cell counts of a 3-valued (Kleene) verdict over the cube space. */
@@ -319,6 +326,11 @@ export interface Btor2CegarResponse {
   approximant_reuse_enabled: boolean;
   /** Soundness / advisory warnings produced during the run. */
   warnings: string[];
+  /**
+   * CTXDSL Phase 2 — the final refined cube model + the checked formula as
+   * CTXDSL, present only when the request set `emit_ctxdsl: true`.
+   */
+  ctxdsl?: string;
 }
 
 /**
