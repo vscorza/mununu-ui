@@ -104,6 +104,17 @@ const rtlWorkflow: WorkflowDefinition = {
       requires: ["translate"],
       timeout: "extended",
     },
+    {
+      id: "cegar",
+      label: "CEGAR (predicate abstraction)",
+      description:
+        "SV-direct predicate-abstraction refinement: lift SV → flattened BTOR2 (sv2v + Yosys) → KMTS predicate cube → μ-calculus 3-valued { T, F, ⊥ } verdict, refining on ⊥. An alternative to the bit-blast Translate→Verify path for designs whose state space exceeds the explicit cap. Needs only the loaded SV.",
+      endpoint: "/sv/cegar",
+      optional: true,
+      repeatable: true,
+      requires: ["load"],
+      timeout: "extended",
+    },
   ],
 };
 

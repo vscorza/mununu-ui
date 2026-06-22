@@ -42,6 +42,17 @@ describe("workflow registry", () => {
     expect(verifyStep?.timeout).toBe("extended");
   });
 
+  it("rtl workflow offers an optional SV-direct CEGAR step over /sv/cegar", () => {
+    const wf = getWorkflow("rtl");
+    expect(wf).toBeDefined();
+    const cegarStep = wf?.steps.find((s) => s.id === "cegar");
+    expect(cegarStep, "rtl workflow must have a cegar step").toBeDefined();
+    expect(cegarStep?.endpoint).toBe("/sv/cegar");
+    expect(cegarStep?.optional).toBe(true);
+    expect(cegarStep?.requires).toEqual(["load"]);
+    expect(cegarStep?.timeout).toBe("extended");
+  });
+
   it("registers the btor2 + CEGAR workflow (load -> cegar over /btor2/cegar)", () => {
     const wf = getWorkflow("btor2");
     expect(wf).toBeDefined();

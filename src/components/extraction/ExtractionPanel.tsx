@@ -14,6 +14,7 @@ import { ExtractConfigEditor } from "./ExtractConfigEditor";
 import { resolveAdapterFormat } from "./adapterFormat";
 import { VerdictTable } from "./VerdictTable";
 import { CegarRunner } from "./CegarRunner";
+import { SvCegarRunner } from "./SvCegarRunner";
 
 /**
  * Map a source file name (e.g. `index.ts`, `worker.py`) to the language
@@ -517,17 +518,24 @@ function StepContent({ step }: { step: WorkflowStep }) {
     );
   }
 
-  // CEGAR step (btor2 workflow) — the consolidated home of the former
-  // standalone `/cegar` page. Self-contained: CegarRunner owns the form +
-  // the `POST /api/v1/btor2/cegar` call + the refinement-trace rendering,
-  // seeded with the BTOR2 loaded in the previous step.
+  // CEGAR step — predicate-abstraction refinement, self-contained (the
+  // runner owns the form + API call + refinement-trace rendering). Two
+  // flavours by domain:
+  //   - `rtl`   → SvCegarRunner: SV-direct (POST /api/v1/sv/cegar), the
+  //     backend lifts the loaded SV to BTOR2 first (Stage 2).
+  //   - `btor2` → CegarRunner: BTOR2-direct (POST /api/v1/btor2/cegar),
+  //     seeded with the BTOR2 loaded in the previous step (Stage 1).
   if (step.id === "cegar") {
     return (
       <div className="space-y-3">
         <p className="text-sm text-gray-500 dark:text-gray-400">
           {step.description}
         </p>
-        <CegarRunner initialBtor2={state.sourceContent} />
+        {state.activeWorkflow?.domain === "rtl" ? (
+          <SvCegarRunner />
+        ) : (
+          <CegarRunner initialBtor2={state.sourceContent} />
+        )}
       </div>
     );
   }
