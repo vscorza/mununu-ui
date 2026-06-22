@@ -1,3 +1,5 @@
+import { DownloadJsonButton } from "../common/DownloadJsonButton";
+
 interface LassoTrace {
   prefix: string[];
   cycle: string[];
@@ -44,7 +46,17 @@ export const LassoTraceViewer = ({ traces, title }: LassoTraceViewerProps) => {
 
   return (
     <div className="lasso-trace-viewer">
-      <h3 className="lasso-trace-viewer__title">{title}</h3>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "0.75rem",
+        }}
+      >
+        <h3 className="lasso-trace-viewer__title">{title}</h3>
+        <DownloadJsonButton data={traces} filename="lasso_traces.json" />
+      </div>
       {traces.map((trace, index) => (
         <div key={index} className="lasso-trace-viewer__trace">
           <span className="lasso-trace-viewer__label">Trace {index + 1}:</span>
@@ -56,11 +68,7 @@ export const LassoTraceViewer = ({ traces, title }: LassoTraceViewerProps) => {
               </span>
             ))}
             {trace.prefix.length > 0 && trace.cycle.length > 0 && (
-              <Arrow
-                label={
-                  trace.prefix_labels?.[trace.prefix.length - 1]
-                }
-              />
+              <Arrow label={trace.prefix_labels?.[trace.prefix.length - 1]} />
             )}
             {trace.cycle.length > 0 && (
               <span className="lasso-trace-viewer__cycle">
