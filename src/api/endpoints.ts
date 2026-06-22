@@ -347,6 +347,54 @@ export const runBtor2Cegar = async (
   return response.data;
 };
 
+/**
+ * cegar-extraction Stage 2 — SV-direct CEGAR request
+ * (`POST /api/v1/sv/cegar`). Mirrors the CLI `mununu sv cegar`: the
+ * backend lifts SystemVerilog to a flattened BTOR2 (sv2v + Yosys) and
+ * runs the same refinement loop as `/btor2/cegar`, returning the same
+ * {@link Btor2CegarResponse}. The CEGAR fields match {@link Btor2CegarRequest};
+ * only the source half differs (SV + Yosys options instead of raw BTOR2).
+ */
+export interface SvCegarRequest {
+  /** SystemVerilog primary source content. */
+  source: string;
+  /** Additional SV source files (packages / sub-modules / includes). */
+  additional_sources?: { name: string; content: string }[];
+  /** Top module name (Yosys auto-detects when omitted). */
+  top?: string;
+  /** Run sv2v before Yosys (modern SV). */
+  use_sv2v?: boolean;
+  /** Yosys `setundef -anyseq` (per-cycle havoc). */
+  setundef_anyseq?: boolean;
+  /** Yosys `setundef -anyconst` (constant power-up nondeterminism). */
+  setundef_anyconst?: boolean;
+  // --- CEGAR params (identical to Btor2CegarRequest) ---
+  formula: string;
+  predicates: PredicateSpecRequest[];
+  controllable_inputs?: string[];
+  predicate_source?: string;
+  max_iterations?: number;
+  must_edge_inference?: string;
+  may_edge_inference?: string;
+  config_values?: string[];
+  emit_ctxdsl?: boolean;
+}
+
+/**
+ * Run SV-direct CEGAR in one call: lift SV (sv2v + Yosys) → BTOR2 →
+ * refinement loop. sv2v/Yosys/Z3-heavy — uses the extended
+ * (`aiApiClient`, 120s) client.
+ */
+export const runSvCegar = async (
+  request: SvCegarRequest,
+): Promise<Btor2CegarResponse> => {
+  const response = await aiApiClient.post<Btor2CegarResponse>(
+    "/sv/cegar",
+    request,
+  );
+  return response.data;
+};
+
 // Adapter format file extensions that require translation via the import endpoint
 export const ADAPTER_EXTENSIONS = [
   "sv",

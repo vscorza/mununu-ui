@@ -1,49 +1,41 @@
 /**
- * CegarRunner — the interactive CEGAR refinement runner.
+ * SvCegarRunner — SV-direct CEGAR in the extraction tab (Stage 2).
  *
- * The predicate-abstraction-refinement loop (R.5) over a BTOR2 design:
- * lift to a KMTS predicate cube, evaluate a μ-calculus formula with the
- * 3-valued { T, F, ⊥ } verdict, and refine on ⊥. Surface peer of the CLI
- * `mununu btor2 cegar` and the `POST /api/v1/btor2/cegar` endpoint.
+ * The SystemVerilog RTL workflow's CEGAR step. Reads the loaded SV (+ any
+ * additional sources) from the extraction store, takes a μ-calculus
+ * formula + an initial predicate set + the refinement/lift options, and
+ * posts to `POST /api/v1/sv/cegar` — the backend lifts SV → flattened
+ * BTOR2 (sv2v + Yosys) and runs the same refinement loop as the
+ * BTOR2-direct path. The trace rendering is delegated to the reusable
+ * {@link CegarTraceView}. Surface peer of the CLI `mununu sv cegar`.
  *
- * This is the consolidated home of what used to be the standalone
- * `/cegar` page (`RefinementTracePanel`). It is embedded in the
- * extraction tab's BTOR2 → CEGAR step, seeded with the loaded BTOR2 via
- * `initialBtor2`, so SV/BTOR2 → CEGAR is one flow. The trace rendering is
- * delegated to the reusable {@link CegarTraceView}.
- *
- * SV-direct input (the UI runs sv2v + Yosys + lift + CEGAR in one call)
- * is a Stage-2 follow-up; today the BTOR2 is produced by loading a
- * `.btor2` file or running `mununu sv emit-btor2-per-module` first.
+ * This is the SV half of cegar-extraction Stage 2: it lets a user extract
+ * SV → run CEGAR → see the refinement trace without leaving the tab or
+ * hand-running `mununu sv emit-btor2-per-module`.
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "../common/Button";
 import {
-  runBtor2Cegar,
+  runSvCegar,
   PredicateSpecRequest,
   Btor2CegarResponse,
 } from "../../api/endpoints";
+import { useExtractionStore } from "../../store/extractionStore";
 import { CegarTraceView } from "./CegarTraceView";
 import { parsePredicates, parseLines } from "./cegarParsing";
 
-// A small but valid BTOR2 template: a 1-bit register `r` initialised to
-// 0 whose next value is a free input. Always has a successor, so
-// `nu X. <true> X` evaluates true. The user edits this for their design.
-const EXAMPLE_BTOR2 = `1 sort bitvec 1
-2 zero 1
-3 state 1 r
-4 input 1 in
-5 next 1 3 4
-6 init 1 3 2
-`;
+type SetundefPolicy = "zero" | "anyconst" | "anyseq";
 
-export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
-  const [btor2Content, setBtor2Content] = useState(
-    initialBtor2 && initialBtor2.trim() ? initialBtor2 : EXAMPLE_BTOR2,
-  );
+export const SvCegarRunner = () => {
+  const { sourceContent, sourceFileName, additionalSources } =
+    useExtractionStore();
+
   const [formula, setFormula] = useState("nu X. <true> X");
-  const [predicatesText, setPredicatesText] = useState("r_zero, r, 0\n");
+  const [predicatesText, setPredicatesText] = useState("");
+  const [top, setTop] = useState("");
+  const [useSv2v, setUseSv2v] = useState(true);
+  const [setundefPolicy, setSetundefPolicy] = useState<SetundefPolicy>("zero");
   const [controllableInputsText, setControllableInputsText] = useState("");
   const [predicateSource, setPredicateSource] = useState("wp");
   const [maxIterations, setMaxIterations] = useState("16");
@@ -55,25 +47,11 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
   const [result, setResult] = useState<Btor2CegarResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Re-seed the BTOR2 source when the upstream load step swaps the file.
-  // Only fires when `initialBtor2` (the prop) actually changes, so local
-  // edits to the textarea are preserved across re-renders.
-  useEffect(() => {
-    if (initialBtor2 && initialBtor2.trim()) {
-      setBtor2Content(initialBtor2);
-    }
-  }, [initialBtor2]);
-
-  const handleFileUpload = async (file: File) => {
-    const text = await file.text();
-    setBtor2Content(text);
-  };
-
   const handleRunCegar = async () => {
     setError(null);
     setResult(null);
-    if (!btor2Content.trim()) {
-      setError("BTOR2 source is empty.");
+    if (!sourceContent.trim()) {
+      setError("No SystemVerilog source loaded — complete the Load step first.");
       return;
     }
     if (!formula.trim()) {
@@ -92,7 +70,7 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
       return;
     }
     if (predicates.length === 0) {
-      setError("At least one predicate required.");
+      setError("At least one predicate required to bootstrap the cube space.");
       return;
     }
     const iterations = Number(maxIterations);
@@ -102,8 +80,16 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
     }
     setIsLoading(true);
     try {
-      const response = await runBtor2Cegar({
-        content: btor2Content,
+      const response = await runSvCegar({
+        source: sourceContent,
+        additional_sources: additionalSources.map((s) => ({
+          name: s.name,
+          content: s.content,
+        })),
+        top: top.trim() || undefined,
+        use_sv2v: useSv2v,
+        setundef_anyseq: setundefPolicy === "anyseq",
+        setundef_anyconst: setundefPolicy === "anyconst",
         formula,
         predicates,
         controllable_inputs: controllableInputs,
@@ -117,9 +103,7 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
       setResult(response);
     } catch (e) {
       setError(
-        e instanceof Error
-          ? e.message
-          : "Unknown error from /api/v1/btor2/cegar",
+        e instanceof Error ? e.message : "Unknown error from /api/v1/sv/cegar",
       );
     } finally {
       setIsLoading(false);
@@ -129,50 +113,37 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
   return (
     <div style={{ fontFamily: "sans-serif" }}>
       <p style={{ color: "var(--text-secondary, #666)" }}>
-        Runs the predicate-abstraction-refinement loop (R.5) over a BTOR2 design
-        and renders the per-iteration trace: which predicates were added,
-        whether a failure subgame drove the refinement, and how the 3-valued{" "}
-        <code>{"{ T, F, ⊥ }"}</code> verdict converges. Surface peer of the CLI{" "}
-        <code>mununu btor2 cegar</code> and the{" "}
-        <code>POST /api/v1/btor2/cegar</code> endpoint.
+        Runs SV-direct CEGAR: the backend lifts the loaded SystemVerilog to a
+        flattened BTOR2 (sv2v + Yosys) and runs the
+        predicate-abstraction-refinement loop (R.5), rendering the per-iteration
+        trace and the 3-valued <code>{"{ T, F, ⊥ }"}</code> verdict. Surface
+        peer of the CLI <code>mununu sv cegar</code> and the{" "}
+        <code>POST /api/v1/sv/cegar</code> endpoint.
       </p>
 
-      <section style={{ marginTop: "1.5rem" }}>
-        <h3>1. BTOR2 source</h3>
-        <p style={{ fontSize: "0.9rem", color: "var(--text-secondary, #666)" }}>
-          The design lifted to a KMTS. Loaded from the previous step (editable).
-          Paste BTOR2 text or upload a .btor2 file. For SV input, run{" "}
-          <code>mununu sv emit-btor2-per-module</code> first to produce the
-          BTOR2.
-        </p>
-        <input
-          type="file"
-          accept=".btor2,.btor"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFileUpload(file);
-          }}
-          style={{ marginBottom: "0.5rem" }}
-        />
-        <textarea
-          aria-label="BTOR2 source"
-          value={btor2Content}
-          onChange={(e) => setBtor2Content(e.target.value)}
-          placeholder="; BTOR2 source..."
-          style={{
-            width: "100%",
-            height: "160px",
-            fontFamily: "monospace",
-            fontSize: "0.85rem",
-          }}
-        />
+      <section style={{ marginTop: "1rem" }}>
+        <strong>SystemVerilog source:</strong>{" "}
+        {sourceFileName ? (
+          <code>{sourceFileName}</code>
+        ) : (
+          <span style={{ color: "var(--error-text, #c00)" }}>
+            none loaded — complete the Load step
+          </span>
+        )}
+        {additionalSources.length > 0 && (
+          <span style={{ color: "var(--text-secondary, #666)" }}>
+            {" "}
+            (+{additionalSources.length} additional source
+            {additionalSources.length !== 1 ? "s" : ""})
+          </span>
+        )}
       </section>
 
       <section style={{ marginTop: "1.5rem" }}>
-        <h3>2. Formula</h3>
+        <h3>1. Formula</h3>
         <p style={{ fontSize: "0.9rem", color: "var(--text-secondary, #666)" }}>
           The μ-calculus formula evaluated over the lifted KMTS. Example:{" "}
-          <code>nu X. {"<true>"} X</code> (a successor always exists).
+          <code>nu X. {"<true>"} X</code>.
         </p>
         <input
           type="text"
@@ -189,16 +160,17 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
       </section>
 
       <section style={{ marginTop: "1.5rem" }}>
-        <h3>3. Initial predicates</h3>
+        <h3>2. Initial predicates</h3>
         <p style={{ fontSize: "0.9rem", color: "var(--text-secondary, #666)" }}>
           One per line, comma-separated: <code>name, register, value</code>.
-          These bootstrap the <code>2^|P|</code> predicate-cube space. Example:{" "}
-          <code>r_zero, r, 0</code>.
+          Register names are the design's post-elaboration state cells (e.g.{" "}
+          <code>boot_fsm_ns</code>). Example: <code>idle, boot_fsm_ns, 0</code>.
         </p>
         <textarea
           aria-label="Initial predicates"
           value={predicatesText}
           onChange={(e) => setPredicatesText(e.target.value)}
+          placeholder="idle, boot_fsm_ns, 0"
           style={{
             width: "100%",
             height: "90px",
@@ -209,7 +181,7 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
       </section>
 
       <section style={{ marginTop: "1.5rem" }}>
-        <h3>4. Options</h3>
+        <h3>3. Lift + refinement options</h3>
         <div
           style={{
             display: "grid",
@@ -217,6 +189,39 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
             gap: "1rem",
           }}
         >
+          <label style={{ fontSize: "0.9rem" }}>
+            Top module (optional)
+            <input
+              type="text"
+              aria-label="Top module"
+              value={top}
+              onChange={(e) => setTop(e.target.value)}
+              placeholder="(auto-detect)"
+              style={{
+                width: "100%",
+                marginTop: "0.25rem",
+                padding: "0.3rem",
+                fontFamily: "monospace",
+              }}
+            />
+          </label>
+          <label style={{ fontSize: "0.9rem" }}>
+            Undefined-net policy
+            <select
+              aria-label="Undefined-net policy"
+              value={setundefPolicy}
+              onChange={(e) =>
+                setSetundefPolicy(e.target.value as SetundefPolicy)
+              }
+              style={{ width: "100%", marginTop: "0.25rem", padding: "0.3rem" }}
+            >
+              <option value="zero">zero (deterministic; masks bugs)</option>
+              <option value="anyconst">
+                anyconst (constant power-up nondeterminism)
+              </option>
+              <option value="anyseq">anyseq (per-cycle havoc)</option>
+            </select>
+          </label>
           <label style={{ fontSize: "0.9rem" }}>
             Predicate source
             <select
@@ -301,6 +306,22 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
                 fontSize: "0.85rem",
               }}
             />
+          </label>
+          <label
+            style={{
+              fontSize: "0.9rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <input
+              type="checkbox"
+              aria-label="Run sv2v before Yosys"
+              checked={useSv2v}
+              onChange={(e) => setUseSv2v(e.target.checked)}
+            />
+            Run sv2v before Yosys (modern SV)
           </label>
           <label
             style={{
