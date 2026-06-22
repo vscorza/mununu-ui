@@ -1,0 +1,53 @@
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { CegarTraceView } from "../CegarTraceView";
+import type { Btor2CegarResponse } from "../../../api/endpoints";
+
+const baseResult: Btor2CegarResponse = {
+  success: true,
+  iterations: [
+    {
+      iteration: 0,
+      predicate_count: 2,
+      had_failure_subgame: true,
+      predicates_added: [{ name: "p1", register: "boot_fsm_ns", value: 5 }],
+      game_position_evaluations: 12,
+      verdict: { true_cells: 6, false_cells: 1, unknown_cells: 1 },
+    },
+  ],
+  final_predicates: [{ name: "p1", register: "boot_fsm_ns", value: 5 }],
+  terminated_with: "converged",
+  verdict: { true_cells: 7, false_cells: 1, unknown_cells: 0 },
+  lazy_lift_pending: false,
+  approximant_reuse_enabled: false,
+  warnings: [],
+};
+
+describe("CegarTraceView", () => {
+  it("renders the termination reason, 3-valued verdict, and final predicates", () => {
+    render(<CegarTraceView result={baseResult} />);
+    expect(screen.getByText(/Refinement trace/i)).toBeInTheDocument();
+    expect(screen.getByText("converged")).toBeInTheDocument();
+    // The added predicate renders in the iterations table.
+    expect(screen.getByText("boot_fsm_ns==5")).toBeInTheDocument();
+    // Final predicate set renders.
+    expect(screen.getByText(/p1: boot_fsm_ns == 5/i)).toBeInTheDocument();
+  });
+
+  it("renders warnings and the model CTXDSL download when present", () => {
+    render(
+      <CegarTraceView
+        result={{
+          ...baseResult,
+          warnings: ["soundness note"],
+          ctxdsl: "context m {\n  automaton a {\n  }\n}\n",
+        }}
+      />,
+    );
+    expect(screen.getByText("soundness note")).toBeInTheDocument();
+    expect(screen.getByText(/Model CTXDSL/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Download \.ctxdsl/i }),
+    ).toBeInTheDocument();
+  });
+});

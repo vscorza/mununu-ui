@@ -1,10 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MainLayout } from "./components/layout/MainLayout";
 import { UnifiedEditor } from "./components/editors/UnifiedEditor";
 import { V6ControllabilityAwareLiftPanel } from "./components/v6/V6ControllabilityAwareLiftPanel";
-import { RefinementTracePanel } from "./components/v6/RefinementTracePanel";
 import { AnalyticsViewer } from "./components/common/AnalyticsViewer";
 import { OfflineIndicator } from "./components/common/OfflineIndicator";
 import { useAppStore } from "./store/appStore";
@@ -38,7 +37,13 @@ function App() {
           <MainLayout>
             <Routes>
               <Route path="/v6" element={<V6ControllabilityAwareLiftPanel />} />
-              <Route path="/cegar" element={<RefinementTracePanel />} />
+              {/*
+                The standalone /cegar page was consolidated into the
+                extraction tab (Extraction → "BTOR2 + CEGAR" domain).
+                Redirect bookmarked /cegar links to the editor for one
+                release; CEGAR now lives under the extraction workflow.
+              */}
+              <Route path="/cegar" element={<Navigate to="/" replace />} />
               <Route path="*" element={<UnifiedEditor />} />
             </Routes>
           </MainLayout>

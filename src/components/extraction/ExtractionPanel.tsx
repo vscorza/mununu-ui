@@ -13,6 +13,7 @@ import { CompositionEditor } from "./CompositionEditor";
 import { ExtractConfigEditor } from "./ExtractConfigEditor";
 import { resolveAdapterFormat } from "./adapterFormat";
 import { VerdictTable } from "./VerdictTable";
+import { CegarRunner } from "./CegarRunner";
 
 /**
  * Map a source file name (e.g. `index.ts`, `worker.py`) to the language
@@ -512,6 +513,21 @@ function StepContent({ step }: { step: WorkflowStep }) {
             No sidecar generated yet. Complete the init/extract step first.
           </div>
         )}
+      </div>
+    );
+  }
+
+  // CEGAR step (btor2 workflow) — the consolidated home of the former
+  // standalone `/cegar` page. Self-contained: CegarRunner owns the form +
+  // the `POST /api/v1/btor2/cegar` call + the refinement-trace rendering,
+  // seeded with the BTOR2 loaded in the previous step.
+  if (step.id === "cegar") {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {step.description}
+        </p>
+        <CegarRunner initialBtor2={state.sourceContent} />
       </div>
     );
   }
