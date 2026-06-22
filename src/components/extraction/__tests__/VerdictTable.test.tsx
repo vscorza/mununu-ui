@@ -77,6 +77,31 @@ describe("VerdictTable", () => {
     expect(screen.getByText(/TARGET = done/)).toBeInTheDocument();
   });
 
+  it("renders the 3-valued { T, F, ⊥ } summary in the expanded row when present (P3.1)", async () => {
+    const user = userEvent.setup();
+    const report: VerifyReport = {
+      ...baseReport,
+      property_verdicts: [
+        {
+          ...baseReport.property_verdicts[0],
+          name: "needs_refinement",
+          // A predicate-cube-style verdict with a KleeneBot cell (what
+          // the P3.3 cube path will emit; here it proves the renderer).
+          initial_verdict_summary: {
+            true_cells: 1,
+            false_cells: 0,
+            unknown_cells: 1,
+          },
+        },
+      ],
+    };
+    render(<VerdictTable report={report} />);
+    await user.click(screen.getByText("needs_refinement"));
+    expect(screen.getByText("3-valued (initial):")).toBeInTheDocument();
+    // The reused Trit renderer shows the ⊥ count.
+    expect(screen.getByTitle(/KleeneBot/i)).toHaveTextContent("⊥ 1");
+  });
+
   it("handles an empty property_verdicts list without crashing", () => {
     const empty: VerifyReport = {
       ...baseReport,

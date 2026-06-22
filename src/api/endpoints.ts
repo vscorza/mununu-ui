@@ -1304,6 +1304,18 @@ export interface VerifyPropertyVerdict {
   satisfying_states: number;
   initial_states: string[];
   initial_satisfying: string[];
+  /**
+   * IR-track P3.1 — 3-valued { T, F, ⊥ } summary over the initial states.
+   * Same shape as the cegar `CegarVerdictSummary` (reuses the `Trit`
+   * renderer). On the bit-blast verify path `unknown_cells` is 0 and this
+   * mirrors `satisfied`; the predicate-cube path (P3.3) populates ⊥.
+   * Optional for back-compat with pre-P3 reports.
+   */
+  initial_verdict_summary?: {
+    true_cells: number;
+    false_cells: number;
+    unknown_cells: number;
+  };
   /** Present only when `satisfied === false` and a witness was constructible. */
   counterexample?: VerifyTraceWitness;
 }

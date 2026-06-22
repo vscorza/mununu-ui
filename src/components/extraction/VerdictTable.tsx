@@ -16,6 +16,7 @@ import type {
   VerifySourceSummary,
 } from "../../api/endpoints";
 import { CounterexampleTrace } from "./CounterexampleTrace";
+import { Trit } from "./CegarTraceView";
 import { useI18n } from "../../hooks/useI18n";
 
 interface VerdictTableProps {
@@ -226,6 +227,17 @@ function VerdictRow({ verdict }: { verdict: VerifyPropertyVerdict }) {
                   </span>
                 )}
               </div>
+              {verdict.initial_verdict_summary && (
+                <div className="text-gray-600 dark:text-gray-400">
+                  {/* IR-track P3.1 — 3-valued { T, F, ⊥ } over the
+                      initial states. ⊥ ("needs refinement") only appears
+                      on the predicate-cube path (P3.3); 0 on bit-blast. */}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    3-valued (initial):
+                  </span>{" "}
+                  <Trit summary={verdict.initial_verdict_summary} />
+                </div>
+              )}
               {verdict.formula_source.kind === "template" &&
                 Object.keys(verdict.formula_source.args).length > 0 && (
                   <div className="text-gray-600 dark:text-gray-400">
