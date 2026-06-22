@@ -62,13 +62,17 @@ describe("RefinementTracePanel", () => {
     });
     const arg = mocked.mock.calls[0]?.[0];
     expect(arg?.formula).toBe("nu X. <true> X");
-    expect(arg?.predicates).toEqual([{ name: "r_zero", register: "r", value: 0 }]);
+    expect(arg?.predicates).toEqual([
+      { name: "r_zero", register: "r", value: 0 },
+    ]);
     expect(arg?.predicate_source).toBe("wp");
     expect(arg?.max_iterations).toBe(16);
     expect(arg?.content).toContain("state 1 r");
     // M.6 parity defaults: may-edge off, no config-values.
     expect(arg?.may_edge_inference).toBe("off");
     expect(arg?.config_values).toEqual([]);
+    // CTXDSL Phase 2 default: emit-ctxdsl off.
+    expect(arg?.emit_ctxdsl).toBe(false);
   });
 
   it("posts may_edge_inference and config_values when set (M.6 parity)", async () => {
@@ -151,6 +155,42 @@ describe("RefinementTracePanel", () => {
     expect(screen.getByText(/r_one: r == 1/i)).toBeInTheDocument();
     // The warning surfaces.
     expect(screen.getByText("sample soundness warning")).toBeInTheDocument();
+  });
+
+  it("posts emit_ctxdsl and renders the model CTXDSL when returned (Phase 2)", async () => {
+    const mocked = vi.mocked(endpoints.runBtor2Cegar);
+    mocked.mockResolvedValue({
+      success: true,
+      iterations: [],
+      final_predicates: [],
+      terminated_with: "converged",
+      verdict: { true_cells: 0, false_cells: 0, unknown_cells: 0 },
+      lazy_lift_pending: false,
+      approximant_reuse_enabled: false,
+      warnings: [],
+      ctxdsl: "context cegar_model {\n  automaton lifted_kmts {\n  }\n}\n",
+    });
+
+    render(<RefinementTracePanel />);
+    // Opt in via the "Emit CTXDSL" checkbox (the only checkbox in the panel).
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Run CEGAR refinement/i }),
+    );
+
+    await waitFor(() => {
+      expect(mocked).toHaveBeenCalledTimes(1);
+    });
+    expect(mocked.mock.calls[0]?.[0]?.emit_ctxdsl).toBe(true);
+
+    // The returned model CTXDSL renders, with a download control.
+    await waitFor(() => {
+      expect(screen.getByText(/Model CTXDSL/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/automaton lifted_kmts/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Download \.ctxdsl/i }),
+    ).toBeInTheDocument();
   });
 
   it("blocks submission and shows an error when predicates are malformed", async () => {

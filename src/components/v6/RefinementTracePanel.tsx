@@ -32,6 +32,7 @@ import { useState } from "react";
 import { Button } from "../common/Button";
 import {
   runBtor2Cegar,
+  downloadAsFile,
   PredicateSpecRequest,
   Btor2CegarResponse,
   CegarVerdictSummary,
@@ -77,6 +78,7 @@ export const RefinementTracePanel = () => {
   const [mustEdgeInference, setMustEdgeInference] = useState("off");
   const [mayEdgeInference, setMayEdgeInference] = useState("off");
   const [configValuesText, setConfigValuesText] = useState("");
+  const [emitCtxdsl, setEmitCtxdsl] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<Btor2CegarResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -158,6 +160,7 @@ export const RefinementTracePanel = () => {
         must_edge_inference: mustEdgeInference,
         may_edge_inference: mayEdgeInference,
         config_values: configValues,
+        emit_ctxdsl: emitCtxdsl,
       });
       setResult(response);
     } catch (e) {
@@ -182,11 +185,11 @@ export const RefinementTracePanel = () => {
     >
       <h2>CEGAR refinement-trace viewer</h2>
       <p style={{ color: "var(--text-secondary, #666)" }}>
-        Runs the predicate-abstraction-refinement loop (R.5) over a BTOR2
-        design and renders the per-iteration trace: which predicates were
-        added, whether a failure subgame drove the refinement, and how the
-        3-valued <code>{"{ T, F, ⊥ }"}</code> verdict converges. Surface
-        peer of the CLI <code>mununu btor2 cegar</code> and the{" "}
+        Runs the predicate-abstraction-refinement loop (R.5) over a BTOR2 design
+        and renders the per-iteration trace: which predicates were added,
+        whether a failure subgame drove the refinement, and how the 3-valued{" "}
+        <code>{"{ T, F, ⊥ }"}</code> verdict converges. Surface peer of the CLI{" "}
+        <code>mununu btor2 cegar</code> and the{" "}
         <code>POST /api/v1/btor2/cegar</code> endpoint.
       </p>
 
@@ -354,6 +357,22 @@ export const RefinementTracePanel = () => {
               }}
             />
           </label>
+          <label
+            style={{
+              fontSize: "0.9rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <input
+              type="checkbox"
+              aria-label="Emit CTXDSL of the refined model"
+              checked={emitCtxdsl}
+              onChange={(e) => setEmitCtxdsl(e.target.checked)}
+            />
+            Emit CTXDSL of the refined model (context + formula)
+          </label>
         </div>
       </section>
 
@@ -458,7 +477,9 @@ export const RefinementTracePanel = () => {
           </table>
 
           <div style={{ marginTop: "1rem" }}>
-            <strong>Final predicate set ({result.final_predicates.length}):</strong>
+            <strong>
+              Final predicate set ({result.final_predicates.length}):
+            </strong>
             <ul
               style={{
                 fontSize: "0.85rem",
@@ -494,6 +515,48 @@ export const RefinementTracePanel = () => {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {result.ctxdsl && (
+            <div style={{ marginTop: "1rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  marginBottom: "0.25rem",
+                }}
+              >
+                <strong>Model CTXDSL (context + formula)</strong>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() =>
+                    downloadAsFile(
+                      result.ctxdsl as string,
+                      "cegar_model.ctxdsl",
+                    )
+                  }
+                >
+                  Download .ctxdsl
+                </Button>
+              </div>
+              <pre
+                aria-label="Model CTXDSL"
+                style={{
+                  fontSize: "0.8rem",
+                  fontFamily: "monospace",
+                  background: "var(--code-bg, #f5f5f5)",
+                  padding: "0.75rem",
+                  borderRadius: "4px",
+                  maxHeight: "320px",
+                  overflow: "auto",
+                  whiteSpace: "pre",
+                }}
+              >
+                {result.ctxdsl}
+              </pre>
             </div>
           )}
         </section>
