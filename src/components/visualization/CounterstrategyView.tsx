@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import cytoscape from "cytoscape";
 import type { CounterstrategyResult } from "../../api/endpoints";
+import { DownloadJsonButton } from "../common/DownloadJsonButton";
 import { counterstrategyViewStyles } from "./graphStyles";
 import "./CounterstrategyView.css";
 
@@ -56,6 +57,10 @@ export const CounterstrategyView = ({
           <strong>{result.environment_winning_states.length}</strong> states
           {result.minimized && " (minimized)"}
         </p>
+        <DownloadJsonButton
+          data={result}
+          filename={`${automatonName}_${formulaName}_counterstrategy.json`}
+        />
       </div>
 
       <div className="counterstrategy-view__winning-states">
