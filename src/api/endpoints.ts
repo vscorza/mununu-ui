@@ -285,6 +285,16 @@ export interface PredicateView {
   value: number;
 }
 
+/**
+ * Track I.1 — a cube cell witnessing a non-HOLDS verdict: the cube index plus
+ * the predicate valuation (`name → holds`) at that cell. Makes a failing or
+ * indefinite verdict actionable ("falsified where `idle=false, err=true`").
+ */
+export interface WitnessCellView {
+  cube_index: number;
+  valuation: Record<string, boolean>;
+}
+
 /** One CEGAR iteration, viewer-shaped. */
 export interface CegarIterationView {
   iteration: number;
@@ -326,6 +336,18 @@ export interface Btor2CegarResponse {
   approximant_reuse_enabled: boolean;
   /** Soundness / advisory warnings produced during the run. */
   warnings: string[];
+  /**
+   * Track I.1 — cube cells that falsify the formula (definite-False), each
+   * decoded to its predicate valuation. Capped; `verdict.false_cells` is the
+   * full total. Empty unless the outcome is VIOLATED. (Optional in the type for
+   * back-compat with older mocks; the current backend always populates it.)
+   */
+  violating_cells?: WitnessCellView[];
+  /**
+   * Track I.1 — cube cells the abstraction cannot decide (⊥), each decoded to
+   * its predicate valuation. Capped; `verdict.unknown_cells` is the full total.
+   */
+  undecided_cells?: WitnessCellView[];
   /**
    * CTXDSL Phase 2 — the final refined cube model + the checked formula as
    * CTXDSL, present only when the request set `emit_ctxdsl: true`.

@@ -36,6 +36,40 @@ export const Trit = ({ summary }: { summary: CegarVerdictSummary }) => (
   </span>
 );
 
+/** Track I.1 — render a witness cell's predicate valuation as `idle=false, err=true`. */
+const formatCell = (valuation: Record<string, boolean>): string =>
+  Object.entries(valuation)
+    .map(([name, holds]) => `${name}=${holds}`)
+    .join(", ");
+
+/** Track I.1 — a "falsified at / undecided at" cube-cell list (omitted when empty). */
+const WitnessCells = ({
+  label,
+  cells,
+  total,
+}: {
+  label: string;
+  cells: { cube_index: number; valuation: Record<string, boolean> }[];
+  total: number;
+}) =>
+  cells.length === 0 ? null : (
+    <div style={{ marginBottom: "1rem" }}>
+      <strong>
+        {label} ({total} cell{total === 1 ? "" : "s"}):
+      </strong>
+      <ul style={{ margin: "0.25rem 0 0", fontFamily: "monospace" }}>
+        {cells.map((c) => (
+          <li key={c.cube_index}>{`{${formatCell(c.valuation)}}`}</li>
+        ))}
+        {total > cells.length && (
+          <li style={{ color: "var(--text-secondary, #666)", listStyle: "none" }}>
+            … and {total - cells.length} more
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+
 export const CegarTraceView = ({ result }: { result: Btor2CegarResponse }) => (
   <section style={{ marginTop: "1.5rem" }}>
     <h3>Refinement trace</h3>
@@ -62,6 +96,17 @@ export const CegarTraceView = ({ result }: { result: Btor2CegarResponse }) => (
         </>
       )}
     </div>
+
+    <WitnessCells
+      label="Falsified at"
+      cells={result.violating_cells ?? []}
+      total={result.verdict.false_cells}
+    />
+    <WitnessCells
+      label="Undecided at"
+      cells={result.undecided_cells ?? []}
+      total={result.verdict.unknown_cells}
+    />
 
     <table
       style={{
