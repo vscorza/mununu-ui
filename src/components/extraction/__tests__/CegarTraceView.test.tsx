@@ -34,6 +34,31 @@ describe("CegarTraceView", () => {
     expect(screen.getByText(/p1: boot_fsm_ns == 5/i)).toBeInTheDocument();
   });
 
+  it("renders the falsifying / undecided witness cells (Track I.1)", () => {
+    render(
+      <CegarTraceView
+        result={{
+          ...baseResult,
+          verdict: { true_cells: 1, false_cells: 2, unknown_cells: 1 },
+          violating_cells: [
+            { cube_index: 2, valuation: { idle: false, err: true } },
+          ],
+          undecided_cells: [
+            { cube_index: 3, valuation: { idle: true, err: true } },
+          ],
+        }}
+      />,
+    );
+    // The falsifying cell + its valuation, with the full count.
+    expect(screen.getByText(/Falsified at \(2 cells\)/i)).toBeInTheDocument();
+    expect(screen.getByText("{idle=false, err=true}")).toBeInTheDocument();
+    // "… and 1 more" since false_cells (2) exceeds the listed cells (1).
+    expect(screen.getByText(/and 1 more/i)).toBeInTheDocument();
+    // The undecided cell.
+    expect(screen.getByText(/Undecided at \(1 cell\)/i)).toBeInTheDocument();
+    expect(screen.getByText("{idle=true, err=true}")).toBeInTheDocument();
+  });
+
   it("renders warnings and the model CTXDSL download when present", () => {
     render(
       <CegarTraceView
