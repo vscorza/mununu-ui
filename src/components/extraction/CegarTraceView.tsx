@@ -92,6 +92,26 @@ const Countertrace = ({ trace }: { trace?: CounterTraceView }) =>
     </div>
   );
 
+/**
+ * Track I.1 (undecided-explanation) — when ⊥ cells remain, name the registers
+ * the failure subgame flagged as load-bearing; adding predicates over them (or
+ * promoting their init policy) may resolve the abstraction. Omitted otherwise.
+ */
+const UndecidedExplanation = ({
+  unknownCells,
+  candidates,
+}: {
+  unknownCells: number;
+  candidates?: string[];
+}) =>
+  unknownCells === 0 || !candidates || candidates.length === 0 ? null : (
+    <div style={{ marginBottom: "1rem" }}>
+      <strong>Why undecided:</strong> the abstraction can&apos;t decide{" "}
+      {unknownCells} cell{unknownCells === 1 ? "" : "s"} — try predicates over{" "}
+      <span style={{ fontFamily: "monospace" }}>{candidates.join(", ")}</span>.
+    </div>
+  );
+
 export const CegarTraceView = ({ result }: { result: Btor2CegarResponse }) => (
   <section style={{ marginTop: "1.5rem" }}>
     <h3>Refinement trace</h3>
@@ -130,6 +150,10 @@ export const CegarTraceView = ({ result }: { result: Btor2CegarResponse }) => (
       total={result.verdict.unknown_cells}
     />
     <Countertrace trace={result.counterexample} />
+    <UndecidedExplanation
+      unknownCells={result.verdict.unknown_cells}
+      candidates={result.refinement_candidates}
+    />
 
     <table
       style={{
