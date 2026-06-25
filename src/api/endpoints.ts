@@ -295,6 +295,16 @@ export interface WitnessCellView {
   valuation: Record<string, boolean>;
 }
 
+/**
+ * Track I.1 (trace slice) — a reachability countertrace for a VIOLATED verdict:
+ * the ordered sequence of failing cube cells from an initial cell to a trap (a
+ * cell whose every successor stays `False`), plus whether the path ends in one.
+ */
+export interface CounterTraceView {
+  steps: WitnessCellView[];
+  ends_in_trap: boolean;
+}
+
 /** One CEGAR iteration, viewer-shaped. */
 export interface CegarIterationView {
   iteration: number;
@@ -348,6 +358,12 @@ export interface Btor2CegarResponse {
    * its predicate valuation. Capped; `verdict.unknown_cells` is the full total.
    */
   undecided_cells?: WitnessCellView[];
+  /**
+   * Track I.1 (trace slice) — reachability countertrace for a VIOLATED verdict.
+   * Present only when the property is violated at the initial cell. (Optional in
+   * the type for back-compat with older mocks.)
+   */
+  counterexample?: CounterTraceView;
   /**
    * CTXDSL Phase 2 — the final refined cube model + the checked formula as
    * CTXDSL, present only when the request set `emit_ctxdsl: true`.

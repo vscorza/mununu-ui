@@ -14,6 +14,7 @@ import {
   downloadAsFile,
   Btor2CegarResponse,
   CegarVerdictSummary,
+  CounterTraceView,
 } from "../../api/endpoints";
 
 /** 3-valued verdict cell counts (KleeneT / KleeneF / KleeneBot). */
@@ -70,6 +71,27 @@ const WitnessCells = ({
     </div>
   );
 
+/**
+ * Track I.1 (trace slice) — an ordered reachability countertrace from an initial
+ * failing cell to a trap (or the farthest reachable failing cell). Omitted when
+ * the property is not violated at the initial cell.
+ */
+const Countertrace = ({ trace }: { trace?: CounterTraceView }) =>
+  !trace || trace.steps.length === 0 ? null : (
+    <div style={{ marginBottom: "1rem" }}>
+      <strong>
+        Countertrace ({trace.steps.length} step
+        {trace.steps.length === 1 ? "" : "s"}
+        {trace.ends_in_trap ? ", ends in trap" : ""}):
+      </strong>
+      <ol style={{ margin: "0.25rem 0 0", fontFamily: "monospace" }}>
+        {trace.steps.map((c, i) => (
+          <li key={`${i}-${c.cube_index}`}>{`{${formatCell(c.valuation)}}`}</li>
+        ))}
+      </ol>
+    </div>
+  );
+
 export const CegarTraceView = ({ result }: { result: Btor2CegarResponse }) => (
   <section style={{ marginTop: "1.5rem" }}>
     <h3>Refinement trace</h3>
@@ -107,6 +129,7 @@ export const CegarTraceView = ({ result }: { result: Btor2CegarResponse }) => (
       cells={result.undecided_cells ?? []}
       total={result.verdict.unknown_cells}
     />
+    <Countertrace trace={result.counterexample} />
 
     <table
       style={{

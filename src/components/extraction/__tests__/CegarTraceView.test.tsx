@@ -59,6 +59,38 @@ describe("CegarTraceView", () => {
     expect(screen.getByText("{idle=true, err=true}")).toBeInTheDocument();
   });
 
+  it("renders the reachability countertrace (Track I.1)", () => {
+    render(
+      <CegarTraceView
+        result={{
+          ...baseResult,
+          verdict: { true_cells: 1, false_cells: 3, unknown_cells: 0 },
+          counterexample: {
+            ends_in_trap: true,
+            steps: [
+              { cube_index: 0, valuation: { idle: false, err: false } },
+              { cube_index: 1, valuation: { idle: true, err: false } },
+              { cube_index: 2, valuation: { idle: false, err: true } },
+            ],
+          },
+        }}
+      />,
+    );
+    // The header reports the step count and the trap end.
+    expect(
+      screen.getByText(/Countertrace \(3 steps, ends in trap\)/i),
+    ).toBeInTheDocument();
+    // Each step's cell valuation renders, in order.
+    expect(screen.getByText("{idle=false, err=false}")).toBeInTheDocument();
+    expect(screen.getByText("{idle=true, err=false}")).toBeInTheDocument();
+    expect(screen.getByText("{idle=false, err=true}")).toBeInTheDocument();
+  });
+
+  it("omits the countertrace when absent", () => {
+    render(<CegarTraceView result={baseResult} />);
+    expect(screen.queryByText(/Countertrace/i)).not.toBeInTheDocument();
+  });
+
   it("renders warnings and the model CTXDSL download when present", () => {
     render(
       <CegarTraceView
