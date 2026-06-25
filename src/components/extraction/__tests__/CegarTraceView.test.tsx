@@ -91,6 +91,30 @@ describe("CegarTraceView", () => {
     expect(screen.queryByText(/Countertrace/i)).not.toBeInTheDocument();
   });
 
+  it("explains an undecided verdict with candidate registers (Track I.1)", () => {
+    render(
+      <CegarTraceView
+        result={{
+          ...baseResult,
+          terminated_with: "predicate-source-exhausted",
+          verdict: { true_cells: 1, false_cells: 0, unknown_cells: 2 },
+          refinement_candidates: ["boot_fsm_ns", "wait_count"],
+        }}
+      />,
+    );
+    expect(screen.getByText(/Why undecided/i)).toBeInTheDocument();
+    expect(screen.getByText("boot_fsm_ns, wait_count")).toBeInTheDocument();
+  });
+
+  it("omits the undecided explanation when there are no unknown cells", () => {
+    render(
+      <CegarTraceView
+        result={{ ...baseResult, refinement_candidates: ["boot_fsm_ns"] }}
+      />,
+    );
+    expect(screen.queryByText(/Why undecided/i)).not.toBeInTheDocument();
+  });
+
   it("renders warnings and the model CTXDSL download when present", () => {
     render(
       <CegarTraceView

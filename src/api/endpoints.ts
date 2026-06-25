@@ -365,6 +365,13 @@ export interface Btor2CegarResponse {
    */
   counterexample?: CounterTraceView;
   /**
+   * Track I.1 (undecided-explanation) — when the final verdict still carries ⊥
+   * (unknown) cells, the registers the failure subgame flagged as load-bearing.
+   * The actionable "why undecided": adding predicates over these registers (or
+   * promoting their init policy) may resolve it. Omitted when empty.
+   */
+  refinement_candidates?: string[];
+  /**
    * CTXDSL Phase 2 — the final refined cube model + the checked formula as
    * CTXDSL, present only when the request set `emit_ctxdsl: true`.
    */
