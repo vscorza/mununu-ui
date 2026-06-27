@@ -440,6 +440,63 @@ export const runSvCegar = async (
   return response.data;
 };
 
+/** XL.6a — request for `POST /api/v1/sv/extract-sva`. slang parses SV directly,
+ * so no top / sv2v / Yosys options are needed. */
+export interface SvExtractSvaRequest {
+  /** SystemVerilog primary source content. */
+  source: string;
+  /** Additional SV sources (packages / `include` targets — e.g. the standard
+   * OpenTitan prim_assert macros). */
+  additional_sources?: { name: string; content: string }[];
+}
+
+/** A successfully translated SVA assertion (mirrors the backend view). */
+export interface TranslatedAssertionView {
+  name: string;
+  /** "assert" | "assume" | "cover". */
+  kind: string;
+  /** mu-calculus formula. */
+  formula: string;
+  /** XL.2 AG-EF recoverability companion — present only for covers. */
+  recoverability_companion: string | null;
+}
+
+/** An assertion outside the supported Tier-1/Tier-2 fragment. */
+export interface UnsupportedAssertionView {
+  name: string;
+  kind: string | null;
+  reason: string;
+}
+
+/** A `__past` shadow register a translated formula needs (Tier-2 history). */
+export interface ShadowSignalView {
+  base: string;
+  width: number;
+}
+
+/** XL.6a — response for `POST /api/v1/sv/extract-sva`. */
+export interface SvExtractSvaResponse {
+  translated: TranslatedAssertionView[];
+  unsupported: UnsupportedAssertionView[];
+  required_shadows: ShadowSignalView[];
+}
+
+/**
+ * Extract + translate a design's SVA to mu-calculus (the Track-H SVA
+ * front-end). slang parses SV directly — fast + informational (no model
+ * verification), so this uses the standard (`apiClient`, 10s) client. Surface
+ * peer of the CLI `mununu sv extract-sva`.
+ */
+export const runSvExtractSva = async (
+  request: SvExtractSvaRequest,
+): Promise<SvExtractSvaResponse> => {
+  const response = await apiClient.post<SvExtractSvaResponse>(
+    "/sv/extract-sva",
+    request,
+  );
+  return response.data;
+};
+
 // Adapter format file extensions that require translation via the import endpoint
 export const ADAPTER_EXTENSIONS = [
   "sv",

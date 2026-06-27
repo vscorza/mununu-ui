@@ -105,6 +105,17 @@ const rtlWorkflow: WorkflowDefinition = {
       timeout: "extended",
     },
     {
+      id: "extract_sva",
+      label: "Extract SVA",
+      description:
+        "Extract the design's SystemVerilog Assertions (assert / assume / cover property) and translate the supported Tier-1/Tier-2 fragment to mu-calculus via the slang front-end — including each cover's AG-EF recoverability companion and the $past shadow registers the formulas need. No verification; feed a translated formula into the CEGAR step.",
+      endpoint: "/sv/extract-sva",
+      optional: true,
+      repeatable: true,
+      requires: ["load"],
+      timeout: "standard",
+    },
+    {
       id: "cegar",
       label: "CEGAR (predicate abstraction)",
       description:
