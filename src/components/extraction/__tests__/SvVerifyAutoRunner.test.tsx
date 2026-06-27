@@ -70,6 +70,10 @@ describe("SvVerifyAutoRunner", () => {
         },
       ],
       unsupported: [],
+      diagnostics: {
+        state_register_count: 2,
+        blackboxed_modules: ["prim_sparse_fsm_flop"],
+      },
     });
 
     render(<SvVerifyAutoRunner />);
@@ -100,6 +104,13 @@ describe("SvVerifyAutoRunner", () => {
     expect(
       screen.getByText(/atom over non-state signal: gnt_o/),
     ).toBeInTheDocument();
+
+    // Model diagnostics render: the cut module (single text node) anchors the
+    // diagnostics paragraph; the paragraph also carries the state-register count.
+    const cut = screen.getByText(/black-boxed.*prim_sparse_fsm_flop/);
+    const diagText = cut.closest("p")?.textContent ?? "";
+    expect(diagText).toMatch(/state register/);
+    expect(diagText).toMatch(/\b2\b/);
   });
 
   it("blocks verification when no SV source is loaded", async () => {
