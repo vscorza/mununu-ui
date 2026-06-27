@@ -73,6 +73,7 @@ describe("SvVerifyAutoRunner", () => {
       diagnostics: {
         state_register_count: 2,
         blackboxed_modules: ["prim_sparse_fsm_flop"],
+        gated_resets: ["rst_ni=1"],
       },
     });
 
@@ -91,6 +92,7 @@ describe("SvVerifyAutoRunner", () => {
     expect(arg?.source).toContain("module fsm");
     expect(arg?.must_edge_inference).toBe("smt-hyper-must");
     expect(arg?.use_sv2v).toBe(true);
+    expect(arg?.gate_reset).toBe(true);
 
     // All three properties render, with their headline verdicts + skip reason.
     await waitFor(() => {
@@ -111,6 +113,7 @@ describe("SvVerifyAutoRunner", () => {
     const diagText = cut.closest("p")?.textContent ?? "";
     expect(diagText).toMatch(/state register/);
     expect(diagText).toMatch(/\b2\b/);
+    expect(diagText).toMatch(/reset-gated.*rst_ni=1/);
   });
 
   it("blocks verification when no SV source is loaded", async () => {
