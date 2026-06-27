@@ -16,6 +16,7 @@ import { VerdictTable } from "./VerdictTable";
 import { CegarRunner } from "./CegarRunner";
 import { SvCegarRunner } from "./SvCegarRunner";
 import { SvExtractSvaRunner } from "./SvExtractSvaRunner";
+import { SvVerifyAutoRunner } from "./SvVerifyAutoRunner";
 
 /**
  * Map a source file name (e.g. `index.ts`, `worker.py`) to the language
@@ -551,6 +552,20 @@ function StepContent({ step }: { step: WorkflowStep }) {
           {step.description}
         </p>
         <SvExtractSvaRunner />
+      </div>
+    );
+  }
+
+  // No-sidecar SVA verification step (XL.6b) — extract + verify each property.
+  // Self-contained (the runner owns the API call + verdict rendering). Surface
+  // peer of `mununu sv verify-auto`.
+  if (step.id === "verify_auto") {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {step.description}
+        </p>
+        <SvVerifyAutoRunner />
       </div>
     );
   }

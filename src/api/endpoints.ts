@@ -497,6 +497,59 @@ export const runSvExtractSva = async (
   return response.data;
 };
 
+/** XL.6b — request for `POST /api/v1/sv/verify-auto`. */
+export interface SvVerifyAutoRequest {
+  /** SystemVerilog primary source content. */
+  source: string;
+  /** Additional SV sources (packages / `include` targets). */
+  additional_sources?: { name: string; content: string }[];
+  /** Top module for the SV → BTOR2 lift (auto-detect when omitted). */
+  top?: string;
+  /** Run sv2v before Yosys (modern SV). */
+  use_sv2v?: boolean;
+  /** Max CEGAR iterations per property (default 16). */
+  max_iterations?: number;
+  /** Must-edge inference per property (`"off"` default; `"smt-hyper-must"` for
+   * sound νμ recoverability verdicts). */
+  must_edge_inference?: string;
+}
+
+/** One property's auto-verification verdict (mirrors the backend view). */
+export interface PropertyVerdictView {
+  name: string;
+  /** "assert" | "assume" | "cover". */
+  kind: string;
+  formula: string;
+  /** "holds" | "violated" | "unknown" | "skipped". */
+  outcome: string;
+  /** Cell-count detail (violated/unknown) or the skip reason. */
+  detail: string | null;
+  /** The cube predicates auto-seeded for this property (atom strings). */
+  seeded_predicates: string[];
+}
+
+/** XL.6b — response for `POST /api/v1/sv/verify-auto`. */
+export interface SvVerifyAutoResponse {
+  properties: PropertyVerdictView[];
+  unsupported: UnsupportedAssertionView[];
+}
+
+/**
+ * No-sidecar SVA verification: extract the design's SVA, lift, and verify each
+ * property against the model. sv2v/Yosys/Z3/CEGAR-heavy (per property) — uses
+ * the extended (`aiApiClient`, 120s) client. Surface peer of the CLI
+ * `mununu sv verify-auto`.
+ */
+export const runSvVerifyAuto = async (
+  request: SvVerifyAutoRequest,
+): Promise<SvVerifyAutoResponse> => {
+  const response = await aiApiClient.post<SvVerifyAutoResponse>(
+    "/sv/verify-auto",
+    request,
+  );
+  return response.data;
+};
+
 // Adapter format file extensions that require translation via the import endpoint
 export const ADAPTER_EXTENSIONS = [
   "sv",
