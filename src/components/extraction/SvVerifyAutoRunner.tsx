@@ -221,6 +221,22 @@ export const SvVerifyAutoRunner = () => {
             {result.properties.length === 1 ? "y" : "ies"} verified,{" "}
             <strong>{result.unsupported.length}</strong> unsupported
           </p>
+          {result.diagnostics && (
+            <p style={{ fontSize: "0.85rem", color: "var(--text-secondary, #666)" }}>
+              model:{" "}
+              <strong>{result.diagnostics.state_register_count}</strong> state
+              register(s)
+              {result.diagnostics.blackboxed_modules.length > 0 && (
+                <>
+                  {" · "}
+                  <span style={{ color: "var(--color-warning, #b8860b)" }}>
+                    black-boxed (cut to free inputs — provide source to model):{" "}
+                    {result.diagnostics.blackboxed_modules.join(", ")}
+                  </span>
+                </>
+              )}
+            </p>
+          )}
           <ul style={{ fontSize: "0.85rem", listStyle: "none", paddingLeft: 0 }}>
             {result.properties.map((p) => (
               <li key={p.name} style={{ marginBottom: "0.5rem" }}>

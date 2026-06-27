@@ -528,10 +528,22 @@ export interface PropertyVerdictView {
   seeded_predicates: string[];
 }
 
+/** Model-level lift diagnostics for verify-auto. */
+export interface ModelDiagnosticsView {
+  /** Number of state register lines in the lifted model. */
+  state_register_count: number;
+  /**
+   * Modules instantiated without a body, cut to free inputs (registers they
+   * drive are not modeled as state). Empty for a self-contained design.
+   */
+  blackboxed_modules: string[];
+}
+
 /** XL.6b — response for `POST /api/v1/sv/verify-auto`. */
 export interface SvVerifyAutoResponse {
   properties: PropertyVerdictView[];
   unsupported: UnsupportedAssertionView[];
+  diagnostics: ModelDiagnosticsView;
 }
 
 /**
