@@ -47,6 +47,7 @@ export const SvVerifyAutoRunner = () => {
   const [useSv2v, setUseSv2v] = useState(true);
   const [maxIterations, setMaxIterations] = useState("16");
   const [mustEdgeInference, setMustEdgeInference] = useState("off");
+  const [gateReset, setGateReset] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SvVerifyAutoResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +76,7 @@ export const SvVerifyAutoRunner = () => {
         use_sv2v: useSv2v,
         max_iterations: iterations,
         must_edge_inference: mustEdgeInference,
+        gate_reset: gateReset,
       });
       setResult(response);
     } catch (e) {
@@ -185,6 +187,22 @@ export const SvVerifyAutoRunner = () => {
             />
             Run sv2v before Yosys (modern SV)
           </label>
+          <label
+            style={{
+              fontSize: "0.9rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <input
+              type="checkbox"
+              aria-label="Gate reset"
+              checked={gateReset}
+              onChange={(e) => setGateReset(e.target.checked)}
+            />
+            Gate reset (drop <code>disable iff</code>, pin reset inactive)
+          </label>
         </div>
       </section>
 
@@ -233,6 +251,13 @@ export const SvVerifyAutoRunner = () => {
                     black-boxed (cut to free inputs — provide source to model):{" "}
                     {result.diagnostics.blackboxed_modules.join(", ")}
                   </span>
+                </>
+              )}
+              {result.diagnostics.gated_resets.length > 0 && (
+                <>
+                  {" · "}
+                  reset-gated (pinned inactive):{" "}
+                  {result.diagnostics.gated_resets.join(", ")}
                 </>
               )}
             </p>

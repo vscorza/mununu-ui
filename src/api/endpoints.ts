@@ -512,6 +512,9 @@ export interface SvVerifyAutoRequest {
   /** Must-edge inference per property (`"off"` default; `"smt-hyper-must"` for
    * sound νμ recoverability verdicts). */
   must_edge_inference?: string;
+  /** Reset-gating: drop recognized `disable iff (reset)` guards and pin the
+   * reset input inactive at the model level (default `true`). */
+  gate_reset?: boolean;
 }
 
 /** One property's auto-verification verdict (mirrors the backend view). */
@@ -537,6 +540,12 @@ export interface ModelDiagnosticsView {
    * drive are not modeled as state). Empty for a self-contained design.
    */
   blackboxed_modules: string[];
+  /**
+   * Reset inputs pinned inactive at the model level (`"<signal>=<value>"`),
+   * their `disable iff` guards dropped from the formulas. Empty when
+   * reset-gating is off or no `disable iff` reset was recognized.
+   */
+  gated_resets: string[];
 }
 
 /** XL.6b — response for `POST /api/v1/sv/verify-auto`. */
