@@ -15,6 +15,7 @@ import { resolveAdapterFormat } from "./adapterFormat";
 import { VerdictTable } from "./VerdictTable";
 import { CegarRunner } from "./CegarRunner";
 import { SvCegarRunner } from "./SvCegarRunner";
+import { SvExtractSvaRunner } from "./SvExtractSvaRunner";
 
 /**
  * Map a source file name (e.g. `index.ts`, `worker.py`) to the language
@@ -536,6 +537,20 @@ function StepContent({ step }: { step: WorkflowStep }) {
         ) : (
           <CegarRunner initialBtor2={state.sourceContent} />
         )}
+      </div>
+    );
+  }
+
+  // SVA-extraction step (XL.6a) — the slang front-end: extract + translate the
+  // design's SVA to mu-calculus. Self-contained (the runner owns the API call +
+  // report rendering). Surface peer of `mununu sv extract-sva`.
+  if (step.id === "extract_sva") {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {step.description}
+        </p>
+        <SvExtractSvaRunner />
       </div>
     );
   }
