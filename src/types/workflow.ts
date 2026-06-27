@@ -126,6 +126,17 @@ const rtlWorkflow: WorkflowDefinition = {
       requires: ["load"],
       timeout: "extended",
     },
+    {
+      id: "verify_auto",
+      label: "Verify SVA (no sidecar)",
+      description:
+        "No-sidecar SVA verification: extract the design's assertions, lift SV → BTOR2, and verify each property against the model — auto-seeding cube predicates from the formula's state-cell atoms and running predicate-abstraction refinement. Renders a per-property 3-valued { HOLDS, VIOLATED, ⊥ } verdict; combinational/IO properties are reported skipped. Needs only the loaded SV.",
+      endpoint: "/sv/verify-auto",
+      optional: true,
+      repeatable: true,
+      requires: ["load"],
+      timeout: "extended",
+    },
   ],
 };
 
