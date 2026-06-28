@@ -515,6 +515,10 @@ export interface SvVerifyAutoRequest {
   /** Reset-gating: drop recognized `disable iff (reset)` guards and pin the
    * reset input inactive at the model level (default `true`). */
   gate_reset?: boolean;
+  /** Auto-inject behavioral stubs for cut flop primitives (e.g. OpenTitan's
+   * `prim_sparse_fsm_flop`) so the register survives the lift (default
+   * `true`). */
+  auto_stub_flops?: boolean;
 }
 
 /** One property's auto-verification verdict (mirrors the backend view). */
@@ -546,6 +550,11 @@ export interface ModelDiagnosticsView {
    * reset-gating is off or no `disable iff` reset was recognized.
    */
   gated_resets: string[];
+  /**
+   * Cut flop-primitive modules for which a behavioral stub was auto-injected
+   * so the register survives the lift (e.g. `prim_sparse_fsm_flop`).
+   */
+  auto_provided_stubs: string[];
 }
 
 /** XL.6b — response for `POST /api/v1/sv/verify-auto`. */

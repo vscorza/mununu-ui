@@ -48,6 +48,7 @@ export const SvVerifyAutoRunner = () => {
   const [maxIterations, setMaxIterations] = useState("16");
   const [mustEdgeInference, setMustEdgeInference] = useState("off");
   const [gateReset, setGateReset] = useState(true);
+  const [autoStubFlops, setAutoStubFlops] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SvVerifyAutoResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +78,7 @@ export const SvVerifyAutoRunner = () => {
         max_iterations: iterations,
         must_edge_inference: mustEdgeInference,
         gate_reset: gateReset,
+        auto_stub_flops: autoStubFlops,
       });
       setResult(response);
     } catch (e) {
@@ -203,6 +205,22 @@ export const SvVerifyAutoRunner = () => {
             />
             Gate reset (drop <code>disable iff</code>, pin reset inactive)
           </label>
+          <label
+            style={{
+              fontSize: "0.9rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <input
+              type="checkbox"
+              aria-label="Auto-stub flop primitives"
+              checked={autoStubFlops}
+              onChange={(e) => setAutoStubFlops(e.target.checked)}
+            />
+            Auto-stub cut flop primitives (e.g. <code>prim_sparse_fsm_flop</code>)
+          </label>
         </div>
       </section>
 
@@ -258,6 +276,13 @@ export const SvVerifyAutoRunner = () => {
                   {" · "}
                   reset-gated (pinned inactive):{" "}
                   {result.diagnostics.gated_resets.join(", ")}
+                </>
+              )}
+              {result.diagnostics.auto_provided_stubs?.length > 0 && (
+                <>
+                  {" · "}
+                  auto-stubbed flop primitives:{" "}
+                  {result.diagnostics.auto_provided_stubs.join(", ")}
                 </>
               )}
             </p>

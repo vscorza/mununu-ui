@@ -72,8 +72,9 @@ describe("SvVerifyAutoRunner", () => {
       unsupported: [],
       diagnostics: {
         state_register_count: 2,
-        blackboxed_modules: ["prim_sparse_fsm_flop"],
+        blackboxed_modules: [],
         gated_resets: ["rst_ni=1"],
+        auto_provided_stubs: ["prim_sparse_fsm_flop"],
       },
     });
 
@@ -93,6 +94,7 @@ describe("SvVerifyAutoRunner", () => {
     expect(arg?.must_edge_inference).toBe("smt-hyper-must");
     expect(arg?.use_sv2v).toBe(true);
     expect(arg?.gate_reset).toBe(true);
+    expect(arg?.auto_stub_flops).toBe(true);
 
     // All three properties render, with their headline verdicts + skip reason.
     await waitFor(() => {
@@ -107,10 +109,11 @@ describe("SvVerifyAutoRunner", () => {
       screen.getByText(/atom over non-state signal: gnt_o/),
     ).toBeInTheDocument();
 
-    // Model diagnostics render: the cut module (single text node) anchors the
-    // diagnostics paragraph; the paragraph also carries the state-register count.
-    const cut = screen.getByText(/black-boxed.*prim_sparse_fsm_flop/);
-    const diagText = cut.closest("p")?.textContent ?? "";
+    // Model diagnostics render: the auto-stubbed flop (single text node)
+    // anchors the diagnostics paragraph; the paragraph also carries the
+    // state-register count + reset-gating.
+    const stub = screen.getByText(/auto-stubbed flop primitives.*prim_sparse_fsm_flop/);
+    const diagText = stub.closest("p")?.textContent ?? "";
     expect(diagText).toMatch(/state register/);
     expect(diagText).toMatch(/\b2\b/);
     expect(diagText).toMatch(/reset-gated.*rst_ni=1/);
