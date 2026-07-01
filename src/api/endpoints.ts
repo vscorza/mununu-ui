@@ -519,6 +519,11 @@ export interface SvVerifyAutoRequest {
    * `prim_sparse_fsm_flop`) so the register survives the lift (default
    * `true`). */
   auto_stub_flops?: boolean;
+  /** H.J.b — config concretization: pin wide config inputs to constants so
+   * comparisons against them become decidable. Each entry `"signal=value"`
+   * (e.g. `"cfg_detect_timer_i=7"`). Verdicts are then SCOPED to these values
+   * (surfaced as a `config-concretization` note). Default empty. */
+  config_values?: string[];
 }
 
 /** One property's auto-verification verdict (mirrors the backend view). */
