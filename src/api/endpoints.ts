@@ -557,11 +557,31 @@ export interface ModelDiagnosticsView {
   auto_provided_stubs: string[];
 }
 
+/**
+ * H.J — one provenance note: an abstraction/scoping decision that shaped the
+ * verdicts (config concretization, reset-gating, cut modules, the may-over-approx
+ * posture, the coverage summary), so a verdict's scope + caveats are explicit.
+ */
+export interface VerificationNoteView {
+  /** Machine-stable kebab category, e.g. `"config-concretization"`. */
+  kind: string;
+  /** `"info"` | `"scope-caveat"` | `"soundness-caveat"`. */
+  level: "info" | "scope-caveat" | "soundness-caveat";
+  /** One-line human summary. */
+  summary: string;
+  /** Longer explanation (the why + the soundness/scope implication). */
+  detail: string;
+  /** Structured operands, e.g. `["cfg_detect_timer_i=7"]`. */
+  items: string[];
+}
+
 /** XL.6b — response for `POST /api/v1/sv/verify-auto`. */
 export interface SvVerifyAutoResponse {
   properties: PropertyVerdictView[];
   unsupported: UnsupportedAssertionView[];
   diagnostics: ModelDiagnosticsView;
+  /** H.J — provenance notes (may be absent on older servers). */
+  notes?: VerificationNoteView[];
 }
 
 /**

@@ -39,6 +39,31 @@ const outcomeLabel = (p: PropertyVerdictView): string => {
   return p.detail && p.outcome !== "skipped" ? `${base} (${p.detail})` : base;
 };
 
+// H.J — a provenance note's severity styling. Info is neutral; a scope caveat
+// (narrowed verdict scope, e.g. config concretization) and a soundness caveat
+// (state not modeled) stand out.
+const noteLevelColor = (level: string): string => {
+  switch (level) {
+    case "soundness-caveat":
+      return "var(--error-text, #c00)";
+    case "scope-caveat":
+      return "var(--warning-text, #b8860b)";
+    default:
+      return "var(--text-secondary, #666)"; // info
+  }
+};
+
+const noteLevelLabel = (level: string): string => {
+  switch (level) {
+    case "soundness-caveat":
+      return "⚠ soundness";
+    case "scope-caveat":
+      return "⚠ scope";
+    default:
+      return "ℹ";
+  }
+};
+
 export const SvVerifyAutoRunner = () => {
   const { sourceContent, sourceFileName, additionalSources } =
     useExtractionStore();
@@ -286,6 +311,52 @@ export const SvVerifyAutoRunner = () => {
                 </>
               )}
             </p>
+          )}
+          {result.notes && result.notes.length > 0 && (
+            <div style={{ marginTop: "0.75rem", marginBottom: "1rem" }}>
+              <p style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+                Notes (decisions that shaped these verdicts)
+              </p>
+              <ul style={{ fontSize: "0.85rem", listStyle: "none", paddingLeft: 0 }}>
+                {result.notes.map((n, i) => (
+                  <li
+                    key={`${n.kind}-${i}`}
+                    style={{
+                      marginBottom: "0.5rem",
+                      borderLeft: `3px solid ${noteLevelColor(n.level)}`,
+                      paddingLeft: "0.6rem",
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, color: noteLevelColor(n.level) }}>
+                      {noteLevelLabel(n.level)}
+                    </span>{" "}
+                    <code>[{n.kind}]</code> {n.summary}
+                    {n.detail && (
+                      <div style={{ color: "var(--text-secondary, #666)", marginTop: "0.15rem" }}>
+                        {n.detail}
+                      </div>
+                    )}
+                    {n.items.length > 0 && (
+                      <div style={{ marginTop: "0.15rem" }}>
+                        {n.items.map((it) => (
+                          <code
+                            key={it}
+                            style={{
+                              marginRight: "0.4rem",
+                              background: "var(--code-bg, #f2f2f2)",
+                              padding: "0 0.3rem",
+                              borderRadius: "3px",
+                            }}
+                          >
+                            {it}
+                          </code>
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           <ul style={{ fontSize: "0.85rem", listStyle: "none", paddingLeft: 0 }}>
             {result.properties.map((p) => (

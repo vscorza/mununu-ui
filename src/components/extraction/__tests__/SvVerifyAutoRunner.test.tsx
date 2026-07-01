@@ -76,6 +76,22 @@ describe("SvVerifyAutoRunner", () => {
         gated_resets: ["rst_ni=1"],
         auto_provided_stubs: ["prim_sparse_fsm_flop"],
       },
+      notes: [
+        {
+          kind: "coverage-summary",
+          level: "info",
+          summary: "3 assertion(s): 1 definite (HOLDS), 1 violated, 0 unknown (⊥), 1 skipped",
+          detail: "A definite verdict transfers to the RTL.",
+          items: [],
+        },
+        {
+          kind: "config-concretization",
+          level: "scope-caveat",
+          summary: "1 config input(s) pinned to constants.",
+          detail: "Verdicts are scoped to this configuration.",
+          items: ["cfg_detect_timer_i=7"],
+        },
+      ],
     });
 
     render(<SvVerifyAutoRunner />);
@@ -117,6 +133,17 @@ describe("SvVerifyAutoRunner", () => {
     expect(diagText).toMatch(/state register/);
     expect(diagText).toMatch(/\b2\b/);
     expect(diagText).toMatch(/reset-gated.*rst_ni=1/);
+
+    // H.J — the provenance notes panel renders each note with its summary,
+    // and the config-concretization scope caveat carries the pinned value.
+    expect(
+      screen.getByText(/Notes \(decisions that shaped these verdicts\)/),
+    ).toBeInTheDocument();
+    const configNote = screen
+      .getByText(/1 config input\(s\) pinned to constants/)
+      .closest("li")?.textContent ?? "";
+    expect(configNote).toContain("scope");
+    expect(configNote).toContain("cfg_detect_timer_i=7");
   });
 
   it("blocks verification when no SV source is loaded", async () => {
