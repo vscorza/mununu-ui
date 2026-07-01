@@ -74,6 +74,10 @@ export const SvVerifyAutoRunner = () => {
   const [mustEdgeInference, setMustEdgeInference] = useState("off");
   const [gateReset, setGateReset] = useState(true);
   const [autoStubFlops, setAutoStubFlops] = useState(true);
+  // H.J.b — config concretization: comma/newline-separated `signal=value`
+  // entries (e.g. `cfg_detect_timer_i=7`). Pins wide config inputs to constants
+  // so comparisons against them become decidable (scope-reduced verdicts).
+  const [configValues, setConfigValues] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SvVerifyAutoResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +108,10 @@ export const SvVerifyAutoRunner = () => {
         must_edge_inference: mustEdgeInference,
         gate_reset: gateReset,
         auto_stub_flops: autoStubFlops,
+        config_values: configValues
+          .split(/[\n,]/)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
       });
       setResult(response);
     } catch (e) {
@@ -245,6 +253,20 @@ export const SvVerifyAutoRunner = () => {
               onChange={(e) => setAutoStubFlops(e.target.checked)}
             />
             Auto-stub cut flop primitives (e.g. <code>prim_sparse_fsm_flop</code>)
+          </label>
+          <label style={{ fontSize: "0.9rem", display: "block" }}>
+            <span style={{ display: "block", marginBottom: "0.25rem" }}>
+              Config concretization (<code>signal=value</code>, comma/newline
+              separated — verdicts are scoped to these values)
+            </span>
+            <input
+              type="text"
+              aria-label="Config concretization"
+              placeholder="cfg_detect_timer_i=7, cfg_debounce_timer_i=1"
+              value={configValues}
+              onChange={(e) => setConfigValues(e.target.value)}
+              style={{ width: "100%", fontFamily: "monospace" }}
+            />
           </label>
         </div>
       </section>

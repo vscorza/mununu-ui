@@ -98,6 +98,11 @@ describe("SvVerifyAutoRunner", () => {
     fireEvent.change(screen.getByLabelText("Must-edge inference"), {
       target: { value: "smt-hyper-must" },
     });
+    // H.J.b — config concretization: comma-separated `signal=value` entries are
+    // parsed into the request's `config_values` array.
+    fireEvent.change(screen.getByLabelText("Config concretization"), {
+      target: { value: "cfg_detect_timer_i=7, cfg_debounce_timer_i=1" },
+    });
     fireEvent.click(
       screen.getByRole("button", { name: /Verify all properties/i }),
     );
@@ -111,6 +116,10 @@ describe("SvVerifyAutoRunner", () => {
     expect(arg?.use_sv2v).toBe(true);
     expect(arg?.gate_reset).toBe(true);
     expect(arg?.auto_stub_flops).toBe(true);
+    expect(arg?.config_values).toEqual([
+      "cfg_detect_timer_i=7",
+      "cfg_debounce_timer_i=1",
+    ]);
 
     // All three properties render, with their headline verdicts + skip reason.
     await waitFor(() => {
