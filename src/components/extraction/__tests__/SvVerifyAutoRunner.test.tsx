@@ -103,6 +103,11 @@ describe("SvVerifyAutoRunner", () => {
     fireEvent.change(screen.getByLabelText("Config concretization"), {
       target: { value: "cfg_detect_timer_i=7, cfg_debounce_timer_i=1" },
     });
+    // H.H — counter bounds: comma-separated `signal<=value` entries are parsed
+    // into the request's `counter_bounds` array.
+    fireEvent.change(screen.getByLabelText("Counter bounds"), {
+      target: { value: "cnt_q<=7" },
+    });
     fireEvent.click(
       screen.getByRole("button", { name: /Verify all properties/i }),
     );
@@ -120,6 +125,7 @@ describe("SvVerifyAutoRunner", () => {
       "cfg_detect_timer_i=7",
       "cfg_debounce_timer_i=1",
     ]);
+    expect(arg?.counter_bounds).toEqual(["cnt_q<=7"]);
 
     // All three properties render, with their headline verdicts + skip reason.
     await waitFor(() => {
