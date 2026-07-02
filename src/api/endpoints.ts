@@ -524,6 +524,14 @@ export interface SvVerifyAutoRequest {
    * (e.g. `"cfg_detect_timer_i=7"`). Verdicts are then SCOPED to these values
    * (surfaced as a `config-concretization` note). Default empty. */
   config_values?: string[];
+  /** H.H — counter upper bounds: seed a `signal <= value` cube-partition to
+   * refine a counter-monotonicity property (`cnt_q >= $past(cnt_q)`) whose ⊥ is
+   * caused by the abstract wraparound. Each entry `"signal<=value"` (the
+   * `"signal=value"` spelling is also accepted). Sound (a partition, not an
+   * assumption); needs `must_edge_inference` on. Bounds are also auto-derived
+   * from `config_values`; a manual entry overrides the inferred one. Surfaced as
+   * a `counter-bound` note. Default empty. */
+  counter_bounds?: string[];
 }
 
 /** One property's auto-verification verdict (mirrors the backend view). */

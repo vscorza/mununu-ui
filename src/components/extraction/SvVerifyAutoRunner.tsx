@@ -78,6 +78,10 @@ export const SvVerifyAutoRunner = () => {
   // entries (e.g. `cfg_detect_timer_i=7`). Pins wide config inputs to constants
   // so comparisons against them become decidable (scope-reduced verdicts).
   const [configValues, setConfigValues] = useState("");
+  // H.H — counter upper bounds: comma/newline `signal<=value` entries. Seeds a
+  // `signal <= value` cube-partition to refine a counter-monotonicity property
+  // whose ⊥ is the abstract wraparound (also auto-derived from config values).
+  const [counterBounds, setCounterBounds] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SvVerifyAutoResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +113,10 @@ export const SvVerifyAutoRunner = () => {
         gate_reset: gateReset,
         auto_stub_flops: autoStubFlops,
         config_values: configValues
+          .split(/[\n,]/)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
+        counter_bounds: counterBounds
           .split(/[\n,]/)
           .map((s) => s.trim())
           .filter((s) => s.length > 0),
@@ -265,6 +273,21 @@ export const SvVerifyAutoRunner = () => {
               placeholder="cfg_detect_timer_i=7, cfg_debounce_timer_i=1"
               value={configValues}
               onChange={(e) => setConfigValues(e.target.value)}
+              style={{ width: "100%", fontFamily: "monospace" }}
+            />
+          </label>
+          <label style={{ fontSize: "0.9rem", display: "block" }}>
+            <span style={{ display: "block", marginBottom: "0.25rem" }}>
+              Counter bounds (<code>signal&lt;=value</code>, comma/newline
+              separated — refines a counter-monotonicity ⊥ by excluding the
+              abstract wraparound; sound partition, needs must-edges on)
+            </span>
+            <input
+              type="text"
+              aria-label="Counter bounds"
+              placeholder="cnt_q<=7"
+              value={counterBounds}
+              onChange={(e) => setCounterBounds(e.target.value)}
               style={{ width: "100%", fontFamily: "monospace" }}
             />
           </label>
