@@ -108,6 +108,11 @@ describe("SvVerifyAutoRunner", () => {
     fireEvent.change(screen.getByLabelText("Counter bounds"), {
       target: { value: "cnt_q<=7" },
     });
+    // R-F5.5d — the engine selector (default explicit) posts `engine`.
+    expect(screen.getByLabelText("Engine")).toHaveValue("explicit");
+    fireEvent.change(screen.getByLabelText("Engine"), {
+      target: { value: "symbolic" },
+    });
     fireEvent.click(
       screen.getByRole("button", { name: /Verify all properties/i }),
     );
@@ -117,6 +122,7 @@ describe("SvVerifyAutoRunner", () => {
     });
     const arg = mocked.mock.calls[0]?.[0];
     expect(arg?.source).toContain("module fsm");
+    expect(arg?.engine).toBe("symbolic");
     expect(arg?.must_edge_inference).toBe("smt-hyper-must");
     expect(arg?.use_sv2v).toBe(true);
     expect(arg?.gate_reset).toBe(true);

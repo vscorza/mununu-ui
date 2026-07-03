@@ -72,6 +72,8 @@ export const SvVerifyAutoRunner = () => {
   const [useSv2v, setUseSv2v] = useState(true);
   const [maxIterations, setMaxIterations] = useState("16");
   const [mustEdgeInference, setMustEdgeInference] = useState("off");
+  // R-F5.5d — predicate-cube engine selector ("explicit" | "symbolic").
+  const [engine, setEngine] = useState("explicit");
   const [gateReset, setGateReset] = useState(true);
   const [autoStubFlops, setAutoStubFlops] = useState(true);
   // H.J.b — config concretization: comma/newline-separated `signal=value`
@@ -120,6 +122,7 @@ export const SvVerifyAutoRunner = () => {
           .split(/[\n,]/)
           .map((s) => s.trim())
           .filter((s) => s.length > 0),
+        engine,
       });
       setResult(response);
     } catch (e) {
@@ -196,6 +199,20 @@ export const SvVerifyAutoRunner = () => {
               onChange={(e) => setMaxIterations(e.target.value)}
               style={{ width: "100%", marginTop: "0.25rem", padding: "0.3rem" }}
             />
+          </label>
+          <label style={{ fontSize: "0.9rem" }}>
+            Engine
+            <select
+              aria-label="Engine"
+              value={engine}
+              onChange={(e) => setEngine(e.target.value)}
+              style={{ width: "100%", marginTop: "0.25rem", padding: "0.3rem" }}
+            >
+              <option value="explicit">explicit (SMT edges + CEGAR)</option>
+              <option value="symbolic">
+                symbolic (R-F5 BDD, no per-cube-pair SMT)
+              </option>
+            </select>
           </label>
           <label style={{ fontSize: "0.9rem" }}>
             Must-edge inference
