@@ -113,6 +113,35 @@ describe("CegarRunner", () => {
     expect(arg?.config_values).toEqual(["boot_fsm_ns=0,1,2,3,4,5,6,7"]);
   });
 
+  it("posts engine=symbolic when the R-F5 engine is selected (R-F5.4.2b)", async () => {
+    const mocked = vi.mocked(endpoints.runBtor2Cegar);
+    mocked.mockResolvedValue({
+      success: true,
+      iterations: [],
+      final_predicates: [],
+      terminated_with: "symbolic-single-shot",
+      verdict: { true_cells: 1, false_cells: 0, unknown_cells: 1 },
+      lazy_lift_pending: false,
+      approximant_reuse_enabled: false,
+      warnings: ["engine=symbolic (R-F5): single-shot"],
+    });
+
+    render(<CegarRunner />);
+    // Default engine is explicit.
+    expect(screen.getByLabelText("Engine")).toHaveValue("explicit");
+    fireEvent.change(screen.getByLabelText("Engine"), {
+      target: { value: "symbolic" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /Run CEGAR refinement/i }),
+    );
+
+    await waitFor(() => {
+      expect(mocked).toHaveBeenCalledTimes(1);
+    });
+    expect(mocked.mock.calls[0]?.[0]?.engine).toBe("symbolic");
+  });
+
   it("renders the iterations table and termination reason from the trace", async () => {
     const mocked = vi.mocked(endpoints.runBtor2Cegar);
     mocked.mockResolvedValue({

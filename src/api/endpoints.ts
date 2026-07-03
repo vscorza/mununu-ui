@@ -266,6 +266,15 @@ export interface Btor2CegarRequest {
    * `--emit-ctxdsl`.
    */
   emit_ctxdsl?: boolean;
+  /**
+   * R-F5.4.2b — predicate-cube engine: `"explicit"` (default, SMT edges +
+   * CEGAR refinement) or `"symbolic"` (R-F5 BDD relation, single-shot, no
+   * per-cube-pair SMT — orders of magnitude faster at large `|P|`). Mirrors
+   * the CLI `--engine`. The symbolic path handles simple equality predicates +
+   * the bare `[]`/`<>` fragment only, performs no refinement (`iterations` is
+   * empty), and sets `terminated_with = "symbolic-single-shot"`.
+   */
+  engine?: string;
 }
 
 /** Cell counts of a 3-valued (Kleene) verdict over the cube space. */
