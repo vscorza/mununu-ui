@@ -51,6 +51,8 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
   const [mayEdgeInference, setMayEdgeInference] = useState("off");
   const [configValuesText, setConfigValuesText] = useState("");
   const [emitCtxdsl, setEmitCtxdsl] = useState(false);
+  // R-F5.4.2b — predicate-cube engine selector ("explicit" | "symbolic").
+  const [engine, setEngine] = useState("explicit");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<Btor2CegarResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -113,6 +115,7 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
         may_edge_inference: mayEdgeInference,
         config_values: configValues,
         emit_ctxdsl: emitCtxdsl,
+        engine,
       });
       setResult(response);
     } catch (e) {
@@ -217,6 +220,20 @@ export const CegarRunner = ({ initialBtor2 }: { initialBtor2?: string }) => {
             gap: "1rem",
           }}
         >
+          <label style={{ fontSize: "0.9rem" }}>
+            Engine
+            <select
+              aria-label="Engine"
+              value={engine}
+              onChange={(e) => setEngine(e.target.value)}
+              style={{ width: "100%", marginTop: "0.25rem", padding: "0.3rem" }}
+            >
+              <option value="explicit">explicit (SMT edges + CEGAR)</option>
+              <option value="symbolic">
+                symbolic (R-F5 BDD, single-shot, no SMT)
+              </option>
+            </select>
+          </label>
           <label style={{ fontSize: "0.9rem" }}>
             Predicate source
             <select
