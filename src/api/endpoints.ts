@@ -541,6 +541,14 @@ export interface SvVerifyAutoRequest {
    * from `config_values`; a manual entry overrides the inferred one. Surfaced as
    * a `counter-bound` note. Default empty. */
   counter_bounds?: string[];
+  /**
+   * R-F5.5d — predicate-cube engine: `"explicit"` (default) or `"symbolic"`
+   * (R-F5 BDD relation + CEGAR loop, no per-cube-pair SMT). Mirrors the CLI
+   * `--engine`. The symbolic path handles moderate (≤ ~40-bit) designs in the
+   * cube-dimension-predicate + bare `[]`/`<>` fragment; larger/wide designs +
+   * derived predicates degrade to `Skipped` (they await the R-F5.6 COI work).
+   */
+  engine?: string;
 }
 
 /** One property's auto-verification verdict (mirrors the backend view). */
