@@ -212,6 +212,10 @@ export const SvVerifyAutoRunner = () => {
               <option value="symbolic">
                 symbolic (R-F5 BDD, no per-cube-pair SMT)
               </option>
+              <option value="exact-symbolic">
+                exact-symbolic (D1 full-state BDD MC, definite — decides
+                liveness where abstraction is ⊥)
+              </option>
             </select>
           </label>
           <label style={{ fontSize: "0.9rem" }}>

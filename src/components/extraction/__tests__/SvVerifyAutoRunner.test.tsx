@@ -167,6 +167,46 @@ describe("SvVerifyAutoRunner", () => {
     expect(configNote).toContain("cfg_detect_timer_i=7");
   });
 
+  it("posts engine=exact-symbolic when the D1 exact-symbolic engine is selected", async () => {
+    const mocked = vi.mocked(endpoints.runSvVerifyAuto);
+    mocked.mockResolvedValue({
+      properties: [
+        {
+          name: "fsm_sva_0",
+          kind: "assert",
+          formula: "nu X. ((state != 3) && [] X)",
+          outcome: "holds",
+          detail: null,
+          seeded_predicates: ["state != 3"],
+        },
+      ],
+      unsupported: [],
+      diagnostics: {
+        state_register_count: 2,
+        blackboxed_modules: [],
+        gated_resets: [],
+        auto_provided_stubs: [],
+      },
+      notes: [],
+    });
+
+    render(<SvVerifyAutoRunner />);
+    // D1.6 — the exact-symbolic option is present and, when selected, posts
+    // `engine: "exact-symbolic"` so the API routes to the exact full-state ROBDD MC.
+    fireEvent.change(screen.getByLabelText("Engine"), {
+      target: { value: "exact-symbolic" },
+    });
+    expect(screen.getByLabelText("Engine")).toHaveValue("exact-symbolic");
+    fireEvent.click(
+      screen.getByRole("button", { name: /Verify all properties/i }),
+    );
+
+    await waitFor(() => {
+      expect(mocked).toHaveBeenCalledTimes(1);
+    });
+    expect(mocked.mock.calls[0]?.[0]?.engine).toBe("exact-symbolic");
+  });
+
   it("blocks verification when no SV source is loaded", async () => {
     const mocked = vi.mocked(endpoints.runSvVerifyAuto);
     useExtractionStore.setState({ sourceContent: "", sourceFileName: "" });
