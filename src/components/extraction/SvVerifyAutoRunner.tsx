@@ -446,6 +446,41 @@ export const SvVerifyAutoRunner = () => {
                   {p.seeded_predicates.length > 0 && (
                     <div>predicates: {p.seeded_predicates.join(", ")}</div>
                   )}
+                  {p.counterexample && (
+                    <div
+                      style={{
+                        marginTop: "0.35rem",
+                        fontFamily: "monospace",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      <div style={{ opacity: 0.8 }}>
+                        counterexample (stall lasso):
+                      </div>
+                      {p.counterexample.prefix.map((st, i) => (
+                        <div key={`pre-${i}`}>
+                          {"→ "}
+                          {st
+                            .map((c) => `${c.register}=${c.value}`)
+                            .join(", ")}
+                        </div>
+                      ))}
+                      {p.counterexample.cycle.map((st, i) => (
+                        <div
+                          key={`cyc-${i}`}
+                          style={{ color: outcomeColor("violated") }}
+                        >
+                          {i === 0 ? "↺ " : "  "}
+                          {st
+                            .map((c) => `${c.register}=${c.value}`)
+                            .join(", ")}
+                        </div>
+                      ))}
+                      <div style={{ opacity: 0.7 }}>
+                        cycle repeats forever — the property is avoided
+                      </div>
+                    </div>
+                  )}
                 </div>
               </li>
             ))}
