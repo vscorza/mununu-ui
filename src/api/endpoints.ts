@@ -551,6 +551,22 @@ export interface SvVerifyAutoRequest {
   engine?: string;
 }
 
+/** One register's concrete value in a counterexample state. */
+export interface CexCellView {
+  register: string;
+  value: number;
+}
+
+/**
+ * D1.8b — a stall-lasso counterexample: reset → `prefix` → repeating `cycle`,
+ * each state an ordered list of register cells. Present only for a Violated bare
+ * `AF p` decided by the exact engine (`engine: "exact-symbolic"`).
+ */
+export interface CounterexampleView {
+  prefix: CexCellView[][];
+  cycle: CexCellView[][];
+}
+
 /** One property's auto-verification verdict (mirrors the backend view). */
 export interface PropertyVerdictView {
   name: string;
@@ -563,6 +579,8 @@ export interface PropertyVerdictView {
   detail: string | null;
   /** The cube predicates auto-seeded for this property (atom strings). */
   seeded_predicates: string[];
+  /** D1.8b — a concrete stall-lasso counterexample (exact-symbolic engine). */
+  counterexample?: CounterexampleView;
 }
 
 /** Model-level lift diagnostics for verify-auto. */
