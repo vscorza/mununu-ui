@@ -109,8 +109,8 @@ describe("SvVerifyAutoRunner", () => {
     fireEvent.change(screen.getByLabelText("Counter bounds"), {
       target: { value: "cnt_q<=7" },
     });
-    // R-F5.5d — the engine selector (default explicit) posts `engine`.
-    expect(screen.getByLabelText("Engine")).toHaveValue("explicit");
+    // The engine selector defaults to portfolio-sequential (2026-07-06) and posts `engine`.
+    expect(screen.getByLabelText("Engine")).toHaveValue("portfolio-sequential");
     fireEvent.change(screen.getByLabelText("Engine"), {
       target: { value: "symbolic" },
     });

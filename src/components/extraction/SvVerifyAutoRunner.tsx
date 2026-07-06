@@ -72,8 +72,9 @@ export const SvVerifyAutoRunner = () => {
   const [useSv2v, setUseSv2v] = useState(true);
   const [maxIterations, setMaxIterations] = useState("16");
   const [mustEdgeInference, setMustEdgeInference] = useState("off");
-  // R-F5.5d — predicate-cube engine selector ("explicit" | "symbolic").
-  const [engine, setEngine] = useState("explicit");
+  // Engine selector. Default "portfolio-sequential" (2026-07-06): exact → symbolic
+  // → explicit, early-exit — the most precise sound choice, no slower than explicit.
+  const [engine, setEngine] = useState("portfolio-sequential");
   const [gateReset, setGateReset] = useState(true);
   const [autoStubFlops, setAutoStubFlops] = useState(true);
   // H.J.b — config concretization: comma/newline-separated `signal=value`
@@ -219,8 +220,8 @@ export const SvVerifyAutoRunner = () => {
                 liveness where abstraction is ⊥)
               </option>
               <option value="portfolio-sequential">
-                portfolio-sequential (exact→symbolic→explicit, stop when decided
-                — budget-frugal)
+                portfolio-sequential (default — exact→symbolic→explicit, stop
+                when decided; budget-frugal)
               </option>
               <option value="portfolio-parallel">
                 portfolio-parallel (all engines at once, take any definite —
