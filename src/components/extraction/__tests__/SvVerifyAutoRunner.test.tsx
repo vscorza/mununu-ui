@@ -80,7 +80,8 @@ describe("SvVerifyAutoRunner", () => {
         {
           kind: "coverage-summary",
           level: "info",
-          summary: "3 assertion(s): 1 definite (HOLDS), 1 violated, 0 unknown (⊥), 1 skipped",
+          summary:
+            "3 assertion(s): 1 definite (HOLDS), 1 violated, 0 unknown (⊥), 1 skipped",
           detail: "A definite verdict transfers to the RTL.",
           items: [],
         },
@@ -149,7 +150,9 @@ describe("SvVerifyAutoRunner", () => {
     // Model diagnostics render: the auto-stubbed flop (single text node)
     // anchors the diagnostics paragraph; the paragraph also carries the
     // state-register count + reset-gating.
-    const stub = screen.getByText(/auto-stubbed flop primitives.*prim_sparse_fsm_flop/);
+    const stub = screen.getByText(
+      /auto-stubbed flop primitives.*prim_sparse_fsm_flop/,
+    );
     const diagText = stub.closest("p")?.textContent ?? "";
     expect(diagText).toMatch(/state register/);
     expect(diagText).toMatch(/\b2\b/);
@@ -160,9 +163,9 @@ describe("SvVerifyAutoRunner", () => {
     expect(
       screen.getByText(/Notes \(decisions that shaped these verdicts\)/),
     ).toBeInTheDocument();
-    const configNote = screen
-      .getByText(/1 config input\(s\) pinned to constants/)
-      .closest("li")?.textContent ?? "";
+    const configNote =
+      screen.getByText(/1 config input\(s\) pinned to constants/).closest("li")
+        ?.textContent ?? "";
     expect(configNote).toContain("scope");
     expect(configNote).toContain("cfg_detect_timer_i=7");
   });
@@ -206,6 +209,49 @@ describe("SvVerifyAutoRunner", () => {
     });
     expect(mocked.mock.calls[0]?.[0]?.engine).toBe("exact-symbolic");
   });
+
+  it.each(["portfolio-sequential", "portfolio-parallel"])(
+    "posts engine=%s when a portfolio engine is selected",
+    async (engineValue) => {
+      const mocked = vi.mocked(endpoints.runSvVerifyAuto);
+      mocked.mockResolvedValue({
+        properties: [
+          {
+            name: "fsm_sva_0",
+            kind: "assert",
+            formula: "nu X. ((state != 3) && [] X)",
+            outcome: "holds",
+            detail: null,
+            seeded_predicates: ["state != 3"],
+          },
+        ],
+        unsupported: [],
+        diagnostics: {
+          state_register_count: 2,
+          blackboxed_modules: [],
+          gated_resets: [],
+          auto_provided_stubs: [],
+        },
+        notes: [],
+      });
+
+      render(<SvVerifyAutoRunner />);
+      // The portfolio options are present and, when selected, post the matching
+      // `engine` value so the API routes to the multi-engine scheduler.
+      fireEvent.change(screen.getByLabelText("Engine"), {
+        target: { value: engineValue },
+      });
+      expect(screen.getByLabelText("Engine")).toHaveValue(engineValue);
+      fireEvent.click(
+        screen.getByRole("button", { name: /Verify all properties/i }),
+      );
+
+      await waitFor(() => {
+        expect(mocked).toHaveBeenCalledTimes(1);
+      });
+      expect(mocked.mock.calls[0]?.[0]?.engine).toBe(engineValue);
+    },
+  );
 
   it("blocks verification when no SV source is loaded", async () => {
     const mocked = vi.mocked(endpoints.runSvVerifyAuto);

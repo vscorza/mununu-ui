@@ -542,11 +542,17 @@ export interface SvVerifyAutoRequest {
    * a `counter-bound` note. Default empty. */
   counter_bounds?: string[];
   /**
-   * R-F5.5d — predicate-cube engine: `"explicit"` (default) or `"symbolic"`
-   * (R-F5 BDD relation + CEGAR loop, no per-cube-pair SMT). Mirrors the CLI
-   * `--engine`. The symbolic path handles moderate (≤ ~40-bit) designs in the
-   * cube-dimension-predicate + bare `[]`/`<>` fragment; larger/wide designs +
-   * derived predicates degrade to `Skipped` (they await the R-F5.6 COI work).
+   * Engine selector, mirroring the CLI `--engine`:
+   * - `"explicit"` (default) — predicate-cube CEGAR (SMT edges).
+   * - `"symbolic"` — R-F5 BDD relation + CEGAR loop, no per-cube-pair SMT.
+   * - `"exact-symbolic"` — D1 full-state ROBDD MC, definite (never ⊥) within
+   *   the bit cap; decides liveness the cube engines leave ⊥.
+   * - `"portfolio-sequential"` — run exact → symbolic → explicit in order,
+   *   stopping as soon as every property is decided (budget-frugal).
+   * - `"portfolio-parallel"` — run all engines concurrently and take the
+   *   definite verdict from whichever decided each property (low-latency,
+   *   3× compute). Both portfolio modes are proven sound (the engines never
+   *   contradict) and complementary (each decides properties the others ⊥).
    */
   engine?: string;
 }
