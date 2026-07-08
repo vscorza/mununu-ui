@@ -544,6 +544,63 @@ export const runBtor2VerifyRecoverability = async (
   return response.data;
 };
 
+// Auto FSM-recoverability scan (matches mununu backend /api/v1/btor2/check-fsm)
+
+/**
+ * Request for the auto FSM-recoverability scan
+ * (`POST /api/v1/btor2/check-fsm`). Mirrors the CLI `mununu btor2 check-fsm`:
+ * auto-discovers the FSM-like state registers and decides recoverability of each to
+ * its idle/reset value with no user input (idle derived from the register's init or
+ * reset-mux constant).
+ */
+export interface Btor2CheckFsmRequest {
+  /** BTOR2 source content. */
+  content: string;
+  /** Max state-register width treated as an FSM (wider = datapath/counter, skipped). */
+  max_width?: number;
+}
+
+/** One state register's recoverability result in a {@link Btor2CheckFsmResponse}. */
+export interface FsmRegisterFinding {
+  /** The state register's symbol. */
+  register: string;
+  /** The idle/reset value recoverability targets. */
+  idle_value: number;
+  /**
+   * Canonical verdict — `"holds"` | `"violated"` (an unrecoverable trap) |
+   * `"unknown"` (over the exact engine's cap).
+   */
+  verdict: PropertyVerdict;
+  /** `true` when the register is an unrecoverable trap (a finding). */
+  unrecoverable_trap: boolean;
+}
+
+/** Response for `POST /api/v1/btor2/check-fsm`. */
+export interface Btor2CheckFsmResponse {
+  /** Number of FSM-like state registers scanned. */
+  fsm_registers_checked: number;
+  /** Number of unrecoverable traps found (`verdict === "violated"`). */
+  traps_found: number;
+  /** Per-register results. */
+  registers: FsmRegisterFinding[];
+}
+
+/**
+ * Auto-scan every FSM-like state register for an unrecoverable trap — no user input.
+ * The branching recoverability property SVA cannot state, decided per register with
+ * the exact 3-valued engine. Z3-heavy (one check per register) — uses the extended
+ * (`aiApiClient`, 120s) client.
+ */
+export const runBtor2CheckFsm = async (
+  request: Btor2CheckFsmRequest,
+): Promise<Btor2CheckFsmResponse> => {
+  const response = await aiApiClient.post<Btor2CheckFsmResponse>(
+    "/btor2/check-fsm",
+    request,
+  );
+  return response.data;
+};
+
 // SV-direct verbs (matches mununu backend /api/v1/sv/verify{,-liveness,-recoverability})
 // Lift SV (sv2v + Yosys) then decide a property in one call — no emit-btor2 step.
 // They return the same Btor2Verify*Response shapes as the BTOR2-direct verbs.
