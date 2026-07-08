@@ -544,6 +544,76 @@ export const runBtor2VerifyRecoverability = async (
   return response.data;
 };
 
+// SV-direct verbs (matches mununu backend /api/v1/sv/verify{,-liveness,-recoverability})
+// Lift SV (sv2v + Yosys) then decide a property in one call — no emit-btor2 step.
+// They return the same Btor2Verify*Response shapes as the BTOR2-direct verbs.
+
+/** The SV → BTOR2 lift inputs shared by the SV-direct verb requests. */
+export interface SvLiftFields {
+  /** SystemVerilog primary source content. */
+  source: string;
+  /** Additional SV sources (packages / includes). */
+  additional_sources?: { name: string; content: string }[];
+  /** Top module for the lift (auto-detect when omitted). */
+  top?: string;
+  /** Run sv2v before Yosys (modern SV). Default `false`. */
+  use_sv2v?: boolean;
+}
+
+/** Request for `POST /api/v1/sv/verify` (SV-direct safety portfolio). */
+export type SvVerifyRequest = SvLiftFields;
+
+/** Request for `POST /api/v1/sv/verify-liveness` (SV-direct response liveness). */
+export interface SvVerifyLivenessRequest extends SvLiftFields {
+  /** The request atom (`"REG op VALUE"`). */
+  request: string;
+  /** The grant atom that must eventually follow on every path. */
+  grant: string;
+}
+
+/** Request for `POST /api/v1/sv/verify-recoverability` (SV-direct `AG EF good`). */
+export interface SvVerifyRecoverabilityRequest extends SvLiftFields {
+  /** The `good` atom to recover to (`"REG op VALUE"`). */
+  target: string;
+}
+
+/**
+ * Lift SV and decide `bad`-reachability of its assertions with the multi-engine
+ * safety portfolio. Z3-/subprocess-heavy — uses the extended (`aiApiClient`, 120s)
+ * client. The server host needs sv2v + Yosys.
+ */
+export const runSvVerify = async (
+  request: SvVerifyRequest,
+): Promise<Btor2VerifyResponse> => {
+  const response = await aiApiClient.post<Btor2VerifyResponse>(
+    "/sv/verify",
+    request,
+  );
+  return response.data;
+};
+
+/** Lift SV and decide `AG(request → AF grant)` in one call. */
+export const runSvVerifyLiveness = async (
+  request: SvVerifyLivenessRequest,
+): Promise<Btor2VerifyLivenessResponse> => {
+  const response = await aiApiClient.post<Btor2VerifyLivenessResponse>(
+    "/sv/verify-liveness",
+    request,
+  );
+  return response.data;
+};
+
+/** Lift SV and decide recoverability `AG EF target` in one call. */
+export const runSvVerifyRecoverability = async (
+  request: SvVerifyRecoverabilityRequest,
+): Promise<Btor2VerifyRecoverabilityResponse> => {
+  const response = await aiApiClient.post<Btor2VerifyRecoverabilityResponse>(
+    "/sv/verify-recoverability",
+    request,
+  );
+  return response.data;
+};
+
 /**
  * cegar-extraction Stage 2 — SV-direct CEGAR request
  * (`POST /api/v1/sv/cegar`). Mirrors the CLI `mununu sv cegar`: the
