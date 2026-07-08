@@ -450,6 +450,49 @@ export const runBtor2Verify = async (
   return response.data;
 };
 
+// Response-liveness at scale (matches mununu backend /api/v1/btor2/verify-liveness)
+
+/**
+ * Request for the response-liveness endpoint
+ * (`POST /api/v1/btor2/verify-liveness`). Mirrors the CLI
+ * `mununu btor2 verify-liveness`: decides `AG(request → AF grant)` via the
+ * liveness-to-safety reduction + the portfolio. `request` / `grant` are
+ * register-comparison atom strings (e.g. `"st == 1"`).
+ */
+export interface Btor2VerifyLivenessRequest {
+  /** BTOR2 source content. */
+  content: string;
+  /** The request atom (`"REG op VALUE"`). */
+  request: string;
+  /** The grant atom that must eventually follow on every path. */
+  grant: string;
+}
+
+/** Response for `POST /api/v1/btor2/verify-liveness`. */
+export interface Btor2VerifyLivenessResponse {
+  /** The verdict: `"holds"` | `"violated"` | `"inconclusive"`. */
+  verdict: "holds" | "violated" | "inconclusive";
+  /** The reduced property, echoed: `AG((<request>) -> AF (<grant>))`. */
+  property: string;
+  /** Portfolio engines that decided the reduced `bad`-reachability query. */
+  decided_by: string[];
+}
+
+/**
+ * Decide a response-liveness property `AG(request → AF grant)` at scale via the
+ * liveness-to-safety reduction + the multi-engine portfolio. Z3- and
+ * subprocess-heavy — uses the extended (`aiApiClient`, 120s) client.
+ */
+export const runBtor2VerifyLiveness = async (
+  request: Btor2VerifyLivenessRequest,
+): Promise<Btor2VerifyLivenessResponse> => {
+  const response = await aiApiClient.post<Btor2VerifyLivenessResponse>(
+    "/btor2/verify-liveness",
+    request,
+  );
+  return response.data;
+};
+
 /**
  * cegar-extraction Stage 2 — SV-direct CEGAR request
  * (`POST /api/v1/sv/cegar`). Mirrors the CLI `mununu sv cegar`: the
