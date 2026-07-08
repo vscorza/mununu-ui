@@ -401,6 +401,55 @@ export const runBtor2Cegar = async (
   return response.data;
 };
 
+// Multi-engine safety portfolio (matches mununu backend /api/v1/btor2/verify)
+
+/**
+ * Request for the multi-engine safety portfolio endpoint
+ * (`POST /api/v1/btor2/verify`). Mirrors the CLI `mununu btor2 verify`:
+ * decides `bad`-reachability of a BTOR2 design across every available sound
+ * engine.
+ */
+export interface Btor2VerifyRequest {
+  /** BTOR2 source content. */
+  content: string;
+}
+
+/**
+ * Response for `POST /api/v1/btor2/verify` — the merged portfolio verdict plus
+ * which engines reached each definite conclusion.
+ */
+export interface Btor2VerifyResponse {
+  /**
+   * Merged verdict: `"reachable"` | `"unreachable"` | `"unknown"` |
+   * `"contradiction"`.
+   */
+  verdict: "reachable" | "unreachable" | "unknown" | "contradiction";
+  /** Engines that found `bad` reachable (a real counterexample). */
+  reachable_by: string[];
+  /** Engines that proved `bad` unreachable (a real safety proof). */
+  unreachable_by: string[];
+  /**
+   * `true` when two sound engines disagree — a soundness alarm, not a guess.
+   */
+  contradiction: boolean;
+}
+
+/**
+ * Decide `bad`-reachability with the multi-engine safety portfolio (exact ⊕
+ * native ⊕ spacer ⊕ btormc ⊕ Pono), merged under the differential-oracle
+ * discipline. Z3- and subprocess-heavy — uses the extended (`aiApiClient`,
+ * 120s) client.
+ */
+export const runBtor2Verify = async (
+  request: Btor2VerifyRequest,
+): Promise<Btor2VerifyResponse> => {
+  const response = await aiApiClient.post<Btor2VerifyResponse>(
+    "/btor2/verify",
+    request,
+  );
+  return response.data;
+};
+
 /**
  * cegar-extraction Stage 2 — SV-direct CEGAR request
  * (`POST /api/v1/sv/cegar`). Mirrors the CLI `mununu sv cegar`: the
