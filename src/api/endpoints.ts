@@ -415,15 +415,23 @@ export interface Btor2VerifyRequest {
 }
 
 /**
- * Response for `POST /api/v1/btor2/verify` — the merged portfolio verdict plus
- * which engines reached each definite conclusion.
+ * Canonical property verdict — the single vocabulary every mununu verify surface
+ * reports (mirrors the backend `PropertyVerdict`). `"skipped"` = the property was not
+ * evaluated (out of the supported fragment / filtered out).
+ */
+export type PropertyVerdict = "holds" | "violated" | "unknown" | "skipped";
+
+/**
+ * Response for `POST /api/v1/btor2/verify` — the canonical property verdict plus the
+ * per-engine reachability breakdown.
  */
 export interface Btor2VerifyResponse {
   /**
-   * Merged verdict: `"reachable"` | `"unreachable"` | `"unknown"` |
-   * `"contradiction"`.
+   * The property reading of `bad`-reachability: `"holds"` (`bad` unreachable) |
+   * `"violated"` (reachable) | `"unknown"` (undecided / contradiction). The
+   * reachability detail is in `reachable_by` / `unreachable_by` + `contradiction`.
    */
-  verdict: "reachable" | "unreachable" | "unknown" | "contradiction";
+  verdict: PropertyVerdict;
   /** Engines that found `bad` reachable (a real counterexample). */
   reachable_by: string[];
   /** Engines that proved `bad` unreachable (a real safety proof). */
@@ -470,8 +478,8 @@ export interface Btor2VerifyLivenessRequest {
 
 /** Response for `POST /api/v1/btor2/verify-liveness`. */
 export interface Btor2VerifyLivenessResponse {
-  /** The verdict: `"holds"` | `"violated"` | `"inconclusive"`. */
-  verdict: "holds" | "violated" | "inconclusive";
+  /** The canonical property verdict: `"holds"` | `"violated"` | `"unknown"`. */
+  verdict: PropertyVerdict;
   /** The reduced property, echoed: `AG((<request>) -> AF (<grant>))`. */
   property: string;
   /** Portfolio engines that decided the reduced `bad`-reachability query. */
