@@ -547,11 +547,11 @@ export const runBtor2VerifyRecoverability = async (
 // Auto FSM-recoverability scan (matches mununu backend /api/v1/btor2/check-fsm)
 
 /**
- * Request for the auto FSM-recoverability scan
+ * Request for the auto FSM illegal-encoding scan
  * (`POST /api/v1/btor2/check-fsm`). Mirrors the CLI `mununu btor2 check-fsm`:
- * auto-discovers the FSM-like state registers and decides recoverability of each to
- * its idle/reset value with no user input (idle derived from the register's init or
- * reset-mux constant).
+ * auto-discovers the FSM-like state registers and checks, from the reset state,
+ * whether any illegal encoding (a value outside the register's legal set) is
+ * reachable — with no user input (the legal set is derived from the design).
  */
 export interface Btor2CheckFsmRequest {
   /** BTOR2 source content. */
@@ -560,36 +560,36 @@ export interface Btor2CheckFsmRequest {
   max_width?: number;
 }
 
-/** One state register's recoverability result in a {@link Btor2CheckFsmResponse}. */
+/** One state register's illegal-encoding result in a {@link Btor2CheckFsmResponse}. */
 export interface FsmRegisterFinding {
   /** The state register's symbol. */
   register: string;
-  /** The idle/reset value recoverability targets. */
-  idle_value: number;
+  /** The legal encodings the register's own logic recognizes (sorted). */
+  legal_encodings: number[];
   /**
-   * Canonical verdict — `"holds"` | `"violated"` (an unrecoverable trap) |
-   * `"unknown"` (over the exact engine's cap).
+   * Canonical verdict — `"holds"` (stays within its encoding) | `"violated"` (an
+   * illegal encoding is reachable) | `"unknown"` (the portfolio could not decide).
    */
   verdict: PropertyVerdict;
-  /** `true` when the register is an unrecoverable trap (a finding). */
-  unrecoverable_trap: boolean;
+  /** `true` when an illegal encoding is reachable (a finding). */
+  illegal_encoding_reachable: boolean;
 }
 
 /** Response for `POST /api/v1/btor2/check-fsm`. */
 export interface Btor2CheckFsmResponse {
   /** Number of FSM-like state registers scanned. */
   fsm_registers_checked: number;
-  /** Number of unrecoverable traps found (`verdict === "violated"`). */
-  traps_found: number;
+  /** Number of registers with a reachable illegal encoding (`verdict === "violated"`). */
+  illegal_encodings_found: number;
   /** Per-register results. */
   registers: FsmRegisterFinding[];
 }
 
 /**
- * Auto-scan every FSM-like state register for an unrecoverable trap — no user input.
- * The branching recoverability property SVA cannot state, decided per register with
- * the exact 3-valued engine. Z3-heavy (one check per register) — uses the extended
- * (`aiApiClient`, 120s) client.
+ * Auto-scan every FSM-like state register for a reachable illegal encoding — no user
+ * input. A safety property (a reachable out-of-enum value is an unambiguous bug),
+ * decided per register by the word-level reachability portfolio. Uses the extended
+ * (`aiApiClient`, 120s) client since each register runs the portfolio.
  */
 export const runBtor2CheckFsm = async (
   request: Btor2CheckFsmRequest,
