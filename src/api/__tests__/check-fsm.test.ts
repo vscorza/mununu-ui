@@ -8,19 +8,19 @@ import {
 
 const mockResponse: Btor2CheckFsmResponse = {
   fsm_registers_checked: 2,
-  traps_found: 1,
+  illegal_encodings_found: 1,
   registers: [
     {
       register: "state_q",
-      idle_value: 55,
+      legal_encodings: [3, 14, 16, 29, 36, 41, 55, 58],
       verdict: "holds",
-      unrecoverable_trap: false,
+      illegal_encoding_reachable: false,
     },
     {
       register: "sub_sm",
-      idle_value: 0,
+      legal_encodings: [0, 1, 2],
       verdict: "violated",
-      unrecoverable_trap: true,
+      illegal_encoding_reachable: true,
     },
   ],
 };
@@ -51,10 +51,10 @@ describe("runBtor2CheckFsm (POST /btor2/check-fsm)", () => {
     expect((payload as Btor2CheckFsmRequest).max_width).toBe(8);
 
     expect(out.fsm_registers_checked).toBe(2);
-    expect(out.traps_found).toBe(1);
-    // The trap is the register whose verdict is "violated".
-    const trap = out.registers.find((r) => r.unrecoverable_trap);
-    expect(trap?.register).toBe("sub_sm");
-    expect(trap?.verdict).toBe("violated");
+    expect(out.illegal_encodings_found).toBe(1);
+    // The finding is the register with a reachable illegal encoding.
+    const bug = out.registers.find((r) => r.illegal_encoding_reachable);
+    expect(bug?.register).toBe("sub_sm");
+    expect(bug?.verdict).toBe("violated");
   });
 });
