@@ -2,8 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { aiApiClient } from "../client";
 import {
   runBtor2CheckFsm,
+  runSvCheckFsm,
   type Btor2CheckFsmRequest,
   type Btor2CheckFsmResponse,
+  type SvCheckFsmRequest,
 } from "../endpoints";
 
 const mockResponse: Btor2CheckFsmResponse = {
@@ -56,5 +58,34 @@ describe("runBtor2CheckFsm (POST /btor2/check-fsm)", () => {
     const bug = out.registers.find((r) => r.illegal_encoding_reachable);
     expect(bug?.register).toBe("sub_sm");
     expect(bug?.verdict).toBe("violated");
+  });
+});
+
+describe("runSvCheckFsm (POST /sv/check-fsm)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("posts the SV lift fields and returns the shared check-fsm response", async () => {
+    const postSpy = vi.spyOn(aiApiClient, "post").mockResolvedValue({
+      data: mockResponse,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as unknown,
+    });
+
+    const req: SvCheckFsmRequest = {
+      source: "module m; endmodule",
+      use_sv2v: true,
+      max_width: 8,
+    };
+    const out = await runSvCheckFsm(req);
+
+    expect(postSpy).toHaveBeenCalledTimes(1);
+    const [endpoint, payload] = postSpy.mock.calls[0];
+    expect(endpoint).toBe("/sv/check-fsm");
+    expect((payload as SvCheckFsmRequest).use_sv2v).toBe(true);
+    expect(out.illegal_encodings_found).toBe(1);
   });
 });

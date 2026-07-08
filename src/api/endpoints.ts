@@ -671,6 +671,27 @@ export const runSvVerifyRecoverability = async (
   return response.data;
 };
 
+/** Request for `POST /api/v1/sv/check-fsm` (SV-direct illegal-encoding scan). */
+export interface SvCheckFsmRequest extends SvLiftFields {
+  /** Max state-register width treated as an FSM (wider = datapath/counter, skipped). */
+  max_width?: number;
+}
+
+/**
+ * Lift SV and auto-scan every FSM register for a reachable illegal encoding in one
+ * call — the SV-direct peer of {@link runBtor2CheckFsm}. Returns the same
+ * {@link Btor2CheckFsmResponse}.
+ */
+export const runSvCheckFsm = async (
+  request: SvCheckFsmRequest,
+): Promise<Btor2CheckFsmResponse> => {
+  const response = await aiApiClient.post<Btor2CheckFsmResponse>(
+    "/sv/check-fsm",
+    request,
+  );
+  return response.data;
+};
+
 /**
  * cegar-extraction Stage 2 — SV-direct CEGAR request
  * (`POST /api/v1/sv/cegar`). Mirrors the CLI `mununu sv cegar`: the
