@@ -501,6 +501,49 @@ export const runBtor2VerifyLiveness = async (
   return response.data;
 };
 
+// Recoverability AG EF good (matches mununu backend /api/v1/btor2/verify-recoverability)
+
+/**
+ * Request for the recoverability endpoint
+ * (`POST /api/v1/btor2/verify-recoverability`). Mirrors the CLI
+ * `mununu btor2 verify-recoverability`: decides `AG EF target` — "from every
+ * reachable state, can the design get back to `target`?", the branching property
+ * SVA cannot state. `target` is a register-comparison atom string (`"state_q == 3"`).
+ */
+export interface Btor2VerifyRecoverabilityRequest {
+  /** BTOR2 source content. */
+  content: string;
+  /** The `good` atom to recover to (`"REG op VALUE"`). */
+  target: string;
+}
+
+/** Response for `POST /api/v1/btor2/verify-recoverability`. */
+export interface Btor2VerifyRecoverabilityResponse {
+  /**
+   * Canonical property verdict — `"holds"` (every reachable state can reach
+   * `target`) | `"violated"` (a reachable trap cannot) | `"unknown"` (over the
+   * exact engine's cap; the cube + smt-hyper-must path scales it).
+   */
+  verdict: PropertyVerdict;
+  /** The decided property, echoed: `AG EF (<target>)`. */
+  property: string;
+}
+
+/**
+ * Decide recoverability `AG EF target` with the exact 3-valued engine (sound at
+ * every alternation depth). Z3-heavy — uses the extended (`aiApiClient`, 120s)
+ * client.
+ */
+export const runBtor2VerifyRecoverability = async (
+  request: Btor2VerifyRecoverabilityRequest,
+): Promise<Btor2VerifyRecoverabilityResponse> => {
+  const response = await aiApiClient.post<Btor2VerifyRecoverabilityResponse>(
+    "/btor2/verify-recoverability",
+    request,
+  );
+  return response.data;
+};
+
 /**
  * cegar-extraction Stage 2 — SV-direct CEGAR request
  * (`POST /api/v1/sv/cegar`). Mirrors the CLI `mununu sv cegar`: the
