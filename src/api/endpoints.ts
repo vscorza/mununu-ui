@@ -1143,6 +1143,55 @@ export const synthesizeContext = async (
 };
 
 // ============================================================================
+// GR(1) Synthesis Endpoint (sound reactive controller synthesis)
+// ============================================================================
+
+/** Request for sound GR(1) controller synthesis (POST /api/v1/synth/gr1). */
+export interface Gr1SynthesizeRequest {
+  /** The source spec (TLSF today). */
+  context: { name: string; content: string };
+  /** Adapter to interpret the source (defaults to "tlsf"). */
+  adapter?: string;
+  /** Module name for the emitted controller (defaults to "gr1_controller"). */
+  module?: string;
+}
+
+/** Response from GR(1) controller synthesis. */
+export interface Gr1SynthesizeResponse {
+  /** Whether the spec is realizable (sound GR(1) verdict). */
+  realizable: boolean;
+  /** The synthesized controller as SystemVerilog, when realizable. */
+  controller_sv?: string;
+  /** Number of game states (env + ctrl + BAD). */
+  game_states: number;
+  /** Number of monitor bits in the game state. */
+  monitor_bits: number;
+  /** Human-readable notes (e.g. unsupported multi-guarantee memory). */
+  notes: string[];
+}
+
+/**
+ * Sound GR(1) controller synthesis from an LTL assume/guarantee spec.
+ *
+ * Unlike {@link synthesizeContext} (signature-based extraction over the combined
+ * μ-calculus formula, unsound for conjunctive safety+liveness objectives), this
+ * runs the sound GR(1) pipeline (`ControllerMode::Gr1`): the safety guarantees
+ * constrain the game arena rather than being intersected as denotational
+ * conjuncts. Returns the realizability verdict and, when realizable, the
+ * controller SystemVerilog. Uses the extended-timeout client since synthesis
+ * can be slow.
+ */
+export const synthesizeGr1 = async (
+  request: Gr1SynthesizeRequest,
+): Promise<Gr1SynthesizeResponse> => {
+  const response = await aiApiClient.post<Gr1SynthesizeResponse>(
+    "/synth/gr1",
+    request,
+  );
+  return response.data;
+};
+
+// ============================================================================
 // Extraction Validate Endpoint
 // ============================================================================
 
