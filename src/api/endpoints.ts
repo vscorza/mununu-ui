@@ -501,6 +501,35 @@ export const runBtor2VerifyLiveness = async (
   return response.data;
 };
 
+/**
+ * Request for the conjunctive response-liveness endpoint
+ * (`POST /api/v1/btor2/verify-liveness-all`). Mirrors the CLI
+ * `mununu btor2 verify-liveness-all`: decides `⋀ᵢ AG(aᵢ → AF bᵢ)`. Each `responses`
+ * entry is a `"ANTE => CONS"` pair of register-comparison atoms (at least one).
+ */
+export interface Btor2VerifyLivenessAllRequest {
+  /** BTOR2 source content. */
+  content: string;
+  /** The response pairs, each `"ANTE => CONS"`. At least one required. */
+  responses: string[];
+}
+
+/**
+ * Decide a conjunction of response-liveness properties `⋀ᵢ AG(aᵢ → AF bᵢ)` via N
+ * liveness-to-safety reductions + the multi-engine portfolio. Reuses the
+ * {@link Btor2VerifyLivenessResponse} shape (the `property` echoes the conjunction).
+ * Z3-/subprocess-heavy — uses the extended (`aiApiClient`, 120s) client.
+ */
+export const runBtor2VerifyLivenessAll = async (
+  request: Btor2VerifyLivenessAllRequest,
+): Promise<Btor2VerifyLivenessResponse> => {
+  const response = await aiApiClient.post<Btor2VerifyLivenessResponse>(
+    "/btor2/verify-liveness-all",
+    request,
+  );
+  return response.data;
+};
+
 // Recoverability AG EF good (matches mununu backend /api/v1/btor2/verify-recoverability)
 
 /**
@@ -635,6 +664,15 @@ export interface SvVerifyLivenessRequest extends SvLiftFields {
   grant: string;
 }
 
+/**
+ * Request for `POST /api/v1/sv/verify-liveness-all` (SV-direct conjunction of
+ * response-liveness properties `⋀ᵢ AG(aᵢ → AF bᵢ)`).
+ */
+export interface SvVerifyLivenessAllRequest extends SvLiftFields {
+  /** The response pairs, each `"ANTE => CONS"`. At least one required. */
+  responses: string[];
+}
+
 /** Request for `POST /api/v1/sv/verify-recoverability` (SV-direct `AG EF good`). */
 export interface SvVerifyRecoverabilityRequest extends SvLiftFields {
   /** The `good` atom to recover to (`"REG op VALUE"`). */
@@ -668,6 +706,20 @@ export const runSvVerifyLiveness = async (
 ): Promise<Btor2VerifyLivenessResponse> => {
   const response = await aiApiClient.post<Btor2VerifyLivenessResponse>(
     "/sv/verify-liveness",
+    request,
+  );
+  return response.data;
+};
+
+/**
+ * Lift SV and decide the conjunction `⋀ᵢ AG(aᵢ → AF bᵢ)` from `"ANTE => CONS"`
+ * response pairs in one call. Reuses the {@link Btor2VerifyLivenessResponse} shape.
+ */
+export const runSvVerifyLivenessAll = async (
+  request: SvVerifyLivenessAllRequest,
+): Promise<Btor2VerifyLivenessResponse> => {
+  const response = await aiApiClient.post<Btor2VerifyLivenessResponse>(
+    "/sv/verify-liveness-all",
     request,
   );
   return response.data;
