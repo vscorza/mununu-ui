@@ -515,6 +515,13 @@ export interface Btor2VerifyRecoverabilityRequest {
   content: string;
   /** The `good` atom to recover to (`"REG op VALUE"`). */
   target: string;
+  /**
+   * Optional extra abstraction predicates (`"NAME:REG=VALUE"`) that refine the
+   * predicate-cube when the exact engine abstains (over its ~40-bit cap) and the
+   * `smt-hyper-must` scale path runs. The escalation is automatic; these only help
+   * the cube path decide. Omit for the common (small/medium) case.
+   */
+  predicates?: string[];
 }
 
 /** Response for `POST /api/v1/btor2/verify-recoverability`. */
@@ -632,6 +639,12 @@ export interface SvVerifyLivenessRequest extends SvLiftFields {
 export interface SvVerifyRecoverabilityRequest extends SvLiftFields {
   /** The `good` atom to recover to (`"REG op VALUE"`). */
   target: string;
+  /**
+   * Optional extra abstraction predicates (`"NAME:REG=VALUE"`) for the cube +
+   * `smt-hyper-must` scale path (used only when the exact engine abstains over its
+   * ~40-bit cap; the escalation is automatic). Omit for the common case.
+   */
+  predicates?: string[];
 }
 
 /**
