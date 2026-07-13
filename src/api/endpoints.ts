@@ -1990,7 +1990,12 @@ export interface VerifyPropertyVerdict {
 export interface VerifySafetyCubeResult {
   source_id: string;
   file: string;
-  /** "holds" | "violated" | "unknown". */
+  /**
+   * SVA assertion name for an `sv-yosys` source (slang-extracted); absent for a
+   * `btor2` source (a single anonymous `bad` obligation).
+   */
+  property?: string;
+  /** "holds" | "violated" | "unknown" | "skipped". */
   verdict: string;
 }
 
