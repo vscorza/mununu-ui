@@ -1979,11 +1979,31 @@ export interface VerifyPropertyVerdict {
 }
 
 /** Top-level report from `POST /api/v1/verify`. */
+/**
+ * One `btor2`-source safety-cube (`AG !bad`) verdict from the opt-in
+ * `safety_cube` orchestrator pass. Populated only when the project's
+ * `verify.toml` sets `safety_cube = true`; the cube (enumeration +
+ * emergent-K interpolation discovery) runs on each `btor2` source that
+ * carries a `bad` obligation. Mirrors the Rust
+ * `crate::verify::report::SafetyCubeResult`.
+ */
+export interface VerifySafetyCubeResult {
+  source_id: string;
+  file: string;
+  /** "holds" | "violated" | "unknown". */
+  verdict: string;
+}
+
 export interface VerifyReport {
   project: string;
   sources: VerifySourceSummary[];
   composition: VerifyCompositionInfo;
   property_verdicts: VerifyPropertyVerdict[];
+  /**
+   * Per-source safety-cube results — present only when `safety_cube = true`
+   * in the project config; omitted (or empty) otherwise.
+   */
+  safety_cube_results?: VerifySafetyCubeResult[];
 }
 
 /**
