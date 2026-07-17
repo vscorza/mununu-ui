@@ -84,6 +84,11 @@ export const SvVerifyAutoRunner = () => {
   // `signal <= value` cube-partition to refine a counter-monotonicity property
   // whose ⊥ is the abstract wraparound (also auto-derived from config values).
   const [counterBounds, setCounterBounds] = useState("");
+  // Control-slice cut points: comma/newline `net` names. Each is replaced by a free
+  // `$anyseq` input in the lift so its datapath fanin drops out of the cone — lets
+  // `exact-symbolic` fit a wide control FSM. Over-approximation (HOLDS sound; VIOLATED
+  // sound only for orphaned-state targets); surfaced as a `control-slice` note.
+  const [cutpoints, setCutpoints] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SvVerifyAutoResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +124,10 @@ export const SvVerifyAutoRunner = () => {
           .map((s) => s.trim())
           .filter((s) => s.length > 0),
         counter_bounds: counterBounds
+          .split(/[\n,]/)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
+        cutpoint: cutpoints
           .split(/[\n,]/)
           .map((s) => s.trim())
           .filter((s) => s.length > 0),
@@ -309,6 +318,22 @@ export const SvVerifyAutoRunner = () => {
               placeholder="cnt_q<=7"
               value={counterBounds}
               onChange={(e) => setCounterBounds(e.target.value)}
+              style={{ width: "100%", fontFamily: "monospace" }}
+            />
+          </label>
+          <label style={{ fontSize: "0.9rem", display: "block" }}>
+            <span style={{ display: "block", marginBottom: "0.25rem" }}>
+              Control-slice cut points (<code>net</code> names, comma/newline
+              separated — free the FSM's datapath guards so{" "}
+              <code>exact-symbolic</code> fits a wide control FSM; over-approx,
+              HOLDS sound, VIOLATED sound only for orphaned-state targets)
+            </span>
+            <input
+              type="text"
+              aria-label="Control-slice cut points"
+              placeholder="must_refresh, precharge_done"
+              value={cutpoints}
+              onChange={(e) => setCutpoints(e.target.value)}
               style={{ width: "100%", fontFamily: "monospace" }}
             />
           </label>

@@ -897,6 +897,15 @@ export interface SvVerifyAutoRequest {
    * from `config_values`; a manual entry overrides the inferred one. Surfaced as
    * a `counter-bound` note. Default empty. */
   counter_bounds?: string[];
+  /** Control-slice cut points, mirroring the CLI `--cutpoint`: net names to replace
+   * with a free `$anyseq` input in the SV → BTOR2 lift (Yosys `cutpoint w:<net>`), so
+   * the FSM's datapath guards drop out of the cone via cone-of-influence — the sound,
+   * netlist-level way to fit the `"exact-symbolic"` engine on a wide control FSM. Each
+   * entry is a bare net name (e.g. `"must_refresh"`). OVER-APPROXIMATION: a definite
+   * HOLDS transfers (safety + over-approx); a definite VIOLATED is sound only when
+   * guard-independent (an orphaned FSM state). Surfaced as a `control-slice` note.
+   * Default empty. */
+  cutpoint?: string[];
   /**
    * R-F5.5d — predicate-cube engine: `"explicit"` (default) or `"symbolic"`
    * (R-F5 BDD relation + CEGAR loop, no per-cube-pair SMT). Mirrors the CLI
