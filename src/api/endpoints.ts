@@ -923,13 +923,18 @@ export interface CexCellView {
 }
 
 /**
- * D1.8b — a stall-lasso counterexample: reset → `prefix` → repeating `cycle`,
- * each state an ordered list of register cells. Present only for a Violated bare
- * `AF p` decided by the exact engine (`engine: "exact-symbolic"`).
+ * The exact engine's counterexample for a Violated property (`engine:
+ * "exact-symbolic"`). Either a stall-lasso / trap-path — reset → `prefix` →
+ * repeating `cycle` — witnessing a liveness/recoverability failure (`AF p` /
+ * `AG AF p` / `AG EF p`), OR the A.4 unreachable-target witness for a bare `EF p`
+ * (reachability): `unreachable_target` names the atoms the design never reaches,
+ * with `prefix`/`cycle` empty (there is no trace — the target is simply unreachable).
  */
 export interface CounterexampleView {
   prefix: CexCellView[][];
   cycle: CexCellView[][];
+  /** A.4 — target atoms UNREACHABLE from reset (bare `EF p` violated); empty for lasso/trap witnesses. */
+  unreachable_target?: string[];
 }
 
 /** One property's auto-verification verdict (mirrors the backend view). */
