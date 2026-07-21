@@ -97,7 +97,9 @@ export const SvVerifyAutoRunner = () => {
     setError(null);
     setResult(null);
     if (!sourceContent.trim()) {
-      setError("No SystemVerilog source loaded — complete the Load step first.");
+      setError(
+        "No SystemVerilog source loaded — complete the Load step first.",
+      );
       return;
     }
     const iterations = Number(maxIterations);
@@ -290,7 +292,8 @@ export const SvVerifyAutoRunner = () => {
               checked={autoStubFlops}
               onChange={(e) => setAutoStubFlops(e.target.checked)}
             />
-            Auto-stub cut flop primitives (e.g. <code>prim_sparse_fsm_flop</code>)
+            Auto-stub cut flop primitives (e.g.{" "}
+            <code>prim_sparse_fsm_flop</code>)
           </label>
           <label style={{ fontSize: "0.9rem", display: "block" }}>
             <span style={{ display: "block", marginBottom: "0.25rem" }}>
@@ -374,10 +377,14 @@ export const SvVerifyAutoRunner = () => {
             <strong>{result.unsupported.length}</strong> unsupported
           </p>
           {result.diagnostics && (
-            <p style={{ fontSize: "0.85rem", color: "var(--text-secondary, #666)" }}>
-              model:{" "}
-              <strong>{result.diagnostics.state_register_count}</strong> state
-              register(s)
+            <p
+              style={{
+                fontSize: "0.85rem",
+                color: "var(--text-secondary, #666)",
+              }}
+            >
+              model: <strong>{result.diagnostics.state_register_count}</strong>{" "}
+              state register(s)
               {result.diagnostics.blackboxed_modules.length > 0 && (
                 <>
                   {" · "}
@@ -405,10 +412,22 @@ export const SvVerifyAutoRunner = () => {
           )}
           {result.notes && result.notes.length > 0 && (
             <div style={{ marginTop: "0.75rem", marginBottom: "1rem" }}>
-              <p style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+              <p
+                style={{
+                  fontSize: "0.9rem",
+                  fontWeight: 700,
+                  marginBottom: "0.4rem",
+                }}
+              >
                 Notes (decisions that shaped these verdicts)
               </p>
-              <ul style={{ fontSize: "0.85rem", listStyle: "none", paddingLeft: 0 }}>
+              <ul
+                style={{
+                  fontSize: "0.85rem",
+                  listStyle: "none",
+                  paddingLeft: 0,
+                }}
+              >
                 {result.notes.map((n, i) => (
                   <li
                     key={`${n.kind}-${i}`}
@@ -418,12 +437,22 @@ export const SvVerifyAutoRunner = () => {
                       paddingLeft: "0.6rem",
                     }}
                   >
-                    <span style={{ fontWeight: 700, color: noteLevelColor(n.level) }}>
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        color: noteLevelColor(n.level),
+                      }}
+                    >
                       {noteLevelLabel(n.level)}
                     </span>{" "}
                     <code>[{n.kind}]</code> {n.summary}
                     {n.detail && (
-                      <div style={{ color: "var(--text-secondary, #666)", marginTop: "0.15rem" }}>
+                      <div
+                        style={{
+                          color: "var(--text-secondary, #666)",
+                          marginTop: "0.15rem",
+                        }}
+                      >
                         {n.detail}
                       </div>
                     )}
@@ -449,7 +478,9 @@ export const SvVerifyAutoRunner = () => {
               </ul>
             </div>
           )}
-          <ul style={{ fontSize: "0.85rem", listStyle: "none", paddingLeft: 0 }}>
+          <ul
+            style={{ fontSize: "0.85rem", listStyle: "none", paddingLeft: 0 }}
+          >
             {result.properties.map((p) => (
               <li key={p.name} style={{ marginBottom: "0.5rem" }}>
                 <span
@@ -471,41 +502,59 @@ export const SvVerifyAutoRunner = () => {
                   {p.seeded_predicates.length > 0 && (
                     <div>predicates: {p.seeded_predicates.join(", ")}</div>
                   )}
-                  {p.counterexample && (
-                    <div
-                      style={{
-                        marginTop: "0.35rem",
-                        fontFamily: "monospace",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      <div style={{ opacity: 0.8 }}>
-                        counterexample (stall lasso):
+                  {p.counterexample &&
+                    p.counterexample.unreachable_target &&
+                    p.counterexample.unreachable_target.length > 0 && (
+                      <div
+                        style={{
+                          marginTop: "0.35rem",
+                          fontFamily: "monospace",
+                          fontSize: "0.8rem",
+                          color: outcomeColor("violated"),
+                        }}
+                      >
+                        counterexample: target UNREACHABLE from reset — the
+                        design never reaches{" "}
+                        {p.counterexample.unreachable_target.join(" ∧ ")}
                       </div>
-                      {p.counterexample.prefix.map((st, i) => (
-                        <div key={`pre-${i}`}>
-                          {"→ "}
-                          {st
-                            .map((c) => `${c.register}=${c.value}`)
-                            .join(", ")}
+                    )}
+                  {p.counterexample &&
+                    (!p.counterexample.unreachable_target ||
+                      p.counterexample.unreachable_target.length === 0) && (
+                      <div
+                        style={{
+                          marginTop: "0.35rem",
+                          fontFamily: "monospace",
+                          fontSize: "0.8rem",
+                        }}
+                      >
+                        <div style={{ opacity: 0.8 }}>
+                          counterexample (stall lasso):
                         </div>
-                      ))}
-                      {p.counterexample.cycle.map((st, i) => (
-                        <div
-                          key={`cyc-${i}`}
-                          style={{ color: outcomeColor("violated") }}
-                        >
-                          {i === 0 ? "↺ " : "  "}
-                          {st
-                            .map((c) => `${c.register}=${c.value}`)
-                            .join(", ")}
+                        {p.counterexample.prefix.map((st, i) => (
+                          <div key={`pre-${i}`}>
+                            {"→ "}
+                            {st
+                              .map((c) => `${c.register}=${c.value}`)
+                              .join(", ")}
+                          </div>
+                        ))}
+                        {p.counterexample.cycle.map((st, i) => (
+                          <div
+                            key={`cyc-${i}`}
+                            style={{ color: outcomeColor("violated") }}
+                          >
+                            {i === 0 ? "↺ " : "  "}
+                            {st
+                              .map((c) => `${c.register}=${c.value}`)
+                              .join(", ")}
+                          </div>
+                        ))}
+                        <div style={{ opacity: 0.7 }}>
+                          cycle repeats forever — the property is avoided
                         </div>
-                      ))}
-                      <div style={{ opacity: 0.7 }}>
-                        cycle repeats forever — the property is avoided
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               </li>
             ))}
