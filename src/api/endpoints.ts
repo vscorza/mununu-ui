@@ -906,6 +906,13 @@ export interface SvVerifyAutoRequest {
    * guard-independent (an orphaned FSM state). Surfaced as a `control-slice` note.
    * Default empty. */
   cutpoint?: string[];
+  /** Abstraction-predicate hints, mirroring the CLI `--predicate` and the in-source
+   * `// @mununu_predicate <expr>` annotation (all three are merged). Each entry is a
+   * predicate expression (`"reg == value"`, `"reg == reg"`, `"reg >= K"`) seeded as a
+   * cube dimension for EVERY property, even when absent from the property formula.
+   * Sound by monotonicity — a hint only refines the cube (a ⊥ can become definite; a
+   * definite verdict never flips; an unclassifiable hint is dropped). Default empty. */
+  predicate?: string[];
   /**
    * R-F5.5d — predicate-cube engine: `"explicit"` (default) or `"symbolic"`
    * (R-F5 BDD relation + CEGAR loop, no per-cube-pair SMT). Mirrors the CLI

@@ -89,6 +89,11 @@ export const SvVerifyAutoRunner = () => {
   // `exact-symbolic` fit a wide control FSM. Over-approximation (HOLDS sound; VIOLATED
   // sound only for orphaned-state targets); surfaced as a `control-slice` note.
   const [cutpoints, setCutpoints] = useState("");
+  // Abstraction-predicate hints (CLI `--predicate` / `@mununu_predicate` peer): a
+  // comma/newline-separated list of predicate expressions (`reg == value`, `reg == reg`,
+  // `reg >= K`) seeded as cube dimensions for every property. Sound by monotonicity — a
+  // hint only refines the cube (a ⊥ can become definite; a definite verdict never flips).
+  const [predicates, setPredicates] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SvVerifyAutoResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -131,6 +136,10 @@ export const SvVerifyAutoRunner = () => {
           .filter((s) => s.length > 0),
         cutpoint: cutpoints
           .split(/[\n,]/)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
+        predicate: predicates
+          .split(/\n/)
           .map((s) => s.trim())
           .filter((s) => s.length > 0),
         engine,
@@ -337,6 +346,24 @@ export const SvVerifyAutoRunner = () => {
               placeholder="must_refresh, precharge_done"
               value={cutpoints}
               onChange={(e) => setCutpoints(e.target.value)}
+              style={{ width: "100%", fontFamily: "monospace" }}
+            />
+          </label>
+          <label style={{ fontSize: "0.9rem", display: "block" }}>
+            <span style={{ display: "block", marginBottom: "0.25rem" }}>
+              Abstraction-predicate hints (one <code>expr</code> per line —{" "}
+              <code>reg == value</code>, <code>reg == reg</code>,{" "}
+              <code>reg &gt;= K</code>; the <code>@mununu_predicate</code> /{" "}
+              <code>--predicate</code> peer, seeded into every property's cube.
+              Sound by monotonicity — refines the cube, never flips a definite
+              verdict)
+            </span>
+            <textarea
+              aria-label="Abstraction-predicate hints"
+              placeholder={"c_state == 0\nwptr == rptr\nfill >= 30"}
+              value={predicates}
+              onChange={(e) => setPredicates(e.target.value)}
+              rows={3}
               style={{ width: "100%", fontFamily: "monospace" }}
             />
           </label>
