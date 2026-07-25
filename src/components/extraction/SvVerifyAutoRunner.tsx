@@ -70,6 +70,9 @@ export const SvVerifyAutoRunner = () => {
 
   const [top, setTop] = useState("");
   const [useSv2v, setUseSv2v] = useState(true);
+  // Force the slang RTL front-end (read_slang) for modern-SV constructs
+  // yosys/sv2v reject (while loops, module-header package imports).
+  const [useSlang, setUseSlang] = useState(false);
   const [maxIterations, setMaxIterations] = useState("16");
   const [mustEdgeInference, setMustEdgeInference] = useState("off");
   // R-F5.5d — predicate-cube engine selector ("explicit" | "symbolic").
@@ -122,6 +125,7 @@ export const SvVerifyAutoRunner = () => {
         })),
         top: top.trim() || undefined,
         use_sv2v: useSv2v,
+        use_slang: useSlang,
         max_iterations: iterations,
         must_edge_inference: mustEdgeInference,
         gate_reset: gateReset,
@@ -270,6 +274,22 @@ export const SvVerifyAutoRunner = () => {
               onChange={(e) => setUseSv2v(e.target.checked)}
             />
             Run sv2v before Yosys (modern SV)
+          </label>
+          <label
+            style={{
+              fontSize: "0.9rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <input
+              type="checkbox"
+              aria-label="Force the slang RTL front-end"
+              checked={useSlang}
+              onChange={(e) => setUseSlang(e.target.checked)}
+            />
+            Force slang front-end (while loops, package imports)
           </label>
           <label
             style={{
