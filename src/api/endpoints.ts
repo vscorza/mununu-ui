@@ -651,6 +651,10 @@ export interface SvLiftFields {
   top?: string;
   /** Run sv2v before Yosys (modern SV). Default `false`. */
   use_sv2v?: boolean;
+  /** Force the slang RTL front-end (`read_slang`) for modern-SV constructs
+   * yosys/sv2v reject (`while` loops, `import pkg::*;`). Requires the
+   * yosys-slang plugin server-side. Default `false`. */
+  use_slang?: boolean;
 }
 
 /** Request for `POST /api/v1/sv/verify` (SV-direct safety portfolio). */
@@ -872,6 +876,9 @@ export interface SvVerifyAutoRequest {
   top?: string;
   /** Run sv2v before Yosys (modern SV). */
   use_sv2v?: boolean;
+  /** Force the slang RTL front-end (`read_slang`) for modern-SV constructs
+   * yosys/sv2v reject. Requires the yosys-slang plugin server-side. Default `false`. */
+  use_slang?: boolean;
   /** Max CEGAR iterations per property (default 16). */
   max_iterations?: number;
   /** Must-edge inference per property (`"off"` default; `"smt-hyper-must"` for
