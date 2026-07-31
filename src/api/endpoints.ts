@@ -532,6 +532,55 @@ export const runBtor2VerifyLivenessAll = async (
 
 // Recoverability AG EF good (matches mununu backend /api/v1/btor2/verify-recoverability)
 
+/** A concrete assignment of config leaves to values — one point in the config space. */
+export type ConfigValuation = Array<[string, number]>;
+
+/** The best-effort "why ⊥ / what would decide it" structural hint. */
+export interface RecoverabilityBotDiagnosis {
+  /** Recovery-gating down-counters with an un-certified descent: `[name, width]`. */
+  uncertified_counters: Array<[string, number]>;
+  /** Wide data/config state the recovery value rides: `[name, width]`. */
+  wide_influences: Array<[string, number]>;
+}
+
+/** The recovery target is never reachable — the `AG EF` verdict is degenerate. */
+export interface VacuityWitness {
+  good_unreachable: boolean;
+  note: string;
+}
+
+/** A config-scoped partition of the verdict (refined-verdicts capability A / Phase 1). */
+export interface ConfigPartition {
+  config_atoms: Array<[string, number]>;
+  holds: ConfigValuation[];
+  violated: ConfigValuation[];
+  unknown: ConfigValuation[];
+  vacuous: ConfigValuation[];
+  /** True only when the enumerated config set is the COMPLETE reachable set. */
+  exhaustive: boolean;
+  engine: string;
+}
+
+/** An environment assumption under which the property holds (capability B / Phase 2). */
+export interface DiscoveredAssumption {
+  phi: string;
+  kind: "InputHold" | "InputSchedule" | "ResetEventually" | "EnvStrategy";
+  non_vacuous: boolean;
+  engine: string;
+}
+
+/**
+ * A structured elaboration of a verdict, carried ALONGSIDE the canonical `verdict` — never replaces
+ * it (a config/assumption scope is not a sound unconditional verdict). Present only when `refine` was
+ * requested and it produced something; empty (`{}`) when there is nothing to refine.
+ */
+export interface VerdictRefinement {
+  vacuous?: VacuityWitness;
+  config_partition?: ConfigPartition;
+  holds_under?: DiscoveredAssumption[];
+  bot_diagnosis?: RecoverabilityBotDiagnosis;
+}
+
 /**
  * Request for the recoverability endpoint
  * (`POST /api/v1/btor2/verify-recoverability`). Mirrors the CLI
@@ -551,6 +600,12 @@ export interface Btor2VerifyRecoverabilityRequest {
    * the cube path decide. Omit for the common (small/medium) case.
    */
   predicates?: string[];
+  /**
+   * Also compute a structured `refinement` alongside the verdict — a `vacuous` witness when the
+   * target is never reachable, and a "why ⊥" hint. Diagnostic-only: it never changes the verdict.
+   * Mirrors the CLI `--refine`. Omit for the plain verdict.
+   */
+  refine?: boolean;
 }
 
 /** Response for `POST /api/v1/btor2/verify-recoverability`. */
@@ -563,6 +618,8 @@ export interface Btor2VerifyRecoverabilityResponse {
   verdict: PropertyVerdict;
   /** The decided property, echoed: `AG EF (<target>)`. */
   property: string;
+  /** The structured refinement, when `refine` was requested and it produced one. */
+  refinement?: VerdictRefinement;
 }
 
 /**
