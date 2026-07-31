@@ -606,6 +606,12 @@ export interface Btor2VerifyRecoverabilityRequest {
    * Mirrors the CLI `--refine`. Omit for the plain verdict.
    */
   refine?: boolean;
+  /**
+   * Config-partition (capability A): config inputs to split the verdict over, each `"NAME=v1,v2,..."`.
+   * The `refinement.config_partition` then reports "holds for configs {A}, violated for {B}", decided
+   * exactly per config. Implies the refined output. Mirrors the CLI `--config-values`.
+   */
+  config_values?: string[];
 }
 
 /** Response for `POST /api/v1/btor2/verify-recoverability`. */
