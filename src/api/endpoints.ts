@@ -612,6 +612,13 @@ export interface Btor2VerifyRecoverabilityRequest {
    * exactly per config. Implies the refined output. Mirrors the CLI `--config-values`.
    */
   config_values?: string[];
+  /**
+   * Assumption discovery (capability B): when the property does NOT hold, search for an environment
+   * assumption φ under which it becomes a non-vacuous HOLDS → `refinement.holds_under`. Conditional-only
+   * (never changes the canonical verdict). Implies the refined output. Mirrors the CLI
+   * `--discover-assumptions`.
+   */
+  discover_assumptions?: boolean;
 }
 
 /** Response for `POST /api/v1/btor2/verify-recoverability`. */
@@ -750,6 +757,21 @@ export interface SvVerifyRecoverabilityRequest extends SvLiftFields {
    * ~40-bit cap; the escalation is automatic). Omit for the common case.
    */
   predicates?: string[];
+  /**
+   * Also compute a structured `refinement` alongside the verdict (a `vacuous` witness, an auto
+   * `config_partition` over the detected reset, a "why ⊥" hint). Diagnostic-only. Mirrors `--refine`.
+   */
+  refine?: boolean;
+  /**
+   * Config-partition (capability A): config inputs to split the verdict over, each `"NAME=v1,v2,..."`
+   * → `refinement.config_partition`. Implies the refined output. Mirrors the CLI `--config-values`.
+   */
+  config_values?: string[];
+  /**
+   * Assumption discovery (capability B): search for an enabling φ when the property does not hold →
+   * `refinement.holds_under` (conditional-only). Mirrors the CLI `--discover-assumptions`.
+   */
+  discover_assumptions?: boolean;
 }
 
 /**
