@@ -132,4 +132,22 @@ describe("runBtor2Game (POST /btor2/game)", () => {
     expect(out.holds_under?.[0]?.phi).toBe("e == 0");
     expect(out.holds_under?.[0]?.non_vacuous).toBe(true);
   });
+
+  it("sends assume_clock_reset in the request body", async () => {
+    const postSpy = vi.spyOn(aiApiClient, "post").mockResolvedValue({
+      data: { ...controllerResponse } as Btor2GameResponse,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as unknown,
+    });
+    await runBtor2Game({
+      content: "1 sort bitvec 1\n2 input 1 c\n3 input 1 rst\n4 state 1 st\n",
+      good: "st == 1",
+      controllable: ["c"],
+      assume_clock_reset: true,
+    });
+    const [, payload] = postSpy.mock.calls[0];
+    expect((payload as Btor2GameRequest).assume_clock_reset).toBe(true);
+  });
 });

@@ -736,6 +736,12 @@ export interface Btor2GameRequest {
    * `realizable`); no-op when already realizable. Mirrors the CLI `--discover-assumptions`.
    */
   discover_assumptions?: boolean;
+  /**
+   * Model the clock and reset as a sound posture instead of adversarial inputs — otherwise a
+   * two-player game lets the environment freeze the clock or hold reset (a modeling artifact of the
+   * raw lift), spuriously unrealizable. Recommended for real RTL. Mirrors `--assume-clock-reset`.
+   */
+  assume_clock_reset?: boolean;
 }
 
 /** One `(environment-input guard → forced controllable inputs)` move of a Mealy controller. */
