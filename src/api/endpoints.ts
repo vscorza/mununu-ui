@@ -707,6 +707,112 @@ export const runBtor2CheckFsm = async (
   return response.data;
 };
 
+// Two-player game (matches mununu backend /api/v1/btor2/game)
+// Decide whether the controller can force the design to a `good` state against every
+// environment move, and synthesize the winner's strategy. Surface peer of `mununu btor2 game`.
+
+/**
+ * Request for the two-player controllable-reachability game (`POST /api/v1/btor2/game`).
+ * Mirrors the CLI `mununu btor2 game`.
+ */
+export interface Btor2GameRequest {
+  /** BTOR2 source content. */
+  content: string;
+  /** The reachability target `good` state atom (`"REG op VALUE"`, e.g. `"state_q == 44"`). */
+  good: string;
+  /**
+   * The controller-owned primary inputs; every other primary input is the (adversarial)
+   * environment's. A name that is not a real primary input is rejected (400).
+   */
+  controllable?: string[];
+}
+
+/** One `(environment-input guard → forced controllable inputs)` move of a Mealy controller. */
+export interface MealyMove {
+  /** The environment-input valuation this move responds to; empty = env-independent (Moore). */
+  env_inputs: Record<string, number>;
+  /** The controllable inputs the controller forces in response. */
+  forced_ctrl: Record<string, number>;
+}
+
+/** One control-state row of a controller (Mealy) strategy. */
+export interface MealyEntry {
+  /** The value of the strategy's state register. */
+  state_value: number;
+  /** Attractor distance to `good` (`0` = already `good`, no move needed). */
+  rank: number;
+  /**
+   * The controller's move(s): a single `env_inputs`-empty move is a Moore (env-independent)
+   * response; several are a genuinely reactive response, one per environment input.
+   */
+  moves: MealyMove[];
+  /** `false` = the reactive-move enumeration hit its bound (partial cover; no silent truncation). */
+  complete: boolean;
+}
+
+/** One control-state row of an environment (positional) counterstrategy. */
+export interface StrategyEntry {
+  /** The value of the strategy's state register. */
+  state_value: number;
+  /** Attractor rank (0 for the environment's safety/maintain counterstrategy). */
+  rank: number;
+  /** The inputs the strategy forces in this state (name → value); omitted inputs are free. */
+  forced_inputs: Record<string, number>;
+}
+
+/**
+ * The winner's strategy — a discriminated union on `kind`. `controller_strategy` (Mealy) when the
+ * game is realizable; `environment_counterstrategy` (positional) when it is not.
+ */
+export type TwoPlayerStrategy =
+  | {
+      kind: "controller_strategy";
+      /** The state register the strategy is indexed by. */
+      state_register: string;
+      /** One row per reachable control-state value, sorted by rank then value. */
+      entries: MealyEntry[];
+    }
+  | {
+      kind: "environment_counterstrategy";
+      /** The state register the counterstrategy is indexed by. */
+      state_register: string;
+      /** One row per reachable state outside the controller's winning region. */
+      entries: StrategyEntry[];
+    };
+
+/** Response for `POST /api/v1/btor2/game`. */
+export interface Btor2GameResponse {
+  /**
+   * `true` = the controller can force `good` against every environment move (realizable);
+   * `false` = the environment can prevent it (unrealizable).
+   */
+  realizable: boolean;
+  /** The `good` atom, echoed for provenance. */
+  good: string;
+  /** The controller-owned inputs, echoed for provenance. */
+  controllable: string[];
+  /**
+   * The winner's strategy: a `controller_strategy` (when realizable) or an
+   * `environment_counterstrategy` (the witness for why no controller works — e.g. an ack the
+   * environment withholds, motivating an assume-guarantee assumption).
+   */
+  strategy: TwoPlayerStrategy;
+}
+
+/**
+ * Solve the two-player controllable-reachability game and synthesize the winner's strategy.
+ * Uses the extended (`aiApiClient`, 120s) client since it runs the exact-symbolic engine.
+ */
+export const runBtor2Game = async (
+  request: Btor2GameRequest,
+): Promise<Btor2GameResponse> => {
+  const response = await aiApiClient.post<Btor2GameResponse>(
+    "/btor2/game",
+    request,
+  );
+  return response.data;
+};
+
 // SV-direct verbs (matches mununu backend /api/v1/sv/verify{,-liveness,-recoverability})
 // Lift SV (sv2v + Yosys) then decide a property in one call — no emit-btor2 step.
 // They return the same Btor2Verify*Response shapes as the BTOR2-direct verbs.
