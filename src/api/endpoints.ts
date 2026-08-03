@@ -812,8 +812,12 @@ export interface Btor2GameResponse {
    * The winner's strategy: a `controller_strategy` (when realizable) or an
    * `environment_counterstrategy` (the witness for why no controller works — e.g. an ack the
    * environment withholds, motivating an assume-guarantee assumption).
+   *
+   * Present only for a STATE-register `good`: the strategy is state-indexed, so it is absent for a
+   * combinational-output / relational target (a FIFO's `full_o`), where `realizable` + `holds_under`
+   * still apply.
    */
-  strategy: TwoPlayerStrategy;
+  strategy?: TwoPlayerStrategy;
   /**
    * Discovered environment assumption(s) under which the (unrealizable) game becomes realizable —
    * each a conditional `HoldsUnder(φ)` (never flips `realizable`). Present only when
