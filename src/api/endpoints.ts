@@ -725,6 +725,12 @@ export interface Btor2GameRequest {
    * environment's. A name that is not a real primary input is rejected (400).
    */
   controllable?: string[];
+  /**
+   * When the game is UNREALIZABLE, also search for an environment ASSUMPTION under which the
+   * controller wins (the assume-guarantee wedge) → `holds_under`. Conditional-only (never flips
+   * `realizable`); no-op when already realizable. Mirrors the CLI `--discover-assumptions`.
+   */
+  discover_assumptions?: boolean;
 }
 
 /** One `(environment-input guard → forced controllable inputs)` move of a Mealy controller. */
@@ -797,6 +803,12 @@ export interface Btor2GameResponse {
    * environment withholds, motivating an assume-guarantee assumption).
    */
   strategy: TwoPlayerStrategy;
+  /**
+   * Discovered environment assumption(s) under which the (unrealizable) game becomes realizable —
+   * each a conditional `HoldsUnder(φ)` (never flips `realizable`). Present only when
+   * `discover_assumptions` was requested and the game is unrealizable.
+   */
+  holds_under?: DiscoveredAssumption[];
 }
 
 /**
