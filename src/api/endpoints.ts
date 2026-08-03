@@ -564,7 +564,12 @@ export interface ConfigPartition {
 /** An environment assumption under which the property holds (capability B / Phase 2). */
 export interface DiscoveredAssumption {
   phi: string;
-  kind: "InputHold" | "InputSchedule" | "ResetEventually" | "EnvStrategy";
+  kind:
+    | "InputHold"
+    | "InputConjunction"
+    | "InputSchedule"
+    | "ResetEventually"
+    | "EnvStrategy";
   non_vacuous: boolean;
   engine: string;
 }
