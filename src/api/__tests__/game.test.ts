@@ -98,4 +98,38 @@ describe("runBtor2Game (POST /btor2/game)", () => {
       throw new Error("expected an environment counterstrategy");
     }
   });
+
+  it("sends discover_assumptions and parses the holds_under assumption", async () => {
+    const postSpy = vi.spyOn(aiApiClient, "post").mockResolvedValue({
+      data: {
+        ...environmentResponse,
+        holds_under: [
+          {
+            phi: "e == 0",
+            kind: "InputHold",
+            non_vacuous: true,
+            engine: "two-player game realizable under env-input hold",
+          },
+        ],
+      } as Btor2GameResponse,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as unknown,
+    });
+
+    const out = await runBtor2Game({
+      content: "1 sort bitvec 1\n2 input 1 c\n3 input 1 e\n4 state 1 st\n",
+      good: "st == 1",
+      controllable: ["c"],
+      discover_assumptions: true,
+    });
+
+    const [, payload] = postSpy.mock.calls[0];
+    expect((payload as Btor2GameRequest).discover_assumptions).toBe(true);
+    // Unrealizable, but an environment assumption makes it realizable (conditional-only).
+    expect(out.realizable).toBe(false);
+    expect(out.holds_under?.[0]?.phi).toBe("e == 0");
+    expect(out.holds_under?.[0]?.non_vacuous).toBe(true);
+  });
 });
