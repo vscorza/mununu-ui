@@ -67,7 +67,7 @@ describe("runBtor2Game (POST /btor2/game)", () => {
 
     expect(out.realizable).toBe(true);
     // The discriminated union narrows on `kind`.
-    if (out.strategy.kind === "controller_strategy") {
+    if (out.strategy?.kind === "controller_strategy") {
       const at0 = out.strategy.entries.find((e) => e.state_value === 0);
       expect(at0?.moves[0].forced_ctrl.c).toBe(1);
     } else {
@@ -91,12 +91,47 @@ describe("runBtor2Game (POST /btor2/game)", () => {
     });
 
     expect(out.realizable).toBe(false);
-    if (out.strategy.kind === "environment_counterstrategy") {
+    if (out.strategy?.kind === "environment_counterstrategy") {
       const at0 = out.strategy.entries.find((e) => e.state_value === 0);
       expect(at0?.forced_inputs.e).toBe(1);
     } else {
       throw new Error("expected an environment counterstrategy");
     }
+  });
+
+  it("omits the strategy for a combinational-output / relational target", async () => {
+    // FIFO-class target: `good` is a combinational output (`full_o`), not a state register — the verdict
+    // decides but the state-indexed strategy is absent. `realizable` + `holds_under` still apply.
+    vi.spyOn(aiApiClient, "post").mockResolvedValue({
+      data: {
+        realizable: false,
+        good: "full_o == 1",
+        controllable: ["incr_wptr_i"],
+        holds_under: [
+          {
+            phi: "incr_rptr_i == 0",
+            kind: "InputHold",
+            non_vacuous: true,
+            engine: "two-player game realizable under env-input hold",
+          },
+        ],
+      } as Btor2GameResponse,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as unknown,
+    });
+
+    const out = await runBtor2Game({
+      content: "…fifo btor2…",
+      good: "full_o == 1",
+      controllable: ["incr_wptr_i"],
+      discover_assumptions: true,
+    });
+
+    expect(out.realizable).toBe(false);
+    expect(out.strategy).toBeUndefined();
+    expect(out.holds_under?.[0]?.phi).toBe("incr_rptr_i == 0");
   });
 
   it("sends discover_assumptions and parses the holds_under assumption", async () => {
