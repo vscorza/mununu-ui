@@ -10,6 +10,7 @@ import {
 const controllerResponse: Btor2GameResponse = {
   realizable: true,
   good: "st == 1",
+  objective: "reach",
   controllable: ["c"],
   strategy: {
     kind: "controller_strategy",
@@ -30,6 +31,7 @@ const controllerResponse: Btor2GameResponse = {
 const environmentResponse: Btor2GameResponse = {
   realizable: false,
   good: "st == 1",
+  objective: "reach",
   controllable: ["c"],
   strategy: {
     kind: "environment_counterstrategy",
@@ -184,5 +186,34 @@ describe("runBtor2Game (POST /btor2/game)", () => {
     });
     const [, payload] = postSpy.mock.calls[0];
     expect((payload as Btor2GameRequest).assume_clock_reset).toBe(true);
+  });
+
+  it("sends the recurrence objective and returns a verdict-only (strategy-less) result", async () => {
+    // Büchi objective: force `good` infinitely often. Recurrence is verdict-only today (no strategy).
+    const postSpy = vi.spyOn(aiApiClient, "post").mockResolvedValue({
+      data: {
+        realizable: true,
+        good: "st == 1",
+        objective: "recurrence",
+        controllable: ["c"],
+      } as Btor2GameResponse,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as unknown,
+    });
+
+    const out = await runBtor2Game({
+      content: "1 sort bitvec 1\n2 input 1 c\n3 input 1 e\n4 state 1 st\n",
+      good: "st == 1",
+      controllable: ["c"],
+      objective: "recurrence",
+    });
+
+    const [, payload] = postSpy.mock.calls[0];
+    expect((payload as Btor2GameRequest).objective).toBe("recurrence");
+    expect(out.realizable).toBe(true);
+    expect(out.objective).toBe("recurrence");
+    expect(out.strategy).toBeUndefined();
   });
 });

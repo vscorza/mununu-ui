@@ -717,14 +717,25 @@ export const runBtor2CheckFsm = async (
 // environment move, and synthesize the winner's strategy. Surface peer of `mununu btor2 game`.
 
 /**
- * Request for the two-player controllable-reachability game (`POST /api/v1/btor2/game`).
+ * The two-player game winning objective. `reach` = force `good` once; `recurrence` = force `good`
+ * infinitely often (the Büchi game). Mirrors the CLI `--objective`.
+ */
+export type GameObjective = "reach" | "recurrence";
+
+/**
+ * Request for the two-player controllable game (`POST /api/v1/btor2/game`).
  * Mirrors the CLI `mununu btor2 game`.
  */
 export interface Btor2GameRequest {
   /** BTOR2 source content. */
   content: string;
-  /** The reachability target `good` state atom (`"REG op VALUE"`, e.g. `"state_q == 44"`). */
+  /** The target `good` atom (`"REG op VALUE"` / combinational output, e.g. `"full_o == 1"`). */
   good: string;
+  /**
+   * The winning objective: `"reach"` (default) = force `good` once; `"recurrence"` = force `good`
+   * infinitely often (Büchi). Strategy + assumption discovery apply to `reach` only today.
+   */
+  objective?: GameObjective;
   /**
    * The controller-owned primary inputs; every other primary input is the (adversarial)
    * environment's. A name that is not a real primary input is rejected (400).
@@ -806,6 +817,8 @@ export interface Btor2GameResponse {
   realizable: boolean;
   /** The `good` atom, echoed for provenance. */
   good: string;
+  /** The winning objective decided, echoed for provenance (`reach` or `recurrence`). */
+  objective: GameObjective;
   /** The controller-owned inputs, echoed for provenance. */
   controllable: string[];
   /**
@@ -827,7 +840,7 @@ export interface Btor2GameResponse {
 }
 
 /**
- * Solve the two-player controllable-reachability game and synthesize the winner's strategy.
+ * Solve the two-player controllable game (reach or recurrence) and synthesize the winner's strategy.
  * Uses the extended (`aiApiClient`, 120s) client since it runs the exact-symbolic engine.
  */
 export const runBtor2Game = async (
