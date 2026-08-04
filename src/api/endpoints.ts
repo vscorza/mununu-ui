@@ -572,7 +572,11 @@ export interface DiscoveredAssumption {
     | "EnvStrategy"
     // A LIVENESS/fairness assumption `GF(in == v)` (env input holds `v` infinitely often) under which
     // an unrealizable RECURRENCE game `GF good` becomes realizable (`GF a → GF good`, GR(1) 1-pair).
-    | "InputFairness";
+    | "InputFairness"
+    // A CONJUNCTION of fairness assumptions `GF(a) && GF(b) && …` — the minimal set of liveness
+    // assumptions under which a recurrence game becomes realizable ((⋀ GF aᵢ) → GF good, multi-pair
+    // GR(1)) when no single fairness assumption suffices.
+    | "InputFairnessConjunction";
   non_vacuous: boolean;
   engine: string;
 }
