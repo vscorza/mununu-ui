@@ -252,4 +252,40 @@ describe("runBtor2Game (POST /btor2/game)", () => {
     expect(out.holds_under?.[0]?.kind).toBe("InputFairness");
     expect(out.holds_under?.[0]?.phi).toBe("GF(e == 0)");
   });
+
+  it("parses a discovered fairness CONJUNCTION when no single assumption suffices", async () => {
+    vi.spyOn(aiApiClient, "post").mockResolvedValue({
+      data: {
+        realizable: false,
+        good: "st == 2",
+        objective: "recurrence",
+        controllable: ["c"],
+        holds_under: [
+          {
+            phi: "GF(e1 == 0) && GF(e2 == 0)",
+            kind: "InputFairnessConjunction",
+            non_vacuous: true,
+            engine:
+              "two-player multi-pair GR(1) game realizable under env-input fairness conjunction",
+          },
+        ],
+      } as Btor2GameResponse,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as unknown,
+    });
+
+    const out = await runBtor2Game({
+      content: "…twogate btor2…",
+      good: "st == 2",
+      controllable: ["c"],
+      objective: "recurrence",
+      discover_assumptions: true,
+    });
+
+    expect(out.holds_under?.[0]?.kind).toBe("InputFairnessConjunction");
+    expect(out.holds_under?.[0]?.phi).toContain("GF(e1 == 0)");
+    expect(out.holds_under?.[0]?.phi).toContain("GF(e2 == 0)");
+  });
 });
