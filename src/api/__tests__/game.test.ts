@@ -216,4 +216,40 @@ describe("runBtor2Game (POST /btor2/game)", () => {
     expect(out.objective).toBe("recurrence");
     expect(out.strategy).toBeUndefined();
   });
+
+  it("parses a discovered fairness (GF) assumption on an unrealizable recurrence game", async () => {
+    // `GF a → GF good`: unrealizable recurrence, rescued by a liveness assumption (conditional-only).
+    vi.spyOn(aiApiClient, "post").mockResolvedValue({
+      data: {
+        realizable: false,
+        good: "count == 1",
+        objective: "recurrence",
+        controllable: ["c"],
+        holds_under: [
+          {
+            phi: "GF(e == 0)",
+            kind: "InputFairness",
+            non_vacuous: true,
+            engine: "two-player GR(1) game realizable under env-input fairness",
+          },
+        ],
+      } as Btor2GameResponse,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as unknown,
+    });
+
+    const out = await runBtor2Game({
+      content: "…buffer btor2…",
+      good: "count == 1",
+      controllable: ["c"],
+      objective: "recurrence",
+      discover_assumptions: true,
+    });
+
+    expect(out.realizable).toBe(false);
+    expect(out.holds_under?.[0]?.kind).toBe("InputFairness");
+    expect(out.holds_under?.[0]?.phi).toBe("GF(e == 0)");
+  });
 });
