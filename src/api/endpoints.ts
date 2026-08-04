@@ -569,7 +569,10 @@ export interface DiscoveredAssumption {
     | "InputConjunction"
     | "InputSchedule"
     | "ResetEventually"
-    | "EnvStrategy";
+    | "EnvStrategy"
+    // A LIVENESS/fairness assumption `GF(in == v)` (env input holds `v` infinitely often) under which
+    // an unrealizable RECURRENCE game `GF good` becomes realizable (`GF a → GF good`, GR(1) 1-pair).
+    | "InputFairness";
   non_vacuous: boolean;
   engine: string;
 }
