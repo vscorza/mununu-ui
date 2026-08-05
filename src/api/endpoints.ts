@@ -845,9 +845,11 @@ export interface Btor2GameResponse {
   /** The controller-owned inputs, echoed for provenance. */
   controllable: string[];
   /**
-   * The winner's strategy: a `controller_strategy` (when realizable) or an
-   * `environment_counterstrategy` (the witness for why no controller works — e.g. an ack the
-   * environment withholds, motivating an assume-guarantee assumption).
+   * The winner's strategy. For `objective = "reach"`: a `controller_strategy` (attractor) when
+   * realizable, else an `environment_counterstrategy` (why no controller works — e.g. an ack the
+   * environment withholds). For `objective = "recurrence"`: the CONTROLLER's Büchi strategy (force
+   * `good` infinitely often) when realizable, absent when not — the unrealizable recurrence witness is
+   * `stall_lasso`.
    *
    * Present only for a STATE-register `good`: the strategy is state-indexed, so it is absent for a
    * combinational-output / relational target (a FIFO's `full_o`), where `realizable` + `holds_under`
