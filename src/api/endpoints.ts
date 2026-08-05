@@ -816,6 +816,22 @@ export type TwoPlayerStrategy =
     };
 
 /** Response for `POST /api/v1/btor2/game`. */
+/**
+ * P2.5-F (b) — the ENVIRONMENT STARVATION LASSO for an unrealizable RECURRENCE game: a concrete play
+ * (reset → repeating `¬good` `cycle`, with the env's per-step `inputs`) proving the environment can
+ * starve `good` forever — the actionable Büchi counterpart of `realizable = false`. The `inputs` are
+ * the actionable signal (e.g. the ack the environment holds low each cycle); replay them in Verilator
+ * to observe `good` false on the cycle.
+ */
+export interface StallLassoView {
+  /** States from reset up to (excluding) the cycle entry. */
+  prefix: CexCellView[][];
+  /** The repeating `¬good` cycle; the last state steps back to `cycle[0]`. */
+  cycle: CexCellView[][];
+  /** The environment's input at each transition of `prefix ++ cycle` (`inputs[i]` drives step `i`). */
+  inputs?: CexCellView[][];
+}
+
 export interface Btor2GameResponse {
   /**
    * `true` = the controller can force `good` against every environment move (realizable);
@@ -844,6 +860,13 @@ export interface Btor2GameResponse {
    * `discover_assumptions` was requested and the game is unrealizable.
    */
   holds_under?: DiscoveredAssumption[];
+  /**
+   * The environment starvation lasso for an unrealizable RECURRENCE game (the Büchi analog of the
+   * reach counterstrategy in `strategy`): the concrete play where the environment starves `good`
+   * forever. Present only for `objective = "recurrence"` when unrealizable and a simple reachable
+   * force-`¬good`-forever region exists.
+   */
+  stall_lasso?: StallLassoView;
 }
 
 /**
