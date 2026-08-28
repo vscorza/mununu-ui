@@ -1104,6 +1104,9 @@ export interface UnsupportedAssertionView {
 export interface ShadowSignalView {
   base: string;
   width: number;
+  /** Deepest `$past` history depth synthesised for `base` (1 for the depth-1
+   * family; `k` for `$past(base, k)`). Optional for backward compatibility. */
+  depth?: number;
 }
 
 /** XL.6a — response for `POST /api/v1/sv/extract-sva`. */
