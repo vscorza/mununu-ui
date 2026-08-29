@@ -1145,6 +1145,13 @@ export interface SvVerifyAutoRequest {
   /** Force the slang RTL front-end (`read_slang`) for modern-SV constructs
    * yosys/sv2v reject. Requires the yosys-slang plugin server-side. Default `false`. */
   use_slang?: boolean;
+  /** Module-parameter overrides applied via yosys `chparam -set` before the lift
+   * (mirrors the CLI `--param`). Each entry is `"NAME=VALUE"` (applied to the top
+   * module) or `"MODULE.NAME=VALUE"`. Shrinks a parameterised timing interval so
+   * its counters get smaller, without a wrapper module. A parameter yosys cannot
+   * apply is an ERROR (never silently dropped); verdicts are scoped to the applied
+   * values (surfaced as a `parameter-override` note). Default empty. */
+  params?: string[];
   /** Max CEGAR iterations per property (default 16). */
   max_iterations?: number;
   /** Must-edge inference per property (`"off"` default; `"smt-hyper-must"` for
