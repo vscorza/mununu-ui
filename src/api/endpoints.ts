@@ -1319,6 +1319,15 @@ export interface SvVerifyAutoRequest {
    * derived predicates degrade to `Skipped` (they await the R-F5.6 COI work).
    */
   engine?: string;
+  /** mununu#476 item 4 — disable antecedent shadow-register synthesis for
+   * the exact-symbolic engine (default `false` ⇒ shadow-synth enabled, the
+   * shipped behaviour). Set `true` to force the Phase A refusal for SVA
+   * `|=>` properties whose antecedent combinationally reaches primary
+   * inputs — differential-oracle / debug knob mirrored on the CLI as
+   * `--no-antecedent-shadow` and via the process-global
+   * `MUNUNU_NO_ANTECEDENT_SHADOW=1` env var. Per-request opt-out here is
+   * thread-safe (unlike the env var). */
+  no_antecedent_shadow?: boolean;
 }
 
 /** One register's concrete value in a counterexample state. */
