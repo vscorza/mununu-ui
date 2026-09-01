@@ -1078,6 +1078,13 @@ export interface SvMutateRequest extends SvLiftFields {
   gate_reset?: boolean;
   /** Must-edge inference (`"smt-hyper-must"` for a recoverability drop-reset flip). */
   must_edge_inference?: string;
+  /** mununu#475 item 4 — parity with `/sv/verify-auto`'s `params`. Override
+   * module parameters before elaboration; each entry is `"NAME=VALUE"`
+   * (top-module scope) or `"MODULE.NAME=VALUE"` (submodule scope; slang
+   * applies it top-level by bare name). Shrinks a parameterised design so
+   * its counters fit the bit-blast cap during the baseline + mutant
+   * re-verify. A malformed entry is a HARD `BadRequest`. */
+  params?: string[];
 }
 
 /** The available mutation targets (the `list` response payload). */
