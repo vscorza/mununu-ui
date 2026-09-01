@@ -19,7 +19,12 @@ const flipResponse: SvMutateResponse = {
 
 const listResponse: SvMutateResponse = {
   mutation: null,
-  targets: { stick: ["state_q", "sub_sm"], drop_reset: ["state_q"] },
+  targets: {
+    stick: ["state_q", "sub_sm"],
+    drop_reset: ["state_q"],
+    off_by_one: ["cnt"],
+    invert_cond: ["below"],
+  },
   properties: [],
   flipped: 0,
   unflipped: 0,
