@@ -1063,6 +1063,75 @@ export const runSvLint = async (
 };
 
 /**
+ * Request for `POST /api/v1/sv/mutate` (#468) — apply a NAMED structural mutation
+ * and re-verify to check the property verdicts flip (property adequacy).
+ */
+export interface SvMutateRequest extends SvLiftFields {
+  /** The mutation: `"stick:<reg>"` (freeze a register) or `"drop-reset:<reg>"`
+   * (remove a register's reset arm). Required unless `list` is true. */
+  mutation?: string;
+  /** When true, ignore `mutation` and return the available mutation TARGETS. */
+  list?: boolean;
+  /** Engine selector (as verify-auto). Default `portfolio-sequential`. */
+  engine?: string;
+  /** Reset-gating (default true). */
+  gate_reset?: boolean;
+  /** Must-edge inference (`"smt-hyper-must"` for a recoverability drop-reset flip). */
+  must_edge_inference?: string;
+}
+
+/** The available mutation targets (the `list` response payload). */
+export interface SvMutateTargets {
+  /** Every named register — a `stick:<reg>` target. */
+  stick: string[];
+  /** Every named register whose next is a reset mux — a `drop-reset:<reg>` target. */
+  drop_reset: string[];
+}
+
+/** One property's baseline-vs-mutant verdict in a {@link SvMutateResponse}. */
+export interface SvMutatePropertyFlip {
+  /** The property (assertion) name. */
+  name: string;
+  /** Canonical verdict on the design as-lifted. */
+  baseline: string;
+  /** Canonical verdict on the mutated design. */
+  mutant: string;
+  /** `baseline != mutant` — the mutation was caught by this property. */
+  flipped: boolean;
+}
+
+/** Response for `POST /api/v1/sv/mutate`. */
+export interface SvMutateResponse {
+  /** The applied mutation's label (null on a `list` request). */
+  mutation: string | null;
+  /** Available targets (present on a `list` request, null otherwise). */
+  targets: SvMutateTargets | null;
+  /** Per-property flips (empty on a `list` request). */
+  properties: SvMutatePropertyFlip[];
+  /** Count of properties the mutation flipped (caught it). */
+  flipped: number;
+  /** Count the mutation did NOT flip — the property-adequacy finding. */
+  unflipped: number;
+}
+
+/**
+ * Apply a NAMED structural mutation to a SystemVerilog design and re-verify,
+ * checking that the property verdicts FLIP (mutation testing / property adequacy);
+ * or (with `list`) enumerate the available mutation targets. A statement about the
+ * PROPERTIES, never a bug report about the design. Surface peer of the CLI
+ * `mununu sv mutate`.
+ */
+export const runSvMutate = async (
+  request: SvMutateRequest,
+): Promise<SvMutateResponse> => {
+  const response = await aiApiClient.post<SvMutateResponse>(
+    "/sv/mutate",
+    request,
+  );
+  return response.data;
+};
+
+/**
  * cegar-extraction Stage 2 — SV-direct CEGAR request
  * (`POST /api/v1/sv/cegar`). Mirrors the CLI `mununu sv cegar`: the
  * backend lifts SystemVerilog to a flattened BTOR2 (sv2v + Yosys) and
