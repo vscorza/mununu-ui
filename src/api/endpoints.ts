@@ -1024,6 +1024,44 @@ export const runSvCheckFsm = async (
   return response.data;
 };
 
+/** Request for `POST /api/v1/sv/lint` (SV-direct partial-write preflight). */
+export type SvLintRequest = SvLiftFields;
+
+/**
+ * One `sv lint` finding — a named signal whose partial-write lift reaches an
+ * undriven (free-input) register bit, so a state predicate over it would be
+ * *refused* (skipped) by the verifier. Element of {@link SvLintResponse}.
+ */
+export interface SvLintFinding {
+  /** The offending signal's symbol (register name or a combinational output). */
+  signal: string;
+  /** `"register"` (the root register) | `"output"` (a downstream output of one). */
+  kind: "register" | "output";
+}
+
+/** Response for `POST /api/v1/sv/lint`. */
+export interface SvLintResponse {
+  /** Number of named signals flagged (registers + downstream outputs). */
+  signals_flagged: number;
+  /** Number of the flagged signals that are state registers (the root findings). */
+  registers_flagged: number;
+  /** Per-signal findings (sorted by name). */
+  findings: SvLintFinding[];
+}
+
+/**
+ * Lift SV and report the partial-write registers the verifier cannot keep
+ * faithfully (monono#partsel) — the CI-time preflight for the #464/#465 refusal,
+ * in ~lift cost with no model checking. Read-only: changes no verdict. Surface
+ * peer of the CLI `mununu sv lint`.
+ */
+export const runSvLint = async (
+  request: SvLintRequest,
+): Promise<SvLintResponse> => {
+  const response = await aiApiClient.post<SvLintResponse>("/sv/lint", request);
+  return response.data;
+};
+
 /**
  * cegar-extraction Stage 2 — SV-direct CEGAR request
  * (`POST /api/v1/sv/cegar`). Mirrors the CLI `mununu sv cegar`: the
