@@ -1086,6 +1086,10 @@ export interface SvMutateTargets {
   stick: string[];
   /** Every named register whose next is a reset mux — a `drop-reset:<reg>` target. */
   drop_reset: string[];
+  /** Every named register compared against a constant — an `off-by-one:<reg>` target. */
+  off_by_one: string[];
+  /** Every named 1-bit signal — an `invert-cond:<sig>` target. */
+  invert_cond: string[];
 }
 
 /** One property's baseline-vs-mutant verdict in a {@link SvMutateResponse}. */
