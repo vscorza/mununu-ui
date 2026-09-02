@@ -530,6 +530,43 @@ export const runBtor2VerifyLivenessAll = async (
   return response.data;
 };
 
+/**
+ * Request for the fair-cycle response-liveness endpoint
+ * (`POST /api/v1/btor2/verify-liveness-under-fairness`, mununu#477 Option B).
+ * Mirrors the CLI `mununu btor2 verify-liveness-under-fairness`: decides
+ * `(⋀ⱼ GF fairⱼ) → AG(request → AF grant)` via the Emerson–Lei fair-cycle l2s.
+ * Empty `fairness` recovers {@link Btor2VerifyLivenessRequest} exactly.
+ */
+export interface Btor2VerifyLivenessUnderFairnessRequest {
+  /** BTOR2 source content. */
+  content: string;
+  /** The request atom (`"REG op VALUE"`). */
+  request: string;
+  /** The grant atom that must eventually follow on every path. */
+  grant: string;
+  /**
+   * Fairness atoms — each a `"REG op VALUE"` register-comparison atom whose
+   * satisfaction is assumed to hold infinitely often on every path considered.
+   * Empty recovers the plain `verify-liveness` semantics.
+   */
+  fairness?: string[];
+}
+
+/**
+ * Decide `(⋀ⱼ GF fairⱼ) → AG(request → AF grant)` via the Emerson–Lei fair-cycle
+ * l2s + the multi-engine portfolio. Reuses the {@link Btor2VerifyLivenessResponse}
+ * shape. Z3-/subprocess-heavy — uses the extended (`aiApiClient`, 120s) client.
+ */
+export const runBtor2VerifyLivenessUnderFairness = async (
+  request: Btor2VerifyLivenessUnderFairnessRequest,
+): Promise<Btor2VerifyLivenessResponse> => {
+  const response = await aiApiClient.post<Btor2VerifyLivenessResponse>(
+    "/btor2/verify-liveness-under-fairness",
+    request,
+  );
+  return response.data;
+};
+
 // Recoverability AG EF good (matches mununu backend /api/v1/btor2/verify-recoverability)
 
 /** A concrete assignment of config leaves to values — one point in the config space. */
