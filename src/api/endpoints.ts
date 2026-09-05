@@ -1061,19 +1061,38 @@ export const runSvCheckFsm = async (
   return response.data;
 };
 
-/** Request for `POST /api/v1/sv/lint` (SV-direct partial-write preflight). */
+/** Request for `POST /api/v1/sv/lint` (SV-direct structural preflight). */
 export type SvLintRequest = SvLiftFields;
 
 /**
- * One `sv lint` finding — a named signal whose partial-write lift reaches an
- * undriven (free-input) register bit, so a state predicate over it would be
- * *refused* (skipped) by the verifier. Element of {@link SvLintResponse}.
+ * Which `sv lint` check produced a finding.
+ *
+ * - `"undriven-partial-write"` — the register's partial-write lift reaches a
+ *   free input, so a state predicate over it is *refused* by the verifier.
+ * - `"registered-array-read-moving-address"` (mununu#496) — a registered array
+ *   read (`q <= mem[a_q];`) whose address register can change in the same cycle
+ *   its data is consumed, with no register recording the correspondence.
+ */
+export type SvLintRule =
+  | "undriven-partial-write"
+  | "registered-array-read-moving-address";
+
+/**
+ * One `sv lint` finding — a named signal a structural check flagged. Element of
+ * {@link SvLintResponse}.
  */
 export interface SvLintFinding {
   /** The offending signal's symbol (register name or a combinational output). */
   signal: string;
   /** `"register"` (the root register) | `"output"` (a downstream output of one). */
   kind: "register" | "output";
+  /** Which check fired. */
+  rule: SvLintRule;
+  /**
+   * Human-readable specifics — the address register and the fix, for the
+   * array-read rule. Absent when the rule needs no elaboration.
+   */
+  detail?: string;
 }
 
 /** Response for `POST /api/v1/sv/lint`. */
@@ -1082,15 +1101,15 @@ export interface SvLintResponse {
   signals_flagged: number;
   /** Number of the flagged signals that are state registers (the root findings). */
   registers_flagged: number;
-  /** Per-signal findings (sorted by name). */
+  /** Per-signal findings (sorted by rule, then by name). */
   findings: SvLintFinding[];
 }
 
 /**
- * Lift SV and report the partial-write registers the verifier cannot keep
- * faithfully (monono#partsel) — the CI-time preflight for the #464/#465 refusal,
- * in ~lift cost with no model checking. Read-only: changes no verdict. Surface
- * peer of the CLI `mununu sv lint`.
+ * Lift SV and run the structural preflight checks — partial-write registers the
+ * verifier cannot keep faithfully (monono#partsel) and registered array reads
+ * against a moving address (mununu#496) — in ~lift cost with no model checking.
+ * Read-only: changes no verdict. Surface peer of the CLI `mununu sv lint`.
  */
 export const runSvLint = async (
   request: SvLintRequest,
